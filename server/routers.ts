@@ -2291,7 +2291,7 @@ export const appRouter = router({
   message: router({
     // Get messages for a booking
     getForBooking: protectedProcedure
-      .input(z.object({ bookingId: z.number().int().positive() }))
+      .input(z.object({ bookingId: bookingIdInput }).strict())
       .query(async ({ ctx, input }) => {
         // Ownership check: verify user is a party to this booking
         const booking = await db.getBookingById(input.bookingId);
@@ -2312,10 +2312,10 @@ export const appRouter = router({
     // Send message
     send: protectedProcedure
       .input(z.object({
-        bookingId: z.number().int().positive(),
-        receiverId: z.number().int().positive(),
-        messageText: z.string().min(1).max(5000),
-      }))
+        bookingId: bookingIdInput,
+        receiverId: z.number().int().safe().positive(),
+        messageText: z.string().trim().min(1).max(5_000),
+      }).strict())
       .mutation(async ({ ctx, input }) => {
         // Ownership check: verify user is a party to this booking
         const booking = await db.getBookingById(input.bookingId);
@@ -2359,12 +2359,12 @@ export const appRouter = router({
     // Send rider template as a message
     sendRider: protectedProcedure
       .input(z.object({
-        bookingId: z.number().int().positive(),
-        receiverId: z.number().int().positive(),
-        riderTemplateId: z.number().int().positive(),
-        riderTemplateName: z.string().min(1).max(200),
-        riderTemplateData: z.record(z.string(), z.any()),
-      }))
+        bookingId: bookingIdInput,
+        receiverId: z.number().int().safe().positive(),
+        riderTemplateId: legacyRiderTemplateId,
+        riderTemplateName: legacyRiderTemplateName,
+        riderTemplateData: legacyRiderTemplateData,
+      }).strict())
       .mutation(async ({ ctx, input }) => {
         // Ownership check: verify user is a party to this booking
         const booking = await db.getBookingById(input.bookingId);
@@ -2410,7 +2410,7 @@ export const appRouter = router({
 
     // Mark message as read
     markAsRead: protectedProcedure
-      .input(z.object({ id: z.number().int().positive() }))
+      .input(z.object({ id: z.number().int().safe().positive() }).strict())
       .mutation(async ({ ctx, input }) => {
         const message = await db.getMessageById(input.id);
         if (!message) {
@@ -2425,7 +2425,7 @@ export const appRouter = router({
     
     // Mark all messages in a booking as read
     markBookingAsRead: protectedProcedure
-      .input(z.object({ bookingId: z.number().int().positive() }))
+      .input(z.object({ bookingId: bookingIdInput }).strict())
       .mutation(async ({ ctx, input }) => {
         const booking = await db.getBookingById(input.bookingId);
         if (!booking) {
@@ -2444,8 +2444,20 @@ export const appRouter = router({
     
     // Get unread message count for a specific booking
     getUnreadCount: protectedProcedure
-      .input(z.object({ bookingId: z.number().int().positive() }))
+      .input(z.object({ bookingId: bookingIdInput }).strict())
       .query(async ({ ctx, input }) => {
+        const booking = await db.getBookingById(input.bookingId);
+        if (!booking) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking not found' });
+        }
+        const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+        const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+        const isParty = (artistProfile && booking.artistId === artistProfile.id)
+          || (venueProfile && booking.venueId === venueProfile.id)
+          || ctx.user.role === 'admin';
+        if (!isParty) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'You do not have access to this booking\'s messages' });
+        }
         const count = await db.getUnreadMessageCountByBooking(input.bookingId, ctx.user.id);
         return { count };
       }),
@@ -2460,9 +2472,9 @@ export const appRouter = router({
     // Send quick message from calendar (creates booking if needed)
     sendQuickMessage: venueProcedure
       .input(z.object({
-        artistId: z.number(),
-        message: z.string().min(1),
-      }))
+        artistId: artistProfileId,
+        message: z.string().trim().min(1).max(5_000),
+      }).strict())
       .mutation(async ({ ctx, input }) => {
         // Get venue profile
         const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);

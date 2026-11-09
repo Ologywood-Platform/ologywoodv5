@@ -245,6 +245,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Shared administrator IDs and pagination use safe integer limits; user search/reasons/notes/audit text are bounded and strict; dispute refund amounts are finite and capped; payout/release/video/profile/user mutations reject malformed IDs; bulk profile reminders cap target IDs and total fan-out at 500; release moderation and activity-log objects reject unknown fields; and administrator email templates escape names while delivery logs omit recipient PII.
    - Admin/activity/user-management/payout/dispute regressions pass 57/57, with TypeScript and production build validation passing. No moderation changes, payouts, refunds, reminders, emails, or records were changed.
 
+54. **Legacy messaging boundary — resolved in this increment.**
+   - Booking/message/receiver/rider IDs use safe positive integers; message and quick-message text is trimmed and bounded; rider names/data reuse bounded strict legacy schemas; all message input objects reject unknown fields; and unread-count reads now verify the caller is a booking party or admin before querying.
+   - Messaging/booking/workflow/notification/admin regressions pass 33/33, with TypeScript and production build validation passing. No messages, riders, notifications, bookings, or records were changed.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.

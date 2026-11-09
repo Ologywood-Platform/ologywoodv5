@@ -63,7 +63,22 @@ describe('booking message authorization', () => {
       routerSource.indexOf('  message: router({'),
       routerSource.indexOf('  // Subscription Management'),
     );
-    expect(messageBlock.match(/z\.number\(\)\.int\(\)\.positive\(\)/g)?.length).toBeGreaterThanOrEqual(7);
-    expect(messageBlock).toContain('riderTemplateName: z.string().min(1).max(200)');
+    expect(messageBlock).not.toContain('z.number().int().positive()');
+    expect(messageBlock).toContain('getForBooking: protectedProcedure');
+    expect(messageBlock).toContain('bookingId: bookingIdInput');
+    expect(messageBlock).toContain('receiverId: z.number().int().safe().positive()');
+    expect(messageBlock).toContain('riderTemplateName: legacyRiderTemplateName');
+    expect(messageBlock).toContain('riderTemplateData: legacyRiderTemplateData');
+    expect(messageBlock).toContain("message: z.string().trim().min(1).max(5_000)");
+  });
+
+  it('party-scopes unread-count reads', () => {
+    const unreadBlock = routerSource.slice(
+      routerSource.indexOf('    // Get unread message count for a specific booking'),
+      routerSource.indexOf('    // Get total unread message count for current user'),
+    );
+    expect(unreadBlock).toContain('db.getBookingById(input.bookingId)');
+    expect(unreadBlock).toContain("code: 'FORBIDDEN'");
+    expect(unreadBlock).toContain('db.getUnreadMessageCountByBooking(input.bookingId, ctx.user.id)');
   });
 });
