@@ -307,6 +307,9 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
 71. **Native merch seller-order boundary — resolved in this increment.**
    - Seller order lists and fulfillment updates now require an artist or venue seller role and remain scoped to `sellerUserId = ctx.user.id`; strict positive order IDs and bounded tracking, pickup, and fulfillment fields remain enforced.
    - Checkout-result, buyer-order, and seller-order database failures now map to stable client-safe errors, and fulfillment email logs expose only an error kind. Merch-order security and commerce regressions pass 10/10, with TypeScript and production build passing. No orders, checkout sessions, fulfillment statuses, emails, payments, or records were changed during validation.
+72. **Ticketing checkout and transfer boundary — resolved in this increment.**
+   - Ticket checkout totals are capped at $1,000,000 before platform fees and order creation. Stripe checkout failures are logged by error kind, the newly created pending order is cancelled best-effort, and callers receive a stable retry-safe message rather than provider details.
+   - Ticket-transfer email names, messages, event fields, and locations are escaped; acceptance links are restricted to HTTP(S); subjects strip CRLF; and email-delivery logs expose only error kind. Ticketing security/commerce regressions pass 12/12, with TypeScript and production build passing. No ticket orders, checkout sessions, transfers, emails, payments, or records were changed during validation.
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.

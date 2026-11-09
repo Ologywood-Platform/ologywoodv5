@@ -24,6 +24,25 @@ describe('Ticketing security boundaries', () => {
     expect(source).not.toContain("const origin = (ctx.req as any)?.headers?.origin || process.env.BASE_URL");
   });
 
+  it('bounds ticket checkout totals and redacts Stripe failures', () => {
+    const source = read('./routers/ticketing.ts');
+    expect(source).toContain('const MAX_TICKET_ORDER_CENTS = 100_000_000');
+    expect(source).toContain('This ticket order exceeds the maximum checkout amount.');
+    expect(source).toContain("Stripe checkout creation failed', { kind: error instanceof Error ? error.name : 'UnknownError' }");
+    expect(source).toContain('Unable to start ticket checkout. Please try again.');
+    expect(source).toContain(".set({ status: 'cancelled' })");
+  });
+
+  it('escapes ticket transfer email values and sanitizes its subject and link', () => {
+    const source = read('./routers/ticketing.ts');
+    expect(source).toContain("import { escapeFanEmailHtml, safeFanEmailHref, sanitizeFanEmailSubject }");
+    expect(source).toContain('const safeMessage = escapeFanEmailHtml(input.message)');
+    expect(source).toContain('const safeAcceptUrl = safeFanEmailHref(acceptUrl)');
+    expect(source).toContain('subject: sanitizeFanEmailSubject');
+    expect(source).toContain("{ kind: emailErr instanceof Error ? emailErr.name : 'UnknownError' }");
+    expect(source).not.toContain("console.error('[Transfer] Failed to send transfer email:', emailErr)");
+  });
+
   it('party-scopes transfer history and does not spread private transfer rows publicly', () => {
     const source = read('./routers/ticketing.ts');
     expect(source).toContain("You can only view transfers for your own tickets");

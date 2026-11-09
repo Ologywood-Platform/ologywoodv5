@@ -9,6 +9,9 @@ import { TRPCError } from '@trpc/server';
 import { randomUUID } from 'crypto';
 import { formatDateOnly } from '../../shared/dateOnly';
 import { trustedCheckoutOrigin } from '../services/trustedOrigin';
+import { escapeFanEmailHtml, safeFanEmailHref, sanitizeFanEmailSubject } from '../services/fanEmailFormatting';
+
+const MAX_TICKET_ORDER_CENTS = 100_000_000;
 
 async function getDatabase() {
   const instance = await getDb();
@@ -266,6 +269,10 @@ export const ticketingRouter = router({
         });
       }
 
+      if (totalAmount > MAX_TICKET_ORDER_CENTS) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'This ticket order exceeds the maximum checkout amount.' });
+      }
+
       let promoDiscount = 0;
       let appliedPromoCode: string | null = null;
       if (input.promoCode?.trim()) {
@@ -414,7 +421,20 @@ export const ticketingRouter = router({
         console.log(`[Ticketing] No Connect account for artist ${event.artistId}, payment goes to platform`);
       }
 
-      const session = await stripe.checkout.sessions.create(sessionParams);
+      let session: Awaited<ReturnType<typeof stripe.checkout.sessions.create>>;
+      try {
+        session = await stripe.checkout.sessions.create(sessionParams);
+      } catch (error) {
+        console.error('[Ticketing] Stripe checkout creation failed', { kind: error instanceof Error ? error.name : 'UnknownError' });
+        try {
+          await dbInstance.update(ticketOrders)
+            .set({ status: 'cancelled' })
+            .where(and(eq(ticketOrders.id, order.id), eq(ticketOrders.status, 'pending')));
+        } catch (cleanupError) {
+          console.error('[Ticketing] Failed to cancel abandoned ticket order', { kind: cleanupError instanceof Error ? cleanupError.name : 'UnknownError' });
+        }
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Unable to start ticket checkout. Please try again.' });
+      }
 
       // Update order with Stripe session ID
       await (await getDatabase()).update(ticketOrders)
@@ -879,6 +899,13 @@ export const ticketingRouter = router({
         const senderName = order.buyerName || order.buyerEmail;
         const eventTitle = event?.eventTitle || 'an event';
         const eventDate = formatDateOnly(event?.eventDate, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+        const safeSenderName = escapeFanEmailHtml(senderName);
+        const safeEventTitle = escapeFanEmailHtml(eventTitle);
+        const safeEventDate = escapeFanEmailHtml(eventDate);
+        const safeLocation = escapeFanEmailHtml(event?.location);
+        const safeTierName = escapeFanEmailHtml(tier?.name || 'General');
+        const safeMessage = escapeFanEmailHtml(input.message);
+        const safeAcceptUrl = safeFanEmailHref(acceptUrl);
 
         const html = `
           <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -888,19 +915,19 @@ export const ticketingRouter = router({
             <div style="background: #eff6ff; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 24px;">
               <div style="font-size: 36px; margin-bottom: 8px;">\uD83C\uDF81</div>
               <h2 style="margin: 0; color: #1e40af; font-size: 20px;">You've Got a Ticket!</h2>
-              <p style="color: #2563eb; margin: 8px 0 0; font-size: 14px;">${senderName} sent you a ticket</p>
+              <p style="color: #2563eb; margin: 8px 0 0; font-size: 14px;">${safeSenderName} sent you a ticket</p>
             </div>
-            ${input.message ? `<div style="background: #f9fafb; padding: 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid #7c3aed;"><p style="color: #333; font-size: 14px; margin: 0; font-style: italic;">&ldquo;${input.message}&rdquo;</p></div>` : ''}
+            ${input.message ? `<div style="background: #f9fafb; padding: 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid #7c3aed;"><p style="color: #333; font-size: 14px; margin: 0; font-style: italic;">&ldquo;${safeMessage}&rdquo;</p></div>` : ''}
             <div style="background: #f9fafb; padding: 16px; border-radius: 8px; margin: 20px 0;">
               <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
-                <tr><td style="padding: 6px 0; color: #6b7280; width: 100px;">Event</td><td style="padding: 6px 0; color: #111; font-weight: bold;">${eventTitle}</td></tr>
-                <tr><td style="padding: 6px 0; color: #6b7280;">Date</td><td style="padding: 6px 0; color: #111;">${eventDate}</td></tr>
-                ${event?.location ? `<tr><td style="padding: 6px 0; color: #6b7280;">Location</td><td style="padding: 6px 0; color: #111;">${event.location}</td></tr>` : ''}
-                <tr><td style="padding: 6px 0; color: #6b7280;">Ticket</td><td style="padding: 6px 0; color: #111;">${tier?.name || 'General'}</td></tr>
+                <tr><td style="padding: 6px 0; color: #6b7280; width: 100px;">Event</td><td style="padding: 6px 0; color: #111; font-weight: bold;">${safeEventTitle}</td></tr>
+                <tr><td style="padding: 6px 0; color: #6b7280;">Date</td><td style="padding: 6px 0; color: #111;">${safeEventDate}</td></tr>
+                ${event?.location ? `<tr><td style="padding: 6px 0; color: #6b7280;">Location</td><td style="padding: 6px 0; color: #111;">${safeLocation}</td></tr>` : ''}
+                <tr><td style="padding: 6px 0; color: #6b7280;">Ticket</td><td style="padding: 6px 0; color: #111;">${safeTierName}</td></tr>
               </table>
             </div>
             <div style="text-align: center; margin: 30px 0;">
-              <a href="${acceptUrl}" style="display: inline-block; background: #7c3aed; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">Accept Ticket</a>
+              <a href="${safeAcceptUrl}" style="display: inline-block; background: #7c3aed; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">Accept Ticket</a>
             </div>
             <p style="color: #6b7280; font-size: 13px; text-align: center;">This link will expire when the event starts. If you don't want this ticket, simply ignore this email.</p>
             <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
@@ -915,11 +942,11 @@ export const ticketingRouter = router({
 
         await sendEmail({
           to: input.toEmail,
-          subject: `\uD83C\uDF81 ${senderName} sent you a ticket to ${eventTitle}!`,
+          subject: sanitizeFanEmailSubject(`🎁 ${senderName} sent you a ticket to ${eventTitle}!`),
           html,
         });
       } catch (emailErr) {
-        console.error('[Transfer] Failed to send transfer email:', emailErr);
+        console.error('[Transfer] Failed to send transfer email:', { kind: emailErr instanceof Error ? emailErr.name : 'UnknownError' });
       }
 
       return { success: true, transferId: transfer.id, transferCode };
