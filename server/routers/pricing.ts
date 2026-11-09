@@ -11,21 +11,30 @@ import {
 } from "../services/pricingTierService";
 import { getStripePriceId, STRIPE_PRICING } from "../config/stripePricing";
 
+const PRICING_FEATURES = [
+  "basicProfile", "messaging", "bookingCalendar", "paymentProcessing", "emailSupport",
+  "mobileResponsive", "advancedProfile", "prioritySupport", "analytics", "riderBuilder",
+  "contractTemplates", "paymentHistory", "bulkMessaging", "featuredProfile", "customBranding",
+  "whiteLabel", "whiteLabelAdvanced", "sponsorShowcase", "sponsorAnalytics", "mediaKit",
+] as const;
+const pricingFeature = z.enum(PRICING_FEATURES);
+
 export const pricingRouter = router({
   /**
    * Get current user's subscription tier and usage
    */
-  getCurrentTier: protectedProcedure.query(async ({ ctx }) => {
-    const subscription = await getUserSubscription(ctx.user.id);
-    const bookingCount = await getCurrentMonthBookingCount(ctx.user.id);
-    const tier = PRICING_TIERS[subscription.tier as keyof typeof PRICING_TIERS];
+    getCurrentTier: protectedProcedure.query(async ({ ctx }) => {
+      const subscription = await getUserSubscription(ctx.user.id);
+      const bookingCount = await getCurrentMonthBookingCount(ctx.user.id);
+      const tierKey = subscription.tier in PRICING_TIERS ? subscription.tier as keyof typeof PRICING_TIERS : 'free';
+      const tier = PRICING_TIERS[tierKey];
 
     return {
       isComplimentary: subscription.isComplimentary === true,
       accessSource: subscription.accessSource ?? 'subscription',
       subscriptionPrice: subscription.isComplimentary ? 0 : tier.price,
       complimentaryExpiresAt: subscription.complimentaryExpiresAt ?? null,
-      tier: subscription.tier,
+      tier: tierKey,
       tierName: tier.name,
       status: subscription.status,
       trialEndsAt: subscription.trialEndsAt,
@@ -66,11 +75,11 @@ export const pricingRouter = router({
    * Check feature access
    */
   hasFeature: protectedProcedure
-    .input(z.object({ feature: z.string() }))
+    .input(z.object({ feature: pricingFeature }).strict())
     .query(async ({ ctx, input }) => {
       return await hasFeatureAccess(
         ctx.user.id,
-        input.feature as any
+        input.feature
       );
     }),
 
@@ -118,7 +127,8 @@ export const pricingRouter = router({
    */
   getBookingUsage: protectedProcedure.query(async ({ ctx }) => {
     const subscription = await getUserSubscription(ctx.user.id);
-    const tier = PRICING_TIERS[subscription.tier as keyof typeof PRICING_TIERS];
+      const tierKey = subscription.tier in PRICING_TIERS ? subscription.tier as keyof typeof PRICING_TIERS : 'free';
+      const tier = PRICING_TIERS[tierKey];
     const current = await getCurrentMonthBookingCount(ctx.user.id);
 
     return {
