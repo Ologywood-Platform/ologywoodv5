@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import express from 'express';
 import request from 'supertest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import sitemapRoutes, {
   PUBLIC_STATIC_PAGES,
   artistSitemapPath,
@@ -8,6 +10,8 @@ import sitemapRoutes, {
   merchSitemapPath,
   venueSitemapPath,
 } from './sitemapRoutes';
+
+const source = readFileSync(resolve(__dirname, 'sitemapRoutes.ts'), 'utf8');
 
 describe('Sitemap and Robots.txt Routes', () => {
   let app: express.Application;
@@ -99,6 +103,19 @@ describe('Sitemap and Robots.txt Routes', () => {
     it('should set proper cache headers for sitemap', async () => {
       const response = await request(app).get('/sitemap.xml');
       expect(response.headers['cache-control']).toBeDefined();
+    });
+
+    it('uses the approved origin instead of an arbitrary request host', async () => {
+      const previousBaseUrl = process.env.BASE_URL;
+      delete process.env.BASE_URL;
+      try {
+        const response = await request(app).get('/robots.txt').set('Host', 'attacker.example');
+        expect(response.text).not.toContain('attacker.example');
+        expect(response.text).toContain('Sitemap: https://www.ologywood.com/sitemap.xml');
+      } finally {
+        if (previousBaseUrl === undefined) delete process.env.BASE_URL;
+        else process.env.BASE_URL = previousBaseUrl;
+      }
     });
 
     it('should have home page with priority 1.0', async () => {
@@ -200,6 +217,13 @@ describe('Sitemap and Robots.txt Routes', () => {
   });
 
   describe('SEO Compliance', () => {
+    it('uses trusted-origin resolution and redacts sitemap failures', () => {
+      expect(source).toContain("import { trustedCheckoutOrigin } from '../services/trustedOrigin';");
+      expect(source).toContain('const trustedOrigin = trustedCheckoutOrigin(process.env.BASE_URL, requestOrigin);');
+      expect(source).toContain("kind: error instanceof Error ? error.name : 'UnknownError'");
+      expect(source).not.toContain('process.env.BASE_URL || `https://${req.get(\'host\')}`');
+    });
+
     it('should not include duplicate content URLs', async () => {
       const response = await request(app).get('/sitemap.xml');
       // Check that we use canonical URLs

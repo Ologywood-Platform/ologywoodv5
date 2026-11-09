@@ -11,6 +11,7 @@ import {
   venueProfiles,
 } from '../../drizzle/schema';
 import { getDb } from '../db';
+import { trustedCheckoutOrigin } from '../services/trustedOrigin';
 
 type SitemapPage = {
   url: string;
@@ -75,11 +76,16 @@ export function merchSitemapPath(title: string, id: number): string {
 }
 
 function normalizeBaseUrl(req: Request): string {
-  let baseUrl = process.env.BASE_URL || `https://${req.get('host')}`;
-  if (baseUrl.includes('ologywood.com') && !baseUrl.includes('www.')) {
-    baseUrl = baseUrl.replace('https://', 'https://www.');
+  const host = req.get('host');
+  const requestOrigin = req.get('origin') || (host ? `https://${host}` : undefined);
+  const trustedOrigin = trustedCheckoutOrigin(process.env.BASE_URL, requestOrigin);
+  try {
+    const parsed = new URL(trustedOrigin);
+    if (parsed.hostname === 'ologywood.com') parsed.hostname = 'www.ologywood.com';
+    return parsed.origin;
+  } catch {
+    return 'https://www.ologywood.com';
   }
-  return baseUrl.replace(/\/$/, '');
 }
 
 function toLastModified(value: Date | string | null | undefined): string | undefined {
@@ -123,7 +129,7 @@ router.get('/sitemap.xml', async (req: Request, res: Response) => {
             .where(ne(artistTeamMembers.role, 'owner'));
           teamMemberUserIds = new Set(teamMembers.map((member) => member.userId));
         } catch (error) {
-          console.error('Error fetching team members for sitemap filtering:', error);
+          console.error('Error fetching team members for sitemap filtering', { kind: error instanceof Error ? error.name : 'UnknownError' });
         }
 
         const artists = await database
@@ -153,7 +159,7 @@ router.get('/sitemap.xml', async (req: Request, res: Response) => {
             })),
         );
       } catch (error) {
-        console.error('Error fetching artists for sitemap:', error);
+        console.error('Error fetching artists for sitemap', { kind: error instanceof Error ? error.name : 'UnknownError' });
       }
 
       try {
@@ -178,7 +184,7 @@ router.get('/sitemap.xml', async (req: Request, res: Response) => {
             })),
         );
       } catch (error) {
-        console.error('Error fetching venues for sitemap:', error);
+        console.error('Error fetching venues for sitemap', { kind: error instanceof Error ? error.name : 'UnknownError' });
       }
 
       try {
@@ -203,7 +209,7 @@ router.get('/sitemap.xml', async (req: Request, res: Response) => {
             })),
         );
       } catch (error) {
-        console.error('Error fetching events for sitemap:', error);
+        console.error('Error fetching events for sitemap', { kind: error instanceof Error ? error.name : 'UnknownError' });
       }
 
       try {
@@ -229,7 +235,7 @@ router.get('/sitemap.xml', async (req: Request, res: Response) => {
             })),
         );
       } catch (error) {
-        console.error('Error fetching blog posts for sitemap:', error);
+        console.error('Error fetching blog posts for sitemap', { kind: error instanceof Error ? error.name : 'UnknownError' });
       }
 
       try {
@@ -255,7 +261,7 @@ router.get('/sitemap.xml', async (req: Request, res: Response) => {
             })),
         );
       } catch (error) {
-        console.error('Error fetching merchandise for sitemap:', error);
+        console.error('Error fetching merchandise for sitemap', { kind: error instanceof Error ? error.name : 'UnknownError' });
       }
 
       try {
@@ -278,7 +284,7 @@ router.get('/sitemap.xml', async (req: Request, res: Response) => {
           })),
         );
       } catch (error) {
-        console.error('Error fetching Ology Live experiences for sitemap:', error);
+        console.error('Error fetching Ology Live experiences for sitemap', { kind: error instanceof Error ? error.name : 'UnknownError' });
       }
     }
 
@@ -287,7 +293,7 @@ router.get('/sitemap.xml', async (req: Request, res: Response) => {
     res.setHeader('Cache-Control', 'public, max-age=86400');
     res.send(xml);
   } catch (error) {
-    console.error('Error generating sitemap:', error);
+    console.error('Error generating sitemap', { kind: error instanceof Error ? error.name : 'UnknownError' });
     res.status(500).send('Error generating sitemap');
   }
 });

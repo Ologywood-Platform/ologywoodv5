@@ -292,6 +292,9 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
 66. **Public OG metadata canonical origins — resolved in this increment.**
    - Artist, venue, event, blog, project, and static OG handlers now resolve their base URL through the approved-origin helper instead of trusting arbitrary request `Host` values, while all five OG data-error logs expose only error kind.
    - OG clean-slug/canonical/sharing/route-boundary regressions pass 63/63, with TypeScript and production build passing. No social shares, profiles, events, projects, blogs, emails, or records were changed during validation.
+67. **Sitemap and robots canonical origins — resolved in this increment.**
+   - Both public routes now resolve through the approved-origin helper with safe `www.ologywood.com` fallback; XML serialization remains escaped, and all eight sitemap query/generation exception logs expose only error kind.
+   - Sitemap/OG/route-safety regressions pass 33/33, with TypeScript and production build passing. No sitemap crawls, profiles, events, venues, blogs, merch, emails, or records were changed during validation.
 
 ## Audit limitations
 
