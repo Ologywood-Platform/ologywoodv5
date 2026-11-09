@@ -289,6 +289,9 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
 65. **Legacy performance/portfolio video Express route — resolved in this increment.**
    - Chunk indexes now accept only canonical non-negative decimal integers and safe integers, portfolio multipart title/category/duration fields reject arrays/objects before coercion, and performance/portfolio start/chunk/finalize/multipart failure logs emit only error kind.
    - Video-upload/chunked/parity/portfolio/route-safety regressions pass 58/58, with TypeScript and production build passing. No video uploads, profiles, conversions, moderation records, emails, or records were changed during validation.
+66. **Public OG metadata canonical origins — resolved in this increment.**
+   - Artist, venue, event, blog, project, and static OG handlers now resolve their base URL through the approved-origin helper instead of trusting arbitrary request `Host` values, while all five OG data-error logs expose only error kind.
+   - OG clean-slug/canonical/sharing/route-boundary regressions pass 63/63, with TypeScript and production build passing. No social shares, profiles, events, projects, blogs, emails, or records were changed during validation.
 
 ## Audit limitations
 

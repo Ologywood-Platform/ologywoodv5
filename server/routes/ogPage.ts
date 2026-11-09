@@ -13,11 +13,18 @@ import {
   jsonLdToScriptTag,
 } from '../utils/jsonLd';
 import { positiveRouteId } from './routeInput';
+import { trustedCheckoutOrigin } from '../services/trustedOrigin';
 
 const router = Router();
 
 const DEFAULT_OG_IMAGE = 'https://www.ologywood.com/manus-storage/ologywood-platform-og-2026-10-10_f734dc76.png';
 const SITE_NAME = 'Ologywood';
+
+function getPublicBaseUrl(req: Request): string {
+  const host = req.get('host');
+  const requestOrigin = req.get('origin') || (host ? `https://${host}` : undefined);
+  return trustedCheckoutOrigin(process.env.BASE_URL, requestOrigin);
+}
 
 /**
  * Convert a name to a URL-friendly slug
@@ -156,8 +163,7 @@ function generateOgHtml(opts: {
 router.get('/artist/:slug', async (req: Request, res: Response) => {
   const requestedSlug = req.params.slug;
   let artistId = extractIdFromSlug(requestedSlug);
-  let baseUrl = process.env.BASE_URL || `https://${req.get('host')}`;
-  baseUrl = baseUrl.replace(/\/$/, '');
+  const baseUrl = getPublicBaseUrl(req);
   let canonicalUrl = `${baseUrl}/artist/${requestedSlug}`;
 
   try {
@@ -224,7 +230,7 @@ router.get('/artist/:slug', async (req: Request, res: Response) => {
       }
     }
   } catch (error) {
-    console.error('[OG Page] Error generating artist OG:', error);
+    console.error('[OG Page] Error generating artist OG', { kind: error instanceof Error ? error.name : 'UnknownError' });
   }
 
   return res.redirect(302, canonicalUrl);
@@ -234,8 +240,7 @@ router.get('/artist/:slug', async (req: Request, res: Response) => {
 router.get('/venue/:slug', async (req: Request, res: Response) => {
   const requestedSlug = req.params.slug;
   let venueId = extractIdFromSlug(requestedSlug);
-  let baseUrl = process.env.BASE_URL || `https://${req.get('host')}`;
-  baseUrl = baseUrl.replace(/\/$/, '');
+  const baseUrl = getPublicBaseUrl(req);
   let canonicalUrl = `${baseUrl}/venue/${requestedSlug}`;
 
   try {
@@ -302,7 +307,7 @@ router.get('/venue/:slug', async (req: Request, res: Response) => {
       }
     }
   } catch (error) {
-    console.error('[OG Page] Error generating venue OG:', error);
+    console.error('[OG Page] Error generating venue OG', { kind: error instanceof Error ? error.name : 'UnknownError' });
   }
 
   return res.redirect(302, canonicalUrl);
@@ -313,8 +318,7 @@ router.get('/event/:slug', async (req: Request, res: Response) => {
   const requestedSlug = req.params.slug;
   let eventId = extractIdFromSlug(requestedSlug);
 
-  let baseUrl = process.env.BASE_URL || `https://${req.get('host')}`;
-  baseUrl = baseUrl.replace(/\/$/, '');
+  const baseUrl = getPublicBaseUrl(req);
   let canonicalUrl = `${baseUrl}/events/${requestedSlug}`;
   try {
     const database = await getDb();
@@ -384,7 +388,7 @@ router.get('/event/:slug', async (req: Request, res: Response) => {
       }
     }
   } catch (error) {
-    console.error('[OG Page] Error generating event OG:', error);
+    console.error('[OG Page] Error generating event OG', { kind: error instanceof Error ? error.name : 'UnknownError' });
   }
 
   return res.redirect(302, canonicalUrl);
@@ -394,8 +398,7 @@ router.get('/event/:slug', async (req: Request, res: Response) => {
 router.get('/blog/:slug', async (req: Request, res: Response) => {
   const slug = req.params.slug;
 
-  let baseUrl = process.env.BASE_URL || `https://${req.get('host')}`;
-  baseUrl = baseUrl.replace(/\/$/, '');
+  const baseUrl = getPublicBaseUrl(req);
   const canonicalUrl = `${baseUrl}/blog/${slug}`;
 
   try {
@@ -435,7 +438,7 @@ router.get('/blog/:slug', async (req: Request, res: Response) => {
       }
     }
   } catch (error) {
-    console.error('[OG Page] Error generating blog OG:', error);
+    console.error('[OG Page] Error generating blog OG', { kind: error instanceof Error ? error.name : 'UnknownError' });
   }
 
   return res.redirect(302, canonicalUrl);
@@ -443,8 +446,7 @@ router.get('/blog/:slug', async (req: Request, res: Response) => {
 
 // Static pages
 router.get('/home', async (req: Request, res: Response) => {
-  let baseUrl = process.env.BASE_URL || `https://${req.get('host')}`;
-  baseUrl = baseUrl.replace(/\/$/, '');
+  const baseUrl = getPublicBaseUrl(req);
 
   const html = generateOgHtml({
     title: 'Your Talent. Your Platform. Your Next Opportunity.',
@@ -460,8 +462,7 @@ router.get('/home', async (req: Request, res: Response) => {
 });
 
 router.get('/browse', async (req: Request, res: Response) => {
-  let baseUrl = process.env.BASE_URL || `https://${req.get('host')}`;
-  baseUrl = baseUrl.replace(/\/$/, '');
+  const baseUrl = getPublicBaseUrl(req);
 
   const breadcrumb = generateBreadcrumbJsonLd([
     { name: 'Home', url: '/' },
@@ -482,8 +483,7 @@ router.get('/browse', async (req: Request, res: Response) => {
 });
 
 router.get('/pricing', async (req: Request, res: Response) => {
-  let baseUrl = process.env.BASE_URL || `https://${req.get('host')}`;
-  baseUrl = baseUrl.replace(/\/$/, '');
+  const baseUrl = getPublicBaseUrl(req);
 
   const breadcrumb = generateBreadcrumbJsonLd([
     { name: 'Home', url: '/' },
@@ -516,8 +516,7 @@ router.get('/project/:id', async (req: Request, res: Response) => {
     return res.status(400).json({ error: 'Invalid project ID' });
   }
 
-  let baseUrl = process.env.BASE_URL || `https://${req.get('host')}`;
-  baseUrl = baseUrl.replace(/\/$/, '');
+  const baseUrl = getPublicBaseUrl(req);
 
   try {
     const database = await getDb();
@@ -567,7 +566,7 @@ router.get('/project/:id', async (req: Request, res: Response) => {
       }
     }
   } catch (error) {
-    console.error('[OG Page] Error generating project OG:', error);
+    console.error('[OG Page] Error generating project OG', { kind: error instanceof Error ? error.name : 'UnknownError' });
   }
 
   return res.redirect(302, baseUrl);

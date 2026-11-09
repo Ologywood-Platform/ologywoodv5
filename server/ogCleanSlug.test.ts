@@ -26,4 +26,13 @@ describe('clean OG profile slug compatibility', () => {
     expect(source).toContain('url: `${baseUrl}/api/og-page/venue/${correctSlug}`');
     expect(source).toContain('url: `${baseUrl}/api/og-page/event/${correctSlug}`');
   });
+
+  it('uses the approved origin and redacts OG generation failures', () => {
+    expect(source).toContain("import { trustedCheckoutOrigin } from '../services/trustedOrigin';");
+    expect(source).toContain('function getPublicBaseUrl(req: Request): string');
+    expect(source).toContain('return trustedCheckoutOrigin(process.env.BASE_URL, requestOrigin);');
+    expect(source).not.toContain('process.env.BASE_URL || `https://${req.get(\'host\')}`');
+    expect(source).toContain("kind: error instanceof Error ? error.name : 'UnknownError'");
+    expect(source).not.toContain("console.error('[OG Page] Error generating artist OG:', error)");
+  });
 });
