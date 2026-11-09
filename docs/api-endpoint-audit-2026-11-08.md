@@ -7,7 +7,7 @@
 
 The active runtime is `server/_core/index.ts`. It mounts the Stripe webhook before JSON parsing, bounded media-upload parsers, event CRUD/search, release upload/download/checkout, booking checkout, contract PDFs, video uploads, eBook files, rider PDFs, calendar feeds/sync, OAuth, OG endpoints, rate-limited tRPC, and scheduled handlers.
 
-The audit confirmed strong protections in several sensitive areas: Stripe signature ordering, authenticated eBook/rider delivery, owner-bound signed video-upload sessions, strict positive-ID parsers on recently hardened legacy routes, generic error responses on the audited endpoints, and private/no-store rider PDFs. The critical follow-ups—OAuth state/redirect integrity, release-checkout input/origin handling, legacy event validation/ownership, test-email authorization/validation/rate limiting, legacy video duration/extension handling, release-preview MIME/data-URL normalization, release-download preview ID parsing, and identified sensitive-log redaction—have now been hardened and regression-tested. Remaining findings include the unmounted legacy test module's cleanup review, the local-only nature of the current in-memory email limiter, and broader endpoint coverage items listed below.
+The audit confirmed strong protections in several sensitive areas: Stripe signature ordering, authenticated eBook/rider delivery, owner-bound signed video-upload sessions, strict positive-ID parsers on recently hardened legacy routes, generic error responses on the audited endpoints, and private/no-store rider PDFs. The critical follow-ups—OAuth state/redirect integrity, release-checkout input/origin handling, legacy event validation/ownership, test-email authorization/validation/rate limiting, legacy video duration/extension handling, release-preview MIME/data-URL normalization, release-download preview ID parsing, identified sensitive-log redaction, high-value modular-router input boundaries, shared rate-limit storage, Workspace Schedule inputs, and venue-contract/document-email safety—have now been hardened and regression-tested. Remaining findings include the unmounted legacy test module's cleanup review, environment-backed Redis integration verification, and broader endpoint/production coverage items listed below.
 
 ## Verified protections
 
@@ -256,6 +256,18 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
 56. **Global tRPC error-log redaction — resolved in this increment.**
    - Structured errors now emit only safe error type, endpoint, user, duration, and error-code context; raw exception messages, stack traces, and injected error/stack context fields are removed from the global logger.
    - Logger/runtime/security-audit/public-rate-limit regressions pass 27/27, with TypeScript and production build validation passing. Broader per-route error-response coverage remains open.
+
+57. **Shared rate-limit store — resolved in this increment.**
+   - Configured public/auth/LLM and high-value modular limiters now use stable namespaces and an atomic Redis sorted-set window when `REDIS_URL` or `REDIS_HOST` is configured. A bounded process-local fallback remains available, and Redis failures emit only one redacted availability warning per limiter.
+   - Async fallback/rate-limit/source-guard regressions pass 85/85, with TypeScript, production build, and diff validation passing. Redis-originated multi-instance behavior still needs an environment-backed integration check when the production Redis endpoint is available.
+
+58. **Workspace Schedule input boundary — resolved in this increment.**
+   - Owner delegation, appointment/revision IDs, agenda filters, and mutation objects now use safe positive integers and strict objects. Appointment schemas reject unknown fields, while service normalization strips only router metadata before shared interval validation; existing date/time/timezone/category/buffer/reminder/span/conflict checks remain active.
+   - Schedule security/service/calendar/Live/UI regressions pass 90/90, with TypeScript and production build validation passing. No appointments, reminders, bookings, Live reservations, emails, or records were changed during validation.
+
+59. **Venue-contract and document-email boundaries — resolved in this increment.**
+   - Venue-contract and booking IDs and all mutation/read objects now use strict safe integers. Generated contract clauses/data/title/description/expiry fields are bounded; PDF uploads require canonical base64, `application/pdf`, a safe filename, an actual `%PDF-` signature, a 10 MB decoded limit, and a cryptographic storage suffix; signature payloads are bounded and drawn signatures must be validated image data. Contract email links use the approved application origin, shared contract email templates escape names/titles and sanitize subjects, decline-email HTML is escaped, and raw contract email exceptions are no longer logged.
+   - Venue-contract/dashboard/encryption regressions pass 36/36, with TypeScript, production build, and diff validation passing. No contracts, PDFs, signatures, emails, bookings, or records were changed during validation.
 
 ## Audit limitations
 

@@ -1,5 +1,6 @@
 import { ENV } from "./_core/env";
 import { getEmailLogoImage } from "../shared/emailBranding";
+import { escapeFanEmailHtml } from "./services/fanEmailFormatting";
 
 /**
  * Email notification service for Ologywood platform
@@ -940,8 +941,10 @@ export async function sendContractSigned(params: {
   contractTitle: string;
 }): Promise<boolean> {
   const { to, artistName, venueName, contractTitle } = params;
-  
-  const subject = `Contract Signed: ${contractTitle}`;
+  const safeArtistName = escapeFanEmailHtml(artistName);
+  const safeVenueName = escapeFanEmailHtml(venueName);
+  const safeContractTitle = escapeFanEmailHtml(contractTitle);
+  const subject = `Contract Signed: ${contractTitle}`.replace(/[\r\n]/g, " ");
   
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -954,9 +957,9 @@ export async function sendContractSigned(params: {
         
         <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea;">
           <h3 style="margin-top: 0;">Contract Details</h3>
-          <p><strong>Contract:</strong> ${contractTitle}</p>
-          <p><strong>Artist:</strong> ${artistName}</p>
-          <p><strong>Venue:</strong> ${venueName}</p>
+          <p><strong>Contract:</strong> ${safeContractTitle}</p>
+          <p><strong>Artist:</strong> ${safeArtistName}</p>
+          <p><strong>Venue:</strong> ${safeVenueName}</p>
           <p><strong>Status:</strong> <span style="color: #28a745; font-weight: bold;">Fully Executed</span></p>
           <p><strong>Date Signed:</strong> ${new Date().toLocaleDateString()}</p>
         </div>
@@ -1004,8 +1007,11 @@ export async function sendContractForSignature(params: {
   contractUrl: string;
 }): Promise<boolean> {
   const { to, recipientName, senderName, contractTitle, contractUrl } = params;
-  
-  const subject = `Action Required: Sign Contract - ${contractTitle}`;
+  const safeRecipientName = escapeFanEmailHtml(recipientName);
+  const safeSenderName = escapeFanEmailHtml(senderName);
+  const safeContractTitle = escapeFanEmailHtml(contractTitle);
+  const safeContractUrl = escapeFanEmailHtml(contractUrl);
+  const subject = `Action Required: Sign Contract - ${contractTitle}`.replace(/[\r\n]/g, " ");
   
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -1014,19 +1020,19 @@ export async function sendContractForSignature(params: {
       </div>
       
       <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;">
-        <p>Hi ${recipientName},</p>
+        <p>Hi ${safeRecipientName},</p>
         
-        <p>${senderName} has sent you a contract for review and signature.</p>
+        <p>${safeSenderName} has sent you a contract for review and signature.</p>
         
         <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea;">
           <h3 style="margin-top: 0;">Contract Details</h3>
-          <p><strong>Contract Title:</strong> ${contractTitle}</p>
-          <p><strong>From:</strong> ${senderName}</p>
+          <p><strong>Contract Title:</strong> ${safeContractTitle}</p>
+          <p><strong>From:</strong> ${safeSenderName}</p>
           <p><strong>Status:</strong> <span style="color: #ff9800; font-weight: bold;">Awaiting Your Signature</span></p>
         </div>
         
         <p style="text-align: center; margin: 30px 0;">
-          <a href="${contractUrl}" style="display: inline-block; background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+          <a href="${safeContractUrl}" style="display: inline-block; background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">
             Review & Sign Contract
           </a>
         </p>

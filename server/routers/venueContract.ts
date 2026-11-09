@@ -1,10 +1,62 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
+import { randomBytes } from "node:crypto";
 import { protectedProcedure, router } from "../_core/trpc";
 import * as db from "../db";
 import { storagePut } from "../storage";
 import * as notif from "../services/notificationService";
 import { sendEmail, sendContractForSignature, sendContractSigned } from "../email";
+import { trustedCheckoutOrigin } from "../services/trustedOrigin";
+import { escapeFanEmailHtml } from "../services/fanEmailFormatting";
+
+const venueContractId = z.number().int().positive().safe();
+const bookingId = z.number().int().positive().safe();
+const contractTitle = z.string().trim().min(1, "Contract title is required").max(255).refine((value) => !/[\u0000-\u001F\u007F]/.test(value), "Contract title contains invalid characters");
+const contractDescription = z.string().trim().max(10_000).optional();
+const contractExpiry = z.string().trim().min(10).max(40).refine((value) => Number.isFinite(Date.parse(value)), "Invalid expiration date");
+const contractClause = z.object({
+  label: z.string().trim().min(1).max(255),
+  text: z.string().trim().min(1).max(5_000),
+}).strict();
+const contractData = z.object({
+  clauses: z.array(contractClause).max(30).optional(),
+  customTerms: z.string().trim().max(20_000).optional(),
+  venueRep: z.string().trim().max(255).optional(),
+  eventSpecifics: z.string().trim().max(10_000).optional(),
+}).strict().refine((value) => JSON.stringify(value).length <= 40_000, "Contract data is too large");
+const pdfFileName = z.string().trim().min(5).max(255).regex(/^[^/\\\u0000-\u001F]+\.pdf$/i, "A PDF filename is required");
+const pdfBase64 = z.string().trim().min(8).max(14_000_000).refine((value) => /^[A-Za-z0-9+/]+={0,2}$/.test(value) && value.length % 4 === 0, "Invalid PDF data");
+const signatureData = z.string().trim().min(1).max(1_000_000).refine((value) => !/[\u0000-\u001F\u007F]/.test(value), "Invalid signature data");
+
+function decodePdf(value: string): Buffer {
+  const buffer = Buffer.from(value, "base64");
+  if (buffer.length === 0 || buffer.length > 10 * 1024 * 1024 || buffer.subarray(0, 5).toString("ascii") !== "%PDF-") {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "The uploaded file must be a valid PDF no larger than 10 MB" });
+  }
+  return buffer;
+}
+
+function isSignatureImage(value: string): boolean {
+  const match = /^data:image\/(png|jpeg|webp);base64,([A-Za-z0-9+/]+={0,2})$/.exec(value);
+  if (!match || match[2].length % 4 !== 0) return false;
+  const decoded = Buffer.from(match[2], "base64");
+  return decoded.length > 0 && decoded.length <= 750 * 1024;
+}
+
+const signInput = z.object({
+  venueContractId,
+  signatureData,
+  signerName: z.string().trim().min(1, "Name is required").max(255),
+  signatureType: z.enum(["drawn", "typed"]),
+}).strict().superRefine((value, refinement) => {
+  if (value.signatureData.startsWith("data:image/") && !isSignatureImage(value.signatureData)) {
+    refinement.addIssue({ code: z.ZodIssueCode.custom, path: ["signatureData"], message: "Invalid signature image" });
+  } else if (value.signatureType === "drawn" && !isSignatureImage(value.signatureData)) {
+    refinement.addIssue({ code: z.ZodIssueCode.custom, path: ["signatureData"], message: "Drawn signatures must be a valid signature image" });
+  } else if (value.signatureType === "typed" && !value.signatureData.startsWith("data:image/") && value.signatureData.length > 255) {
+    refinement.addIssue({ code: z.ZodIssueCode.custom, path: ["signatureData"], message: "Typed signatures are too long" });
+  }
+});
 
 /**
  * Venue Contract Router
@@ -18,14 +70,14 @@ export const venueContractRouter = router({
    */
   create: protectedProcedure
     .input(z.object({
-      bookingId: z.number(),
-      title: z.string().min(1, "Contract title is required"),
-      description: z.string().optional(),
+      bookingId,
+      title: contractTitle,
+      description: contractDescription,
       contractType: z.enum(["uploaded_pdf", "platform_generated"]).default("platform_generated"),
-      contractData: z.record(z.string(), z.any()).optional(),
+      contractData: contractData.optional(),
       /** Optional expiration date (ISO string) for artist to sign by */
-      expiresAt: z.string().optional(),
-    }))
+      expiresAt: contractExpiry.optional(),
+    }).strict())
     .mutation(async ({ ctx, input }) => {
       // Verify user is a venue involved in this booking
       const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
@@ -68,11 +120,11 @@ export const venueContractRouter = router({
    */
   uploadPdf: protectedProcedure
     .input(z.object({
-      venueContractId: z.number(),
-      fileData: z.string(), // base64
-      fileName: z.string(),
-      mimeType: z.string().default("application/pdf"),
-    }))
+      venueContractId,
+      fileData: pdfBase64, // base64
+      fileName: pdfFileName,
+      mimeType: z.literal("application/pdf"),
+    }).strict())
     .mutation(async ({ ctx, input }) => {
       const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
       if (!venueProfile) {
@@ -88,8 +140,8 @@ export const venueContractRouter = router({
         throw new TRPCError({ code: "BAD_REQUEST", message: "Can only upload files to draft contracts" });
       }
 
-      const buffer = Buffer.from(input.fileData, "base64");
-      const randomSuffix = Math.random().toString(36).substring(7);
+      const buffer = decodePdf(input.fileData);
+      const randomSuffix = randomBytes(8).toString("hex");
       const fileKey = `venue-contracts/${venueProfile.id}/${input.fileName}-${randomSuffix}`;
       const { url } = await storagePut(fileKey, buffer, input.mimeType);
 
@@ -106,8 +158,8 @@ export const venueContractRouter = router({
    */
   send: protectedProcedure
     .input(z.object({
-      venueContractId: z.number(),
-    }))
+      venueContractId,
+    }).strict())
     .mutation(async ({ ctx, input }) => {
       const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
       if (!venueProfile) {
@@ -152,7 +204,7 @@ export const venueContractRouter = router({
         try {
           const artistUser = await db.getUserById(artistProfile.userId);
           if (artistUser?.email) {
-            const baseUrl = ctx.req?.headers?.origin || "https://www.ologywood.com";
+            const baseUrl = trustedCheckoutOrigin(undefined, ctx.req?.headers?.origin);
             await sendContractForSignature({
               to: artistUser.email,
               recipientName: artistProfile.artistName,
@@ -161,8 +213,8 @@ export const venueContractRouter = router({
               contractUrl: `${baseUrl}/bookings/${contract.bookingId}`,
             });
           }
-        } catch (emailErr) {
-          console.error("[VenueContract] Error sending contract email:", emailErr);
+        } catch {
+          console.error("[VenueContract] Contract email delivery failed");
         }
       }
 
@@ -173,12 +225,7 @@ export const venueContractRouter = router({
    * Sign a venue contract (artist or venue)
    */
   sign: protectedProcedure
-    .input(z.object({
-      venueContractId: z.number(),
-      signatureData: z.string().min(1, "Signature is required"),
-      signerName: z.string().min(1, "Name is required"),
-      signatureType: z.enum(["drawn", "typed"]),
-    }))
+    .input(signInput)
     .mutation(async ({ ctx, input }) => {
       const contract = await db.getVenueContractById(input.venueContractId);
       if (!contract) {
@@ -284,8 +331,8 @@ export const venueContractRouter = router({
               });
             }
           }
-        } catch (emailErr) {
-          console.error("[VenueContract] Error sending fully-signed emails:", emailErr);
+        } catch {
+          console.error("[VenueContract] Fully-signed email delivery failed");
         }
       } else {
         // Notify the other party to countersign
@@ -307,7 +354,7 @@ export const venueContractRouter = router({
           }
 
           // Email the other party
-          const baseUrl = ctx.req?.headers?.origin || "https://www.ologywood.com";
+          const baseUrl = trustedCheckoutOrigin(undefined, ctx.req?.headers?.origin);
           if (signerRole === "venue" && ap) {
             const artistUser = await db.getUserById(ap.userId);
             if (artistUser?.email) {
@@ -331,8 +378,8 @@ export const venueContractRouter = router({
               });
             }
           }
-        } catch (emailErr) {
-          console.error("[VenueContract] Error sending countersign email:", emailErr);
+        } catch {
+          console.error("[VenueContract] Countersign email delivery failed");
         }
       }
 
@@ -348,7 +395,7 @@ export const venueContractRouter = router({
    * Mark a venue contract as viewed by the artist
    */
   markViewed: protectedProcedure
-    .input(z.object({ venueContractId: z.number() }))
+    .input(z.object({ venueContractId }).strict())
     .mutation(async ({ ctx, input }) => {
       const contract = await db.getVenueContractById(input.venueContractId);
       if (!contract) {
@@ -374,7 +421,7 @@ export const venueContractRouter = router({
    * Get venue contracts for a specific booking
    */
   getForBooking: protectedProcedure
-    .input(z.object({ bookingId: z.number() }))
+    .input(z.object({ bookingId }).strict())
     .query(async ({ ctx, input }) => {
       const booking = await db.getBookingById(input.bookingId);
       if (!booking) {
@@ -506,12 +553,12 @@ export const venueContractRouter = router({
    */
   update: protectedProcedure
     .input(z.object({
-      venueContractId: z.number(),
-      title: z.string().optional(),
-      description: z.string().optional(),
-      contractData: z.record(z.string(), z.any()).optional(),
-      expiresAt: z.string().nullable().optional(),
-    }))
+      venueContractId,
+      title: contractTitle.optional(),
+      description: contractDescription.nullable().optional(),
+      contractData: contractData.optional(),
+      expiresAt: contractExpiry.nullable().optional(),
+    }).strict())
     .mutation(async ({ ctx, input }) => {
       const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
       if (!venueProfile) {
@@ -542,7 +589,7 @@ export const venueContractRouter = router({
    * Delete a draft venue contract
    */
   delete: protectedProcedure
-    .input(z.object({ venueContractId: z.number() }))
+    .input(z.object({ venueContractId }).strict())
     .mutation(async ({ ctx, input }) => {
       const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
       if (!venueProfile) {
@@ -566,7 +613,7 @@ export const venueContractRouter = router({
    * Decline a venue contract (artist only)
    */
   decline: protectedProcedure
-    .input(z.object({ venueContractId: z.number() }))
+    .input(z.object({ venueContractId }).strict())
     .mutation(async ({ ctx, input }) => {
       const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
       if (!artistProfile) {
@@ -600,15 +647,15 @@ export const venueContractRouter = router({
           if (venueUser?.email) {
             await sendEmail({
               to: venueUser.email,
-              subject: `Contract Declined: ${contract.title}`,
+              subject: `Contract Declined: ${contract.title}`.replace(/[\r\n]/g, " "),
               html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                   <div style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
                     <h1 style="margin: 0; font-size: 24px;">Contract Declined</h1>
                   </div>
                   <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;">
-                    <p>Hi ${venueProfile.organizationName},</p>
-                    <p><strong>${artistProfile.artistName}</strong> has declined your venue agreement: <strong>"${contract.title}"</strong>.</p>
+                    <p>Hi ${escapeFanEmailHtml(venueProfile.organizationName)},</p>
+                    <p><strong>${escapeFanEmailHtml(artistProfile.artistName)}</strong> has declined your venue agreement: <strong>"${escapeFanEmailHtml(contract.title)}"</strong>.</p>
                     <p>You may want to reach out to discuss terms or send a revised contract.</p>
                     <div style="text-align: center; margin: 25px 0;">
                       <a href="https://www.ologywood.com/booking/${contract.bookingId}" style="background: #7c3aed; color: white; padding: 12px 30px; border-radius: 6px; text-decoration: none; font-weight: bold;">View Booking</a>
@@ -619,8 +666,8 @@ export const venueContractRouter = router({
               `,
             });
           }
-        } catch (emailErr) {
-          console.error("[VenueContract] Error sending decline email:", emailErr);
+        } catch {
+          console.error("[VenueContract] Decline email delivery failed");
         }
       }
 

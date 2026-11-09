@@ -241,6 +241,14 @@ function PdfUploadForm({
       toast.error('Please select a PDF file');
       return;
     }
+    if (file.type && file.type !== 'application/pdf') {
+      toast.error('Please select a PDF file');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Contract PDFs must be 10 MB or smaller');
+      return;
+    }
 
     setUploading(true);
     try {
@@ -261,7 +269,7 @@ function PdfUploadForm({
           venueContractId: contract.id,
           fileData: base64,
           fileName: file.name,
-          mimeType: file.type || 'application/pdf',
+          mimeType: 'application/pdf',
         });
         toast.success('Contract uploaded successfully');
         onCreated();
