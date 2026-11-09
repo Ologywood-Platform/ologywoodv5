@@ -34,6 +34,18 @@ type Track = {
 
 type SortOption = "recent" | "title" | "artist" | "genre";
 
+function disposeAudio(audio: HTMLAudioElement | null) {
+  if (!audio) return;
+  // Clearing src can emit an error event. Remove handlers first so an
+  // intentional stop/unmount is never reported as a failed playback.
+  audio.onloadedmetadata = null;
+  audio.onended = null;
+  audio.onerror = null;
+  audio.pause();
+  audio.removeAttribute("src");
+  audio.load();
+}
+
 export default function MyMusic() {
   const { user, loading: authLoading } = useAuth();
   const [, navigate] = useLocation();
@@ -136,11 +148,8 @@ export default function MyMusic() {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = "";
-        audioRef.current = null;
-      }
+      disposeAudio(audioRef.current);
+      audioRef.current = null;
       if (animFrameRef.current) {
         cancelAnimationFrame(animFrameRef.current);
       }
@@ -170,8 +179,7 @@ export default function MyMusic() {
 
       // Stop current audio
       if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = "";
+        disposeAudio(audioRef.current);
       }
 
       const audio = new Audio(audioUrl);
@@ -188,6 +196,7 @@ export default function MyMusic() {
       };
 
       audio.onerror = () => {
+        if (audioRef.current !== audio) return;
         setIsPlaying(false);
         setIsLoadingTrack(false);
         toast.error("Could not play track. Check your connection and try again.");
@@ -298,10 +307,8 @@ export default function MyMusic() {
     hideMutation.mutate({ purchaseId });
     // If we're deleting the currently playing track, stop
     if (currentTrack?.purchaseId === purchaseId) {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = "";
-      }
+      disposeAudio(audioRef.current);
+      audioRef.current = null;
       setIsPlaying(false);
       setCurrentTrackIndex(-1);
     }

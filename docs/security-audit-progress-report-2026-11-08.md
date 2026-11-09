@@ -1,5 +1,5 @@
 
 
-### Legacy route log cleanup
+### My Music playback-toast correction
 
-Although `socketMetricsRoutes.ts` and `paymentTestingRoutes.ts` are not mounted by the active server bootstrap, their remaining exception logs were normalized to classified error kinds so future reactivation cannot leak raw exception objects. Route-safety and Express-boundary regressions pass 6/6, TypeScript passes, and production build passes with existing chunk-size warnings. No metrics, payment tests, provider calls, or records changed.
+The supplied screenshot showed successful playback at 0:01 alongside a false “Could not play track” toast. Root cause: intentional teardown set `audio.src = ""` while the error handler was still attached, so leaving the player or replacing a track could emit a stale media error. `MyMusic.tsx` now removes media handlers before disposal and ignores errors from replaced audio elements. Focused playback regressions pass 2/2, TypeScript passes, and production build passes. The correction is ready for the next publish; no purchases, downloads, or records changed.
