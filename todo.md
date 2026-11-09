@@ -5198,3 +5198,8 @@ Rider and contract PDF exports now dynamically import `html2pdf.js` only when in
 ### Sentry response hardening — 2026-11-09
 
 The Sentry health helper no longer returns raw provider exception text. Focused monitoring tests passed 2/2; the complete suite passed 4,047 tests with 23 skipped across 337 files, TypeScript passed, and the production build passed. Production Sentry event delivery remains gated on an owner-provided `SENTRY_DSN` and a real event check.
+
+
+### Monitoring scope correction — 2026-11-09
+
+Owner confirmed Ologywood does not use Sentry. The optional bootstrap was removed from the active server, no `SENTRY_DSN` is required, and Sentry is not a production readiness gate. Existing structured application logging and provider-managed operational controls remain in scope.
