@@ -3,6 +3,7 @@ import { Download, FileText, FileSpreadsheet, BarChart3 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { trpc } from '@/lib/trpc';
+import { toast } from 'sonner';
 
 type TrendPoint = {
   month: string;
@@ -41,6 +42,7 @@ export default function RevenueTrendsPanel() {
   const [period, setPeriod] = useState('12');
   const [customFrom, setCustomFrom] = useState('');
   const [customTo, setCustomTo] = useState('');
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
   const range = period === 'custom' ? { from: customFrom || undefined, to: customTo || undefined } : dateForMonths(Number(period));
   const trendQuery = trpc.profileAnalytics.getRevenueTrend.useQuery({ months: period === 'custom' ? 120 : Number(period), ...range }, { enabled: period !== 'custom' || Boolean(customFrom && customTo), staleTime: 2 * 60 * 1000 });
   const points = (trendQuery.data || []) as TrendPoint[];
@@ -64,14 +66,50 @@ export default function RevenueTrendsPanel() {
   };
 
   const exportPdf = async () => {
-    const module = await import('html2pdf.js');
-    const html2pdf = module.default ?? module;
+    if (isExportingPdf || !points.length) return;
+    setIsExportingPdf(true);
+    const filename = `ologywood-revenue-breakdown-${new Date().toISOString().slice(0, 10)}.pdf`;
     const element = document.createElement('div');
     element.style.cssText = 'font-family: Arial, sans-serif; padding: 28px; color: #111827; width: 760px;';
     element.innerHTML = `<h1>OlogyWood Revenue Breakdown</h1><p>Filtered net revenue: <strong>${money(filteredTotal)}</strong></p><p>Period: ${range.from || 'All'} to ${range.to || 'Present'}</p><table style="border-collapse:collapse;width:100%;font-size:12px"><thead><tr>${['Month', ...streams.map((stream) => stream.label), 'Total'].map((cell) => `<th style="border:1px solid #d1d5db;padding:7px;text-align:left">${cell}</th>`).join('')}</tr></thead><tbody>${points.map((point) => `<tr>${[point.month, ...streams.map((stream) => money(point[stream.key])), money(point.total)].map((cell) => `<td style="border:1px solid #d1d5db;padding:7px">${cell}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
-    document.body.appendChild(element);
-    await html2pdf().set({ margin: 10, filename: `ologywood-revenue-breakdown-${new Date().toISOString().slice(0, 10)}.pdf`, image: { type: 'jpeg', quality: 0.95 }, html2canvas: { scale: 2 }, jsPDF: { orientation: 'landscape', unit: 'mm', format: 'a4' } }).from(element).save();
-    element.remove();
+
+    try {
+      const module = await import('html2pdf.js');
+      const html2pdf = module.default ?? module;
+      if (typeof html2pdf !== 'function') throw new Error('PDF generator unavailable');
+      document.body.appendChild(element);
+      const pdfBlob = await html2pdf()
+        .set({
+          margin: 10,
+          filename,
+          image: { type: 'jpeg', quality: 0.95 },
+          html2canvas: {
+            scale: 2,
+            onclone: (clonedDocument: Document) => {
+              clonedDocument.querySelectorAll('style, link[rel="stylesheet"]').forEach((node) => node.remove());
+            },
+          },
+          jsPDF: { orientation: 'landscape', unit: 'mm', format: 'a4' },
+        })
+        .from(element)
+        .outputPdf('blob');
+      const url = URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      link.rel = 'noopener';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast.success('Revenue PDF downloaded');
+    } catch (error) {
+      console.error('[Revenue PDF] Export failed:', error instanceof Error ? error.name : 'UnknownError');
+      toast.error('Could not download the revenue PDF. Please try again.');
+    } finally {
+      element.remove();
+      setIsExportingPdf(false);
+    }
   };
 
   return (
@@ -86,7 +124,7 @@ export default function RevenueTrendsPanel() {
             </select>
             {period === 'custom' && <><input aria-label="Revenue start date" type="date" value={customFrom} onChange={(event) => setCustomFrom(event.target.value)} className="h-9 rounded-md border bg-background px-2 text-sm" /><input aria-label="Revenue end date" type="date" value={customTo} onChange={(event) => setCustomTo(event.target.value)} className="h-9 rounded-md border bg-background px-2 text-sm" /></>}
             <Button variant="outline" size="sm" onClick={exportCsv} disabled={!points.length} className="gap-1"><FileSpreadsheet className="h-4 w-4" /> CSV</Button>
-            <Button variant="outline" size="sm" onClick={exportPdf} disabled={!points.length} className="gap-1"><FileText className="h-4 w-4" /> PDF</Button>
+            <Button variant="outline" size="sm" onClick={exportPdf} disabled={!points.length || isExportingPdf} className="gap-1"><FileText className="h-4 w-4" />{isExportingPdf ? 'Preparing…' : 'PDF'}</Button>
           </div>
         </div>
         <p className="text-sm text-muted-foreground">Net revenue by month across every native talent stream. Fan Club reflects active recurring monthly net run-rate.</p>
