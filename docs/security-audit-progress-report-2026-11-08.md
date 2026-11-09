@@ -18,3 +18,8 @@ Unauthenticated POST probes to the published credit-expiration, contract-expiry,
 ### Authenticated workflow matrix
 
 The non-mutating runtime matrix passed 200/200 tests across 15 suites for artist/venue/fan booking creation and status transitions, schedule conflicts, venue contracts, booking messaging/read state, ticketing, merch orders, release purchases, fan-club webhook/access behavior, subscription management, and Ology Live checkout. It used isolated mocks/fixtures and changed no production records. Live Stripe purchase, refund, payout, and cross-domain payment-history verification remains separately gated.
+
+
+### Rendered image QA
+
+A rendered-browser audit was run on the published homepage and Adonis profile rather than relying on the SPA shell. Homepage hero/logo/category images, featured artist images, and the featured venue image all loaded with nonzero intrinsic dimensions after their lazy loaders were triggered. Adonis’s profile image, five portfolio photos, video thumbnails, release cover art, and merch images also loaded with nonzero intrinsic dimensions. The earlier sitemap HTML crawl found zero image tags because production serves the SPA shell; it was not treated as an image-pass result. A full crawl of every authenticated/dashboard image remains outside public read-only QA.
