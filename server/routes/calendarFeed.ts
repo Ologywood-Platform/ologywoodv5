@@ -17,7 +17,7 @@ import { bookings, artistProfiles, venueProfiles } from '../../drizzle/schema';
 import crypto from 'crypto';
 import { bookingCalendarDateLines } from '../services/bookingCalendarFormatting';
 import { ensureScheduleSchema } from '../services/scheduleSchemaService';
-import { positiveRouteId } from './routeInput';
+import { positiveRouteId, singleQueryString } from './routeInput';
 
 const router = Router();
 
@@ -78,7 +78,7 @@ function escapeICalText(text: string): string {
 router.get('/:artistId/bookings.ics', async (req: Request, res: Response) => {
   try {
     const artistId = positiveRouteId(req.params.artistId);
-    const token = req.query.token as string;
+    const token = singleQueryString(req.query.token, 64);
 
     if (artistId === null) {
       return res.status(400).send('Invalid artist ID');
@@ -246,7 +246,7 @@ function validateVenueCalendarToken(venueId: number, token: string): boolean {
 router.get('/venue/:venueId/events.ics', async (req: Request, res: Response) => {
   try {
     const venueId = positiveRouteId(req.params.venueId);
-    const token = req.query.token as string;
+    const token = singleQueryString(req.query.token, 64);
 
     if (venueId === null) {
       return res.status(400).send('Invalid venue ID');

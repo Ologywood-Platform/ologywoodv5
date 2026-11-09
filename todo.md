@@ -5254,6 +5254,10 @@ The active legacy event-search route now validates search/query, event type, loc
 
 The mounted admin-only test-email route now rejects array bodies and unknown JSON fields before email validation or delivery; only a scalar `email` field is accepted. Focused email/preference/route-input regressions passed 8/8; TypeScript and production build passed with existing chunk-size warnings. No test emails, provider calls, or records changed.
 
+### Calendar-feed token query contract — 2026-11-09
+
+Artist and venue iCalendar feed routes now validate their `token` query value through the shared bounded scalar query helper before format and HMAC checks; repeated query parameters and non-string values no longer pass through a TypeScript cast. Focused calendar/Express/schedule regressions passed 16/16; TypeScript and production build passed with existing chunk-size warnings. No calendar feeds, bookings, tokens, or records changed.
+
 
 ### Production image loading correction — 2026-11-09
 

@@ -14,6 +14,8 @@ describe('reachable Express boundary hardening', () => {
     expect(calendar).toContain('`DESCRIPTION:${escapeICalText(description)}`');
     expect(calendar).not.toContain('`DESCRIPTION:${description}`');
     expect(calendar).toContain("kind: error instanceof Error ? error.name : 'UnknownError'");
+    expect(calendar).toContain("import { positiveRouteId, singleQueryString } from './routeInput';");
+    expect(calendar).not.toContain('req.query.token as string');
   });
 
   it('rejects coerced media upload IDs and chunk indexes before service access', () => {
@@ -34,7 +36,7 @@ describe('reachable Express boundary hardening', () => {
   });
 
   it('uses strict shared IDs across event CRUD, recurrence, history, photos, and saved-event routes', () => {
-    expect(events).toContain("import { positiveRouteId } from './routeInput';");
+    expect(events).toContain("import { positiveRouteId, singleQueryString } from './routeInput';");
     expect(events).toContain('const parsed = positiveRouteId(value);');
     expect(events).not.toContain('const parsed = Number(value);');
     expect(events).not.toContain('parseInt(');
