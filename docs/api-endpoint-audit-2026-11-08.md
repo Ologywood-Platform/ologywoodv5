@@ -273,6 +273,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Body and status-route booking IDs use the shared strict positive-ID parser; booking totals must be finite, cents-safe USD values no greater than $1,000,000; Stripe success/cancel URLs use the approved checkout-origin helper rather than the request `Origin`; payment-status artist authorization resolves the booking’s artist profile to its owning user ID; and connected-account IDs/raw exception details are omitted from logs.
    - Booking-checkout/release-checkout/booking/workflow/Live-payment regressions pass 64/64, with TypeScript, production build, and diff validation passing. No Checkout sessions, PaymentIntents, payments, bookings, or records were changed during validation.
 
+61. **eBook upload/download boundaries — resolved in this increment.**
+   - Upload/download IDs use shared strict positive parsing; PDF/EPUB uploads must match actual `%PDF-` or ZIP signatures in addition to allowlisted MIME types; eBook storage keys are constrained to a traversal-safe `ebooks/<user>/<item>/<safe-name>` grammar before retrieval; ownership, rights confirmation, paid access, and atomic download-limit checks remain active; and route logs expose only error type.
+   - Book-file/author-shop/route-safety regressions pass 26/26, with TypeScript, production build, and diff validation passing. No eBook files, downloads, orders, emails, or records were changed during validation.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.

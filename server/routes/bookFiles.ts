@@ -6,6 +6,7 @@ import { sdk } from '../_core/sdk';
 import { getPool } from '../db';
 import { ensureMerchItemsSchema } from '../services/merchSchemaService';
 import { EBOOK_FILE_FORMAT_VALUES, MAX_EBOOK_SIZE_BYTES } from '../../shared/bookCommerce';
+import { positiveRouteId } from './routeInput';
 
 const router = Router();
 const EBOOK_MIME_TYPES = ['application/pdf', 'application/epub+zip'] as const;
@@ -23,6 +24,16 @@ function safeFileName(fileName: string) {
   return fileName.replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 180) || 'ebook';
 }
 
+function hasValidEbookSignature(buffer: Buffer, mimeType: string): boolean {
+  if (mimeType === 'application/pdf') return buffer.subarray(0, 5).toString('ascii') === '%PDF-';
+  return buffer.length >= 4 && buffer.subarray(0, 4).equals(Buffer.from([0x50, 0x4b, 0x03, 0x04]));
+}
+
+function isSafeEbookStorageKey(value: unknown): value is string {
+  return typeof value === 'string'
+    && /^ebooks\/\d+\/\d+\/[a-zA-Z0-9._-]{1,220}$/.test(value);
+}
+
 router.post('/upload/:itemId', ebookUpload.single('ebook'), async (req: Request, res: Response) => {
   try {
     let user;
@@ -32,9 +43,12 @@ router.post('/upload/:itemId', ebookUpload.single('ebook'), async (req: Request,
       return res.status(401).json({ error: 'Authentication required' });
     }
 
-    const itemId = Number(req.params.itemId);
-    if (!Number.isInteger(itemId) || itemId <= 0) return res.status(400).json({ error: 'Invalid book item' });
+    const itemId = positiveRouteId(req.params.itemId);
+    if (itemId === null) return res.status(400).json({ error: 'Invalid book item' });
     if (!req.file) return res.status(400).json({ error: 'Select a PDF or EPUB file' });
+    if (!hasValidEbookSignature(req.file.buffer, req.file.mimetype)) {
+      return res.status(400).json({ error: 'The eBook file contents do not match its declared format' });
+    }
     if (req.body?.rightsConfirmed !== 'true') {
       return res.status(400).json({ error: 'Confirm that you own or control the rights needed to sell this eBook' });
     }
@@ -68,7 +82,7 @@ router.post('/upload/:itemId', ebookUpload.single('ebook'), async (req: Request,
 
     return res.json({ success: true, fileName: originalName, fileSize: req.file.size, fileFormat: format });
   } catch (error: any) {
-    console.error('[Book File Upload Error]', error);
+    console.error('[Book File Upload Error]', { kind: error instanceof Error ? error.name : 'UnknownError' });
     if (error.code === 'LIMIT_FILE_SIZE') return res.status(413).json({ error: 'eBook files must be under 25 MB' });
     return res.status(500).json({ error: 'eBook upload failed' });
   }
@@ -83,8 +97,8 @@ router.get('/download/:accessId', async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Sign in to download your purchased eBook' });
     }
 
-    const accessId = Number(req.params.accessId);
-    if (!Number.isInteger(accessId) || accessId <= 0) return res.status(400).json({ error: 'Invalid download access' });
+    const accessId = positiveRouteId(req.params.accessId);
+    if (accessId === null) return res.status(400).json({ error: 'Invalid download access' });
 
     const pool = getPool();
     if (!pool) return res.status(503).json({ error: 'Database unavailable' });
@@ -109,7 +123,7 @@ router.get('/download/:accessId', async (req: Request, res: Response) => {
     if (Number(access.downloadCount) >= Number(access.maxDownloads)) {
       return res.status(403).json({ error: `Download limit reached (${access.maxDownloads} downloads). Contact support for assistance.` });
     }
-    if (!access.ebookFileKey) return res.status(404).json({ error: 'eBook file is not available' });
+    if (!isSafeEbookStorageKey(access.ebookFileKey)) return res.status(404).json({ error: 'eBook file is not available' });
 
     const { url } = await storageGet(access.ebookFileKey);
     const [updateResult] = await pool.execute(
@@ -135,7 +149,7 @@ router.get('/download/:accessId', async (req: Request, res: Response) => {
       downloadsRemaining: Math.max(0, Number(updatedAccess.maxDownloads) - Number(updatedAccess.downloadCount)),
     });
   } catch (error) {
-    console.error('[Book Download Error]', error);
+    console.error('[Book Download Error]', { kind: error instanceof Error ? error.name : 'UnknownError' });
     return res.status(500).json({ error: 'Failed to generate eBook download link' });
   }
 });
