@@ -15,7 +15,7 @@ import {
 
 const creatorIdSchema = z.number().int().safe().positive();
 const fanUnsubscribeToken = z.string().trim().min(20).max(512).regex(/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/u, 'Invalid unsubscribe token');
-const publicUnsubscribeLimiter = new RateLimiter({ maxRequests: 60, windowMs: 60 * 1000 });
+const publicUnsubscribeLimiter = new RateLimiter({ maxRequests: 60, windowMs: 60 * 1000, namespace: 'public-unsubscribe' });
 
 function clientIp(ctx: { req?: { headers?: Record<string, unknown>; socket?: { remoteAddress?: string } } }): string {
   return ctx.req?.headers?.['x-forwarded-for']?.toString()?.split(',')[0]?.trim()
@@ -191,7 +191,7 @@ export const emailPreferencesRouter = router({
   getFanUnsubscribe: publicProcedure
     .input(z.object({ token: fanUnsubscribeToken }).strict())
     .query(async ({ input, ctx }) => {
-      if (!publicUnsubscribeLimiter.check(`ip:${clientIp(ctx)}`).allowed) return { valid: false };
+      if (!(await publicUnsubscribeLimiter.checkAsync(`ip:${clientIp(ctx)}`)).allowed) return { valid: false };
       const status = await getFanUnsubscribeStatus(input.token);
       return status.valid
         ? { valid: true, scope: FAN_EMAIL_UNSUBSCRIBE_SCOPE }
@@ -202,7 +202,7 @@ export const emailPreferencesRouter = router({
   unsubscribeFan: publicProcedure
     .input(z.object({ token: fanUnsubscribeToken }).strict())
     .mutation(async ({ input, ctx }) => {
-      if (!publicUnsubscribeLimiter.check(`ip:${clientIp(ctx)}`).allowed) {
+      if (!(await publicUnsubscribeLimiter.checkAsync(`ip:${clientIp(ctx)}`)).allowed) {
         throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Please try again later" });
       }
       const success = await unsubscribeFanByToken(input.token);

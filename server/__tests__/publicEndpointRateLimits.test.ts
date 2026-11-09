@@ -75,11 +75,11 @@ describe('Rate Limiting on Public Endpoints', () => {
     });
 
     it('applies IP-based rate limiting', () => {
-      expect(routersContent).toContain('newsletterLimiter.check(`ip:${clientIp}`)');
+      expect(routersContent).toContain('newsletterLimiter.checkAsync(`ip:${clientIp}`)');
     });
 
     it('applies email-based rate limiting', () => {
-      expect(routersContent).toContain('newsletterLimiter.check(`email:${input.email.toLowerCase()}`)');
+      expect(routersContent).toContain('newsletterLimiter.checkAsync(`email:${input.email.toLowerCase()}`)');
     });
 
     it('throws TOO_MANY_REQUESTS when rate limited', () => {
@@ -99,7 +99,7 @@ describe('Rate Limiting on Public Endpoints', () => {
     });
 
     it('applies IP-based rate limiting to signup', () => {
-      expect(authContent).toContain('signupLimiter.check(`ip:${getClientIp(ctx)}`)');
+      expect(authContent).toContain('signupLimiter.checkAsync(`ip:${getClientIp(ctx)}`)');
     });
 
     it('throws TOO_MANY_REQUESTS on signup rate limit', () => {
@@ -117,7 +117,7 @@ describe('Rate Limiting on Public Endpoints', () => {
     });
 
     it('applies IP-based rate limiting to login', () => {
-      expect(authContent).toContain('loginLimiter.check(`ip:${getClientIp(ctx)}`)');
+      expect(authContent).toContain('loginLimiter.checkAsync(`ip:${getClientIp(ctx)}`)');
     });
 
     it('throws TOO_MANY_REQUESTS on login rate limit', () => {
@@ -135,11 +135,11 @@ describe('Rate Limiting on Public Endpoints', () => {
     });
 
     it('applies IP-based rate limiting', () => {
-      expect(authContent).toContain('resendEmailLimiter.check(`ip:${getClientIp(ctx)}`)');
+      expect(authContent).toContain('resendEmailLimiter.checkAsync(`ip:${getClientIp(ctx)}`)');
     });
 
     it('applies email-based rate limiting', () => {
-      expect(authContent).toContain('resendEmailLimiter.check(`email:${input.email.toLowerCase()}`)');
+      expect(authContent).toContain('resendEmailLimiter.checkAsync(`email:${input.email.toLowerCase()}`)');
     });
 
     it('provides user-friendly retry messages', () => {

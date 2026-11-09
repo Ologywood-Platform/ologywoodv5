@@ -4177,7 +4177,7 @@ export const appRouter = router({
         // Rate limit by IP
         const clientIp = ctx.req?.headers?.['x-forwarded-for']?.toString()?.split(',')[0]?.trim()
           || ctx.req?.socket?.remoteAddress || 'unknown';
-        const ipCheck = newsletterLimiter.check(`ip:${clientIp}`);
+        const ipCheck = await newsletterLimiter.checkAsync(`ip:${clientIp}`);
         if (!ipCheck.allowed) {
           const retryMinutes = Math.ceil(ipCheck.retryAfterMs / 60_000);
           throw new TRPCError({
@@ -4186,7 +4186,7 @@ export const appRouter = router({
           });
         }
         // Rate limit by email
-        const emailCheck = newsletterLimiter.check(`email:${input.email.toLowerCase()}`);
+        const emailCheck = await newsletterLimiter.checkAsync(`email:${input.email.toLowerCase()}`);
         if (!emailCheck.allowed) {
           const retryMinutes = Math.ceil(emailCheck.retryAfterMs / 60_000);
           throw new TRPCError({

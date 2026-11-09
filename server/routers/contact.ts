@@ -46,7 +46,7 @@ export const contactRouter = router({
         || ctx.req?.socket?.remoteAddress
         || 'unknown';
       
-      const ipCheck = contactFormLimiter.check(`ip:${clientIp}`);
+      const ipCheck = await contactFormLimiter.checkAsync(`ip:${clientIp}`);
       if (!ipCheck.allowed) {
         const retryMinutes = Math.ceil(ipCheck.retryAfterMs / 60_000);
         throw new TRPCError({
@@ -56,7 +56,7 @@ export const contactRouter = router({
       }
 
       // Rate limit by email address (prevents using different IPs with same email)
-      const emailCheck = contactFormLimiter.check(`email:${email.toLowerCase()}`);
+      const emailCheck = await contactFormLimiter.checkAsync(`email:${email.toLowerCase()}`);
       if (!emailCheck.allowed) {
         const retryMinutes = Math.ceil(emailCheck.retryAfterMs / 60_000);
         throw new TRPCError({

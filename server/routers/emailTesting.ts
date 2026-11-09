@@ -20,7 +20,7 @@ export const emailTestingRouter = router({
     }).strict())
     .mutation(async ({ input, ctx }) => {
       // Rate limit: 5 test runs per 15 min per IP
-      const ipCheck = emailTestingLimiter.check(`ip:${getClientIp(ctx)}`);
+      const ipCheck = await emailTestingLimiter.checkAsync(`ip:${getClientIp(ctx)}`);
       if (!ipCheck.allowed) {
         const retryMinutes = Math.ceil(ipCheck.retryAfterMs / 60_000);
         throw new TRPCError({
@@ -58,7 +58,7 @@ export const emailTestingRouter = router({
     }).strict())
     .mutation(async ({ input, ctx }) => {
       // Rate limit: 5 test runs per 15 min per IP
-      const ipCheck = emailTestingLimiter.check(`ip:${getClientIp(ctx)}`);
+      const ipCheck = await emailTestingLimiter.checkAsync(`ip:${getClientIp(ctx)}`);
       if (!ipCheck.allowed) {
         const retryMinutes = Math.ceil(ipCheck.retryAfterMs / 60_000);
         throw new TRPCError({

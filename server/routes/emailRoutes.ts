@@ -29,7 +29,7 @@ const requireAdmin = (req: any, res: any, next: any) => {
  */
 router.post('/test', requireAdmin, async (req, res) => {
   try {
-    const ipCheck = emailTestingLimiter.check(`express-ip:${getClientIp(req)}`);
+    const ipCheck = await emailTestingLimiter.checkAsync(`express-ip:${getClientIp(req)}`);
     if (!ipCheck.allowed) {
       res.set('Retry-After', String(Math.max(1, Math.ceil(ipCheck.retryAfterMs / 1000))));
       return res.status(429).json({ success: false, message: 'Too many test-email requests. Please try again later.' });
@@ -43,7 +43,7 @@ router.post('/test', requireAdmin, async (req, res) => {
       });
     }
 
-    const emailCheck = emailTestingLimiter.check(`express-email:${email}`);
+    const emailCheck = await emailTestingLimiter.checkAsync(`express-email:${email}`);
     if (!emailCheck.allowed) {
       res.set('Retry-After', String(Math.max(1, Math.ceil(emailCheck.retryAfterMs / 1000))));
       return res.status(429).json({ success: false, message: 'Too many test-email requests. Please try again later.' });

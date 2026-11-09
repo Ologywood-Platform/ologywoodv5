@@ -197,3 +197,23 @@ describe('RateLimiter', () => {
     });
   });
 });
+
+describe('RateLimiter shared-store fallback', () => {
+  it('uses the local limiter asynchronously when no Redis configuration is present', async () => {
+    const previousUrl = process.env.REDIS_URL;
+    const previousHost = process.env.REDIS_HOST;
+    delete process.env.REDIS_URL;
+    delete process.env.REDIS_HOST;
+    const limiter = new RateLimiter({ maxRequests: 1, windowMs: 60_000, namespace: 'test-fallback' });
+    try {
+      expect((await limiter.checkAsync('same-key')).allowed).toBe(true);
+      expect((await limiter.checkAsync('same-key')).allowed).toBe(false);
+    } finally {
+      limiter.destroy();
+      if (previousUrl === undefined) delete process.env.REDIS_URL;
+      else process.env.REDIS_URL = previousUrl;
+      if (previousHost === undefined) delete process.env.REDIS_HOST;
+      else process.env.REDIS_HOST = previousHost;
+    }
+  });
+});

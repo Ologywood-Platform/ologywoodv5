@@ -349,7 +349,7 @@ export const aiChatRouter = router({
       }).strict()).max(20).optional(),
     }).strict())
     .mutation(async ({ input, ctx }) => {
-      const ipCheck = aiChatLimiter.check(`ip:${getClientIp(ctx)}`);
+      const ipCheck = await aiChatLimiter.checkAsync(`ip:${getClientIp(ctx)}`);
       if (!ipCheck.allowed) {
         const retrySeconds = Math.max(1, Math.ceil(ipCheck.retryAfterMs / 1000));
         throw new TRPCError({

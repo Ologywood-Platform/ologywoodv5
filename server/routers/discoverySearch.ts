@@ -11,7 +11,7 @@ import { publicProcedure, router } from '../_core/trpc';
 import { getDb } from '../db';
 import { RateLimiter } from '../utils/rateLimiter';
 
-const discoverySearchLimiter = new RateLimiter({ maxRequests: 120, windowMs: 60 * 1000 });
+const discoverySearchLimiter = new RateLimiter({ maxRequests: 120, windowMs: 60 * 1000, namespace: 'discovery-search' });
 
 function clientIp(ctx: { req?: { headers?: Record<string, unknown>; socket?: { remoteAddress?: string } } }): string {
   return ctx.req?.headers?.['x-forwarded-for']?.toString()?.split(',')[0]?.trim()
@@ -73,7 +73,7 @@ export const discoverySearchRouter = router({
       limitPerType: z.number().int().safe().min(1).max(6).default(4),
     }).strict())
     .query(async ({ input, ctx }) => {
-      if (!discoverySearchLimiter.check(`ip:${clientIp(ctx)}`).allowed) {
+      if (!(await discoverySearchLimiter.checkAsync(`ip:${clientIp(ctx)}`)).allowed) {
         return { artists: [], venues: [], events: [] };
       }
       const database = await getDb();

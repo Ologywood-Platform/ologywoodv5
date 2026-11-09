@@ -16,7 +16,7 @@ import { stripe } from "../stripe";
 import { RateLimiter } from "../utils/rateLimiter";
 
 const referralCodeSchema = z.string().trim().regex(/^[A-Z0-9_-]{8}$/u, 'Invalid referral code');
-const publicReferralLimiter = new RateLimiter({ maxRequests: 60, windowMs: 60 * 1000 });
+const publicReferralLimiter = new RateLimiter({ maxRequests: 60, windowMs: 60 * 1000, namespace: 'public-referral' });
 
 function clientIp(ctx: { req?: { headers?: Record<string, unknown>; socket?: { remoteAddress?: string } } }): string {
   return ctx.req?.headers?.['x-forwarded-for']?.toString()?.split(',')[0]?.trim()
@@ -212,7 +212,7 @@ export const referralRouter = router({
   validateCode: publicProcedure
     .input(z.object({ code: referralCodeSchema }).strict())
     .query(async ({ input, ctx }) => {
-      if (!publicReferralLimiter.check(`ip:${clientIp(ctx)}`).allowed) return { valid: false, referrerName: null };
+      if (!(await publicReferralLimiter.checkAsync(`ip:${clientIp(ctx)}`)).allowed) return { valid: false, referrerName: null };
       const database = await db();
 
       const referral = await database

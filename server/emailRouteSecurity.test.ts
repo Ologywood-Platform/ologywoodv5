@@ -10,8 +10,8 @@ describe('test-email route security boundary', () => {
     expect(source).toContain("email.length > 320");
     expect(source).toContain("email.trim().toLowerCase()");
     expect(source).toContain(".test(email)");
-    expect(source).toContain("emailTestingLimiter.check(`express-ip:${getClientIp(req)}`)");
-    expect(source).toContain("emailTestingLimiter.check(`express-email:${email}`)");
+    expect(source).toContain("emailTestingLimiter.checkAsync(`express-ip:${getClientIp(req)}`)");
+    expect(source).toContain("emailTestingLimiter.checkAsync(`express-email:${email}`)");
     expect(source).toContain("res.set('Retry-After'");
     expect(source).toContain("status(429)");
   });

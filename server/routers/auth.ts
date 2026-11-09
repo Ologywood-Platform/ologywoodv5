@@ -89,7 +89,7 @@ export const authRouter = router({
     .input(z.object({ email: authEmailSchema }).strict())
     .mutation(async ({ input, ctx }) => {
       // Rate limit: 3 resend attempts per 15 min per IP
-      const ipCheck = resendEmailLimiter.check(`ip:${getClientIp(ctx)}`);
+      const ipCheck = await resendEmailLimiter.checkAsync(`ip:${getClientIp(ctx)}`);
       if (!ipCheck.allowed) {
         const retryMinutes = Math.ceil(ipCheck.retryAfterMs / 60_000);
         throw new TRPCError({
@@ -98,7 +98,7 @@ export const authRouter = router({
         });
       }
       // Rate limit by email too
-      const emailCheck = resendEmailLimiter.check(`email:${input.email.toLowerCase()}`);
+      const emailCheck = await resendEmailLimiter.checkAsync(`email:${input.email.toLowerCase()}`);
       if (!emailCheck.allowed) {
         const retryMinutes = Math.ceil(emailCheck.retryAfterMs / 60_000);
         throw new TRPCError({
@@ -159,7 +159,7 @@ export const authRouter = router({
     .input(signupSchema)
     .mutation(async ({ input, ctx }) => {
       // Rate limit: 5 signup attempts per 15 min per IP
-      const ipCheck = signupLimiter.check(`ip:${getClientIp(ctx)}`);
+      const ipCheck = await signupLimiter.checkAsync(`ip:${getClientIp(ctx)}`);
       if (!ipCheck.allowed) {
         const retryMinutes = Math.ceil(ipCheck.retryAfterMs / 60_000);
         throw new TRPCError({
@@ -312,7 +312,7 @@ export const authRouter = router({
     .input(loginSchema)
     .mutation(async ({ input, ctx }) => {
       // Rate limit: 10 login attempts per 15 min per IP
-      const ipCheck = loginLimiter.check(`ip:${getClientIp(ctx)}`);
+      const ipCheck = await loginLimiter.checkAsync(`ip:${getClientIp(ctx)}`);
       if (!ipCheck.allowed) {
         const retryMinutes = Math.ceil(ipCheck.retryAfterMs / 60_000);
         throw new TRPCError({
@@ -321,7 +321,7 @@ export const authRouter = router({
         });
       }
       // Rate limit: 5 login attempts per 15 min per email (prevents credential stuffing)
-      const emailCheck = loginEmailLimiter.check(`email:${input.email.toLowerCase().trim()}`);
+      const emailCheck = await loginEmailLimiter.checkAsync(`email:${input.email.toLowerCase().trim()}`);
       if (!emailCheck.allowed) {
         const retryMinutes = Math.ceil(emailCheck.retryAfterMs / 60_000);
         throw new TRPCError({
@@ -409,7 +409,7 @@ export const authRouter = router({
     }).strict())
     .mutation(async ({ input, ctx }) => {
       // Rate limit: same as login
-      const ipCheck = loginLimiter.check(`ip:setpw:${getClientIp(ctx)}`);
+      const ipCheck = await loginLimiter.checkAsync(`ip:setpw:${getClientIp(ctx)}`);
       if (!ipCheck.allowed) {
         const retryMinutes = Math.ceil(ipCheck.retryAfterMs / 60_000);
         throw new TRPCError({
@@ -595,7 +595,7 @@ export const authRouter = router({
     .input(z.object({ email: authEmailSchema }).strict())
     .mutation(async ({ input, ctx }) => {
       // Rate limit: 3 per 15 min per IP and email
-      const ipCheck = forgotPasswordLimiter.check(`ip:forgot:${getClientIp(ctx)}`);
+      const ipCheck = await forgotPasswordLimiter.checkAsync(`ip:forgot:${getClientIp(ctx)}`);
       if (!ipCheck.allowed) {
         const retryMinutes = Math.ceil(ipCheck.retryAfterMs / 60_000);
         throw new TRPCError({
@@ -603,7 +603,7 @@ export const authRouter = router({
           message: `Too many reset attempts. Please try again in ${retryMinutes} minute${retryMinutes === 1 ? '' : 's'}.`,
         });
       }
-      const emailCheck = forgotPasswordLimiter.check(`email:forgot:${input.email.toLowerCase()}`);
+      const emailCheck = await forgotPasswordLimiter.checkAsync(`email:forgot:${input.email.toLowerCase()}`);
       if (!emailCheck.allowed) {
         // Don't reveal rate limit per email — just return success
         return { success: true, message: 'If an account exists with that email, a password reset link has been sent.' };

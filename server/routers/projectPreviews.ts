@@ -29,7 +29,7 @@ const MAX_IMAGE_SIZE = 2 * 1024 * 1024; // 2MB
 const MAX_AUDIO_SIZE = 5 * 1024 * 1024; // 5MB
 const projectIdSchema = z.number().int().safe().positive();
 const trackIdSchema = z.number().int().safe().positive();
-const projectPreviewPlayLimiter = new RateLimiter({ maxRequests: 30, windowMs: 60 * 1000 });
+const projectPreviewPlayLimiter = new RateLimiter({ maxRequests: 30, windowMs: 60 * 1000, namespace: 'project-preview-play' });
 const projectDateSchema = z.string().trim().max(40).refine((value) => {
   const parsed = new Date(value);
   return !Number.isNaN(parsed.getTime());
@@ -586,7 +586,7 @@ export const projectPreviewsRouter = router({
     .mutation(async ({ input, ctx }) => {
       const clientIp = ctx.req?.headers?.['x-forwarded-for']?.toString()?.split(',')[0]?.trim()
         || ctx.req?.socket?.remoteAddress || 'unknown';
-      if (!projectPreviewPlayLimiter.check(`ip:${clientIp}`).allowed) return { success: false };
+      if (!(await projectPreviewPlayLimiter.checkAsync(`ip:${clientIp}`)).allowed) return { success: false };
       const db = await getDb();
       if (!db) return { success: false };
 

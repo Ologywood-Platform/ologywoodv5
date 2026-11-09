@@ -15,7 +15,7 @@ describe('email preference security boundaries', () => {
   it('validates signed unsubscribe capability shape and caps public calls', () => {
     expect(source).toContain("const fanUnsubscribeToken = z.string().trim().min(20).max(512).regex(/^[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$/u");
     expect(source).toContain('const publicUnsubscribeLimiter = new RateLimiter({ maxRequests: 60');
-    expect(source).toContain("publicUnsubscribeLimiter.check(`ip:${clientIp(ctx)}`)");
+    expect(source).toContain("publicUnsubscribeLimiter.checkAsync(`ip:${clientIp(ctx)}`)");
   });
 
   it('keeps preference mutations strict and does not log raw exceptions', () => {

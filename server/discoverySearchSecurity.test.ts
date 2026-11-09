@@ -13,7 +13,7 @@ describe('discovery search security boundaries', () => {
 
   it('throttles public discovery queries per client IP', () => {
     expect(source).toContain('const discoverySearchLimiter = new RateLimiter({ maxRequests: 120');
-    expect(source).toContain("discoverySearchLimiter.check(`ip:${clientIp(ctx)}`)");
+    expect(source).toContain("discoverySearchLimiter.checkAsync(`ip:${clientIp(ctx)}`)");
     expect(source).toContain('return { artists: [], venues: [], events: [] };');
   });
 

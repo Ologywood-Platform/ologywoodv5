@@ -15,7 +15,7 @@ describe('contract analyzer security boundaries', () => {
   });
 
   it('limits expensive analysis per signed-in user', () => {
-    expect(source).toContain('contractAnalyzerLimiter.check(`user:${ctx.user.id}`)');
+    expect(source).toContain('contractAnalyzerLimiter.checkAsync(`user:${ctx.user.id}`)');
     expect(source).toContain("code: 'TOO_MANY_REQUESTS'");
     expect(limiterSource).toContain('export const contractAnalyzerLimiter');
     expect(limiterSource).toContain('maxRequests: 6');

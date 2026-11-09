@@ -20,7 +20,7 @@ describe('content-release security boundaries', () => {
     expect(releases).toContain('const safeArtistProfileId = z.number().int().safe().positive()');
     expect(releases).toContain('.limit(100);');
     expect(releases).toContain('const contentReleaseViewLimiter = new RateLimiter({ maxRequests: 120');
-    expect(releases).toContain("contentReleaseViewLimiter.check(`ip:${clientIp(ctx)}`)");
+    expect(releases).toContain("contentReleaseViewLimiter.checkAsync(`ip:${clientIp(ctx)}`)");
   });
 
   it('keeps public content behind access checks and omits internal release metadata', () => {

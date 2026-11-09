@@ -26,9 +26,9 @@ import { createContentReleaseCheckout } from "../services/contentReleaseCommerce
 import { contentReleasePublicView, isVerifiedContentPurchase } from "../../shared/contentReleaseCommerce";
 import { PREVIEW_INPUT_BYTES, PREVIEW_ERROR, readPreviewReference, resolveHostedPreview, uploadHostedPreview } from "../services/releasePreviewMedia";
 
-export const contentReleaseCoverLimiter = new RateLimiter({maxRequests:10, windowMs:60_000});
-export const contentReleasePreviewLimiter = new RateLimiter({maxRequests:6, windowMs:60_000});
-const contentReleaseViewLimiter = new RateLimiter({ maxRequests: 120, windowMs: 60_000 });
+export const contentReleaseCoverLimiter = new RateLimiter({ maxRequests: 10, windowMs: 60_000, namespace: 'release-cover' });
+export const contentReleasePreviewLimiter = new RateLimiter({ maxRequests: 6, windowMs: 60_000, namespace: 'release-preview' });
+const contentReleaseViewLimiter = new RateLimiter({ maxRequests: 120, windowMs: 60_000, namespace: 'release-view' });
 
 function clientIp(ctx: { req?: { headers?: Record<string, unknown>; socket?: { remoteAddress?: string } } }): string {
   return ctx.req?.headers?.['x-forwarded-for']?.toString()?.split(',')[0]?.trim()
@@ -147,7 +147,7 @@ export const releasesRouter = router({
     }))
     .mutation(async ({ctx,input}) => {
       if(!['artist','admin'].includes(ctx.user.role)) throw new TRPCError({code:'FORBIDDEN',message:'Creator access required.'});
-      if(!contentReleasePreviewLimiter.check(String(ctx.user.id)).allowed) throw new TRPCError({code:'TOO_MANY_REQUESTS',message:'Too many preview uploads. Please wait a minute.'});
+      if(!(await contentReleasePreviewLimiter.checkAsync(String(ctx.user.id))).allowed) throw new TRPCError({code:'TOO_MANY_REQUESTS',message:'Too many preview uploads. Please wait a minute.'});
       const database = await getReleaseDb();
       const [profile] = await database.select({id:artistProfiles.id}).from(artistProfiles).where(eq(artistProfiles.userId,ctx.user.id)).limit(1);
       if(!profile) throw new TRPCError({code:'NOT_FOUND',message:'Artist profile not found'});
@@ -183,7 +183,7 @@ export const releasesRouter = router({
     }))
     .mutation(async ({ctx, input}) => {
       if (ctx.user.role !== 'artist' && ctx.user.role !== 'admin') throw new TRPCError({code:'FORBIDDEN', message:'Creator access required.'});
-      if (!contentReleaseCoverLimiter.check(String(ctx.user.id)).allowed) throw new TRPCError({code:'TOO_MANY_REQUESTS', message:'Too many cover uploads. Please wait a minute and try again.'});
+      if (!(await contentReleaseCoverLimiter.checkAsync(String(ctx.user.id))).allowed) throw new TRPCError({code:'TOO_MANY_REQUESTS', message:'Too many cover uploads. Please wait a minute and try again.'});
       const database = await getReleaseDb();
       const [profile] = await database.select().from(artistProfiles).where(eq(artistProfiles.userId, ctx.user.id)).limit(1);
       if (!profile) throw new TRPCError({code:'NOT_FOUND', message:'Artist profile not found'});
@@ -344,7 +344,7 @@ export const releasesRouter = router({
   getById: releasePublicProcedure
     .input(z.object({ id: safeReleaseId }).strict())
     .query(async ({ ctx, input }) => {
-      if (!contentReleaseViewLimiter.check(`ip:${clientIp(ctx)}`).allowed) {
+      if (!(await contentReleaseViewLimiter.checkAsync(`ip:${clientIp(ctx)}`)).allowed) {
         throw new TRPCError({ code: 'TOO_MANY_REQUESTS', message: 'Too many release views. Please wait a minute.' });
       }
       const database = await getReleaseDb();

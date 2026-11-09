@@ -9,7 +9,7 @@ describe('referral security boundaries', () => {
   it('uses a bounded generated-code grammar and throttles public validation', () => {
     expect(router).toContain("const referralCodeSchema = z.string().trim().regex(/^[A-Z0-9_-]{8}$/u");
     expect(router).toContain('const publicReferralLimiter = new RateLimiter({ maxRequests: 60');
-    expect(router).toContain("publicReferralLimiter.check(`ip:${clientIp(ctx)}`)");
+    expect(router).toContain("publicReferralLimiter.checkAsync(`ip:${clientIp(ctx)}`)");
     expect(router).toContain('.input(z.object({ code: referralCodeSchema }).strict())');
   });
 

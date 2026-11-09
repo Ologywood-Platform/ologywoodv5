@@ -14,7 +14,7 @@ describe('AI chat security boundaries', () => {
   });
 
   it('rate-limits expensive public LLM calls per client IP', () => {
-    expect(source).toContain('aiChatLimiter.check(`ip:${getClientIp(ctx)}`)');
+    expect(source).toContain('aiChatLimiter.checkAsync(`ip:${getClientIp(ctx)}`)');
     expect(source).toContain("code: 'TOO_MANY_REQUESTS'");
     expect(limiterSource).toContain('export const aiChatLimiter');
     expect(limiterSource).toContain('maxRequests: 30');

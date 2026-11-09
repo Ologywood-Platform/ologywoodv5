@@ -23,7 +23,7 @@ describe('project preview security boundaries', () => {
   it('prevents partial or duplicate reorder writes and limits public play increments', () => {
     expect(source).toContain('Track IDs must be unique.');
     expect(source).toContain('Track order must include exactly the tracks in this project.');
-    expect(source).toContain('projectPreviewPlayLimiter.check(`ip:${clientIp}`)');
+    expect(source).toContain('projectPreviewPlayLimiter.checkAsync(`ip:${clientIp}`)');
     expect(source).toContain("eq(users.role, 'artist')");
   });
 });

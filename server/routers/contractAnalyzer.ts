@@ -78,7 +78,7 @@ export const contractAnalyzerRouter = router({
       }).strict()
     )
     .mutation(async ({ input, ctx }) => {
-      const requestLimit = contractAnalyzerLimiter.check(`user:${ctx.user.id}`);
+      const requestLimit = await contractAnalyzerLimiter.checkAsync(`user:${ctx.user.id}`);
       if (!requestLimit.allowed) {
         const retryMinutes = Math.max(1, Math.ceil(requestLimit.retryAfterMs / 60_000));
         throw new TRPCError({
