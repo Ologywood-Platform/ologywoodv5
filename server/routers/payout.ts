@@ -5,6 +5,12 @@ import { artistEarnings, artistPayouts, bookings, releasePurchases, artistReleas
 import { eq, sql, and, gte, lte, desc, inArray } from 'drizzle-orm';
 import * as db from '../db';
 
+const payoutId = z.number().int().safe().positive();
+const payoutAmount = z.number().finite().positive().max(1_000_000)
+  .refine((value) => Math.abs(value * 100 - Math.round(value * 100)) < 1e-7, 'Amount must have at most two decimal places');
+const bankAccountId = z.string().trim().regex(/^\d{1,10}$/, 'Invalid bank account identifier')
+  .refine((value) => Number(value) <= 2_147_483_647, 'Invalid bank account identifier').optional();
+
 export const payoutRouter = router({
   getPayouts: protectedProcedure.query(async ({ ctx }: any) => {
     const database = await getDb();
@@ -76,7 +82,7 @@ export const payoutRouter = router({
   getEarningsBreakdown: protectedProcedure
     .input(z.object({
       period: z.enum(['all', 'month', 'quarter', 'year']).default('all'),
-    }).optional())
+    }).strict().optional())
     .query(async ({ ctx, input }) => {
       const database = await getDb();
       if (!database) {
@@ -227,14 +233,30 @@ export const payoutRouter = router({
   requestPayout: protectedProcedure
     .input(
       z.object({
-        amount: z.number().positive(),
+        amount: payoutAmount,
         payoutMethod: z.enum(['bank_transfer', 'stripe_connect', 'manual']),
-        bankAccountId: z.string().optional(),
-      })
+        bankAccountId,
+      }).strict()
     )
     .mutation(async ({ ctx, input }: any) => {
       const database = await getDb();
       if (!database) throw new Error('Database not available');
+
+      const earningsRows = await database.select({ netAmount: artistEarnings.netAmount, status: artistEarnings.status })
+        .from(artistEarnings)
+        .where(eq(artistEarnings.artistId, ctx.user.id));
+      const completedEarnings = earningsRows
+        .filter((earning) => earning.status === 'completed')
+        .reduce((sum, earning) => sum + parseFloat(earning.netAmount as string || '0'), 0);
+      const payoutRows = await database.select({ amount: artistPayouts.amount, status: artistPayouts.status })
+        .from(artistPayouts)
+        .where(eq(artistPayouts.artistId, ctx.user.id));
+      const committedPayouts = payoutRows
+        .filter((payout) => ['pending', 'processing', 'completed'].includes(payout.status))
+        .reduce((sum, payout) => sum + parseFloat(payout.amount as string || '0'), 0);
+      if (input.amount > Math.max(0, completedEarnings - committedPayouts) + 1e-9) {
+        throw new Error('Requested payout exceeds your available completed earnings');
+      }
 
       // Create a payout request in the database
       await database.insert(artistPayouts).values({
@@ -251,7 +273,7 @@ export const payoutRouter = router({
     }),
 
   processPayout: protectedProcedure
-    .input(z.object({ payoutId: z.number() }))
+    .input(z.object({ payoutId }).strict())
     .mutation(async ({ ctx, input }: any) => {
       if (ctx.user.role !== 'admin') {
         throw new Error('Unauthorized');
@@ -259,16 +281,17 @@ export const payoutRouter = router({
       const database = await getDb();
       if (!database) throw new Error('Database not available');
 
-      await database
+      const result = await database
         .update(artistPayouts)
         .set({ status: 'processing', processedAt: new Date() })
-        .where(eq(artistPayouts.id, input.payoutId));
+        .where(and(eq(artistPayouts.id, input.payoutId), eq(artistPayouts.status, 'pending')));
+      if (result[0].affectedRows !== 1) throw new Error('Payout is not pending or does not exist');
 
       return { success: true, message: 'Payout processing started' };
     }),
 
   completePayout: protectedProcedure
-    .input(z.object({ payoutId: z.number() }))
+    .input(z.object({ payoutId }).strict())
     .mutation(async ({ ctx, input }: any) => {
       if (ctx.user.role !== 'admin') {
         throw new Error('Unauthorized');
@@ -276,10 +299,11 @@ export const payoutRouter = router({
       const database = await getDb();
       if (!database) throw new Error('Database not available');
 
-      await database
+      const result = await database
         .update(artistPayouts)
         .set({ status: 'completed', completedAt: new Date() })
-        .where(eq(artistPayouts.id, input.payoutId));
+        .where(and(eq(artistPayouts.id, input.payoutId), eq(artistPayouts.status, 'processing')));
+      if (result[0].affectedRows !== 1) throw new Error('Payout is not processing or does not exist');
 
       return { success: true, message: 'Payout completed' };
     }),

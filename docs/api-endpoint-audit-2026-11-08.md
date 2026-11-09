@@ -229,6 +229,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Contract/booking/review/earnings/question IDs are safe positive integers; signatures/responses/reviews/questions/statuses and list limits are bounded with strict objects; ratings are integer 1–5; earnings date ranges reject reversed dates and reports require integer years; and existing booking-party/talent/fan ownership checks remain in force for contracts, reviews, earnings, and questions.
    - Phase 2/security/NIL/question regressions pass 117/117, with TypeScript and production build validation passing. No contracts, reviews, earnings, questions, notifications, emails, or records were changed.
 
+50. **Payout request and transition boundary — resolved in this increment.**
+   - Request amounts are finite, positive, cents-safe, and capped at $1,000,000; bank-account IDs are bounded to the database integer range; payout requests require completed uncommitted earnings and cannot exceed available funds; request/process/complete objects are strict; payout IDs are safe positive integers; and admin processing transitions only pending rows to processing and only processing rows to completed, with missing or wrong-state payouts failing instead of returning success.
+   - Payout/Stripe Connect/admin/legacy payment regressions pass 28/28, with TypeScript and production build validation passing. No payout requests, transfers, bank settings, emails, or records were changed.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.
