@@ -2,6 +2,7 @@ import { router, protectedProcedure, publicProcedure } from "../_core/trpc";
 import { z } from "zod";
 import * as db from "../db";
 import { TRPCError } from "@trpc/server";
+import { RateLimiter } from "../utils/rateLimiter";
 import {
   FanEmailConsentConflictError,
   FanEmailConsentEligibilityError,
@@ -11,6 +12,15 @@ import {
   unsubscribeFanByToken,
   FAN_EMAIL_UNSUBSCRIBE_SCOPE,
 } from "../services/fanEmailConsentService";
+
+const creatorIdSchema = z.number().int().safe().positive();
+const fanUnsubscribeToken = z.string().trim().min(20).max(512).regex(/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/u, 'Invalid unsubscribe token');
+const publicUnsubscribeLimiter = new RateLimiter({ maxRequests: 60, windowMs: 60 * 1000 });
+
+function clientIp(ctx: { req?: { headers?: Record<string, unknown>; socket?: { remoteAddress?: string } } }): string {
+  return ctx.req?.headers?.['x-forwarded-for']?.toString()?.split(',')[0]?.trim()
+    || ctx.req?.socket?.remoteAddress || 'unknown';
+}
 
 export const emailPreferencesRouter = router({
   // Get current user's email preferences
@@ -26,7 +36,7 @@ export const emailPreferencesRouter = router({
       if (!prefs) throw new Error('Email preferences could not be loaded');
       return prefs;
     } catch (error) {
-      console.error("Error fetching email preferences:", error);
+      console.error("Error fetching email preferences");
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Failed to fetch email preferences",
@@ -45,7 +55,7 @@ export const emailPreferencesRouter = router({
         weeklyDigest: z.boolean().optional(),
         reminders: z.boolean().optional(),
         fanUpdates: z.boolean().optional(),
-      })
+      }).strict().refine((input) => Object.keys(input).length > 0, 'At least one preference is required')
     )
     .mutation(async ({ ctx, input }) => {
       try {
@@ -55,7 +65,7 @@ export const emailPreferencesRouter = router({
         if (!updated) throw new Error('Email preference change could not be confirmed');
         return updated;
       } catch (error) {
-        console.error("Error updating email preferences:", error);
+      console.error("Error updating email preferences");
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to update email preferences",
@@ -79,7 +89,7 @@ export const emailPreferencesRouter = router({
       if (!updated) throw new Error('Email opt-out could not be confirmed');
       return { success: true, message: "Unsubscribed from all emails", unsubscribedAt: updated.unsubscribedAt };
     } catch (error) {
-      console.error("Error unsubscribing from all emails:", error);
+      console.error("Error unsubscribing from all emails");
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Failed to unsubscribe from emails",
@@ -115,9 +125,9 @@ export const emailPreferencesRouter = router({
   submitUnsubscribeFeedback: protectedProcedure
     .input(
       z.object({
-        reason: z.string().min(1).max(100),
-        comment: z.string().max(500).optional(),
-      })
+        reason: z.string().trim().min(1).max(100),
+        comment: z.string().trim().max(500).optional(),
+      }).strict()
     )
     .mutation(async ({ ctx, input }) => {
       try {
@@ -129,7 +139,7 @@ export const emailPreferencesRouter = router({
         });
         return { success: true, message: "Thank you for your feedback" };
       } catch (error) {
-        console.error("Error saving unsubscribe feedback:", error);
+        console.error("Error saving unsubscribe feedback");
         // Don't throw — feedback is best-effort, don't block the user
         return { success: false, message: "Could not save feedback" };
       }
@@ -141,7 +151,7 @@ export const emailPreferencesRouter = router({
       await db.deleteEmailPreferences(ctx.user.id);
       return { success: true, message: "Email preferences deleted" };
     } catch (error) {
-      console.error("Error deleting email preferences:", error);
+      console.error("Error deleting email preferences");
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Failed to delete email preferences",
@@ -151,15 +161,15 @@ export const emailPreferencesRouter = router({
 
   /** Explicit permission is per creator; a follow alone is never consent. */
   getFanConsent: protectedProcedure
-    .input(z.object({ creatorId: z.number().int().positive() }))
+    .input(z.object({ creatorId: creatorIdSchema }).strict())
     .query(async ({ ctx, input }) => getFanEmailConsent(ctx.user.id, input.creatorId)),
 
   setFanConsent: protectedProcedure
     .input(z.object({
-      creatorId: z.number().int().positive(),
+      creatorId: creatorIdSchema,
       optIn: z.boolean(),
-      expectedRevision: z.number().int().min(0),
-    }))
+      expectedRevision: z.number().int().safe().min(0).max(1_000_000_000),
+    }).strict())
     .mutation(async ({ ctx, input }) => {
       try {
         return await setFanEmailConsent(ctx.user.id, input.creatorId, {
@@ -179,8 +189,9 @@ export const emailPreferencesRouter = router({
 
   /** Public and deliberately generic: no user, email, creator, or title leaks. */
   getFanUnsubscribe: publicProcedure
-    .input(z.object({ token: z.string().min(1).max(2048) }))
-    .query(async ({ input }) => {
+    .input(z.object({ token: fanUnsubscribeToken }).strict())
+    .query(async ({ input, ctx }) => {
+      if (!publicUnsubscribeLimiter.check(`ip:${clientIp(ctx)}`).allowed) return { valid: false };
       const status = await getFanUnsubscribeStatus(input.token);
       return status.valid
         ? { valid: true, scope: FAN_EMAIL_UNSUBSCRIBE_SCOPE }
@@ -189,8 +200,11 @@ export const emailPreferencesRouter = router({
 
   /** No sign-in is required because a current HMAC scoped capability authorizes it. */
   unsubscribeFan: publicProcedure
-    .input(z.object({ token: z.string().min(1).max(2048) }))
-    .mutation(async ({ input }) => {
+    .input(z.object({ token: fanUnsubscribeToken }).strict())
+    .mutation(async ({ input, ctx }) => {
+      if (!publicUnsubscribeLimiter.check(`ip:${clientIp(ctx)}`).allowed) {
+        throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Please try again later" });
+      }
       const success = await unsubscribeFanByToken(input.token);
       if (!success) throw new TRPCError({ code: "NOT_FOUND", message: "Unsubscribe link is invalid or expired" });
       return { success: true, scope: FAN_EMAIL_UNSUBSCRIBE_SCOPE };

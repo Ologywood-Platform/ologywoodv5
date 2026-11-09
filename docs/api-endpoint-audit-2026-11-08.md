@@ -205,6 +205,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Project/track IDs and mutation objects are strict and safe, titles/descriptions/dates/HTTPS links/file names/media payloads are bounded, cover/audio data URLs must match allowlisted MIME types and basic file signatures with decoded-size checks and MIME-derived storage extensions, reorder requests reject duplicate/foreign/missing IDs, public projects are limited to artist accounts with safe field projections, and public play-count increments are capped at 30 per minute per client IP.
    - Project-preview/layout/release-section regressions pass 18/18, with TypeScript and production build validation passing. No projects, media uploads, play counts, or records were changed.
 
+44. **Email-preference and fan-unsubscribe capability boundaries — resolved in this increment.**
+   - Creator IDs/revisions and preference/feedback objects are strict and bounded, empty preference updates are rejected, HMAC unsubscribe tokens are constrained to the generated capability grammar and 512-character maximum, public status/unsubscribe calls are limited to 60 per minute per client IP, and preference error logs no longer include raw exceptions.
+   - Email-preference/fan-follow/public-rate-limit regressions pass 73/73, with TypeScript and production build validation passing. No preference changes, unsubscribes, emails, tokens, or records were changed.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.
