@@ -5262,6 +5262,10 @@ Artist and venue iCalendar feed routes now validate their `token` query value th
 
 Performance and portfolio finalize routes now require a bounded scalar body token through one shared `strictBodyUploadToken` helper before verifying the signed upload session; arrays, objects, empty values, and oversized tokens are rejected rather than coerced with `String`. Focused performance/portfolio chunked-upload and parity regressions passed 28/28; TypeScript and production build passed with existing chunk-size warnings. No video uploads, storage objects, profiles, or records changed.
 
+### Final Express coercion/log scan — 2026-11-09
+
+The active Express scan found no remaining direct query/body/param casts in mounted route handlers. Calendar and direct-video exceptions were corrected in the latest pass. Remaining `String(req.header(...))` uses are for Node-normalized header values, and raw-looking catches in session reminders, OAuth, uploads, OG, sitemap, events, and checkout routes emit only classified error names. Two legacy files (`socketMetricsRoutes.ts` and `paymentTestingRoutes.ts`) still contain old raw-log patterns but are not mounted by the active server bootstrap; they remain explicitly out of the reachable-surface result.
+
 
 ### Production image loading correction — 2026-11-09
 
