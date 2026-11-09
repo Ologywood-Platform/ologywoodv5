@@ -4,7 +4,7 @@ import { getDefaultStripeApiKey } from '../services/stripeWebhookMode';
  * Option A: AI-powered ad copy, hashtags, targeting, and budget calculator
  * Option B: Managed ad service intake form with Stripe payment
  */
-import { router, protectedProcedure } from "../_core/trpc";
+import { adminProcedure, router, protectedProcedure } from "../_core/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { invokeLLM } from "../_core/llm";
@@ -141,7 +141,7 @@ Generate compelling, ready-to-use ad copy.`;
         }
         return JSON.parse(content);
       } catch (error: any) {
-        console.error("[Promote] AI generation error:", error.message);
+        console.error("[Promote] AI generation error", { kind: error instanceof Error ? error.name : "UnknownError" });
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to generate ad copy. Please try again.",
@@ -250,33 +250,52 @@ Generate compelling, ready-to-use ad copy.`;
         }
       }
 
-      // Create Stripe payment intent for the service fee (budget amount)
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: input.budget,
-        currency: "usd",
-        metadata: {
-          type: "promotion_request",
-          artistUserId: ctx.user.id.toString(),
-          promotionType: input.type,
-          targetName: input.targetName,
-        },
-      });
+      // Create Stripe payment intent for the service fee (budget amount).
+      let paymentIntent: Stripe.PaymentIntent;
+      try {
+        paymentIntent = await stripe.paymentIntents.create({
+          amount: input.budget,
+          currency: "usd",
+          metadata: {
+            type: "promotion_request",
+            artistUserId: ctx.user.id.toString(),
+            promotionType: input.type,
+            targetName: input.targetName,
+          },
+        });
+      } catch (error) {
+        console.error('[Promote] Payment intent creation failed', { kind: error instanceof Error ? error.name : 'UnknownError' });
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Unable to start promotion payment. Please try again.' });
+      }
 
       // Insert the promotion request
-      const [result] = await database.insert(promotionRequests).values({
-        artistUserId: ctx.user.id,
-        type: input.type,
-        targetId: input.targetId || null,
-        targetName: input.targetName,
-        budget: input.budget,
-        goals: input.goals,
-        targetAudience: input.targetAudience || null,
-        platforms: input.platforms,
-        timeline: input.timeline || null,
-        additionalNotes: input.additionalNotes || null,
-        status: "submitted",
-        stripePaymentIntentId: paymentIntent.id,
-      });
+      let result: { insertId: number };
+      try {
+        [result] = await database.insert(promotionRequests).values({
+          artistUserId: ctx.user.id,
+          type: input.type,
+          targetId: input.targetId || null,
+          targetName: input.targetName,
+          budget: input.budget,
+          goals: input.goals,
+          targetAudience: input.targetAudience || null,
+          platforms: input.platforms,
+          timeline: input.timeline || null,
+          additionalNotes: input.additionalNotes || null,
+          status: "submitted",
+          stripePaymentIntentId: paymentIntent.id,
+        });
+      } catch (error) {
+        console.error('[Promote] Promotion request persistence failed', { kind: error instanceof Error ? error.name : 'UnknownError' });
+        try {
+          if (paymentIntent.status !== 'succeeded' && paymentIntent.status !== 'canceled') {
+            await stripe.paymentIntents.cancel(paymentIntent.id);
+          }
+        } catch (cleanupError) {
+          console.error('[Promote] Failed to cancel abandoned promotion payment', { kind: cleanupError instanceof Error ? cleanupError.name : 'UnknownError' });
+        }
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Unable to save the promotion request. Please try again.' });
+      }
 
       return {
         requestId: result.insertId,
@@ -292,38 +311,40 @@ Generate compelling, ready-to-use ad copy.`;
     const database = await db.getDb();
     if (!database) return [];
 
-    const requests = await database
-      .select()
-      .from(promotionRequests)
-      .where(eq(promotionRequests.artistUserId, ctx.user.id))
-      .orderBy(desc(promotionRequests.createdAt));
-
-    return requests;
+    try {
+      return await database
+        .select()
+        .from(promotionRequests)
+        .where(eq(promotionRequests.artistUserId, ctx.user.id))
+        .orderBy(desc(promotionRequests.createdAt));
+    } catch (error) {
+      console.error('[Promote] Artist request list failed', { kind: error instanceof Error ? error.name : 'UnknownError' });
+      throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Unable to load your promotion requests.' });
+    }
   }),
 
   /**
    * Get all promotion requests (admin view)
    */
-  getAllRequests: protectedProcedure.query(async ({ ctx }) => {
-    if (ctx.user.role !== "admin") {
-      throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
-    }
-
+  getAllRequests: adminProcedure.query(async () => {
     const database = await db.getDb();
     if (!database) return [];
 
-    const requests = await database
-      .select()
-      .from(promotionRequests)
-      .orderBy(desc(promotionRequests.createdAt));
-
-    return requests;
+    try {
+      return await database
+        .select()
+        .from(promotionRequests)
+        .orderBy(desc(promotionRequests.createdAt));
+    } catch (error) {
+      console.error('[Promote] Admin request list failed', { kind: error instanceof Error ? error.name : 'UnknownError' });
+      throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Unable to load promotion requests.' });
+    }
   }),
 
   /**
    * Update promotion request status (admin)
    */
-  updateRequestStatus: protectedProcedure
+  updateRequestStatus: adminProcedure
     .input(z.object({
       requestId: z.number().int().safe().positive(),
       status: z.enum(["in_review", "in_progress", "completed", "cancelled"]),
@@ -331,10 +352,6 @@ Generate compelling, ready-to-use ad copy.`;
       reportUrl: z.string().trim().url().max(2048).optional(),
     }).strict())
     .mutation(async ({ ctx, input }) => {
-      if (ctx.user.role !== "admin") {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
-      }
-
       const database = await db.getDb();
       if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
 
@@ -343,10 +360,15 @@ Generate compelling, ready-to-use ad copy.`;
       if (input.reportUrl) updates.reportUrl = input.reportUrl;
       if (input.status === "completed") updates.completedAt = new Date();
 
-      await database
-        .update(promotionRequests)
-        .set(updates)
-        .where(eq(promotionRequests.id, input.requestId));
+      try {
+        await database
+          .update(promotionRequests)
+          .set(updates)
+          .where(eq(promotionRequests.id, input.requestId));
+      } catch (error) {
+        console.error('[Promote] Admin request update failed', { kind: error instanceof Error ? error.name : 'UnknownError' });
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Unable to update the promotion request.' });
+      }
 
       return { success: true };
     }),
@@ -366,27 +388,40 @@ Generate compelling, ready-to-use ad copy.`;
       if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
 
       // Verify the request belongs to this user and is still editable
-      const [request] = await database
-        .select()
-        .from(promotionRequests)
-        .where(eq(promotionRequests.id, input.requestId));
+      let request;
+      try {
+        [request] = await database
+          .select()
+          .from(promotionRequests)
+          .where(eq(promotionRequests.id, input.requestId));
+      } catch (error) {
+        console.error('[Promote] Request lookup failed', { kind: error instanceof Error ? error.name : 'UnknownError' });
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Unable to load the promotion request.' });
+      }
 
       if (!request) throw new TRPCError({ code: "NOT_FOUND", message: "Request not found" });
       if (request.artistUserId !== ctx.user.id) throw new TRPCError({ code: "FORBIDDEN", message: "Not your request" });
       if (request.status !== "submitted") throw new TRPCError({ code: "BAD_REQUEST", message: "Can only edit pending requests" });
 
       const updates: Record<string, any> = {};
-      if (input.budget !== undefined) updates.budget = input.budget;
+      if (input.budget !== undefined && input.budget !== request.budget) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "The budget cannot be changed after payment setup." });
+      }
       if (input.goals !== undefined) updates.goals = input.goals;
       if (input.targetAudience !== undefined) updates.targetAudience = input.targetAudience;
       if (input.timeline !== undefined) updates.timeline = input.timeline;
       if (input.additionalNotes !== undefined) updates.additionalNotes = input.additionalNotes;
 
       if (Object.keys(updates).length > 0) {
-        await database
-          .update(promotionRequests)
-          .set(updates)
-          .where(eq(promotionRequests.id, input.requestId));
+        try {
+          await database
+            .update(promotionRequests)
+            .set(updates)
+            .where(eq(promotionRequests.id, input.requestId));
+        } catch (error) {
+          console.error('[Promote] Request edit failed', { kind: error instanceof Error ? error.name : 'UnknownError' });
+          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Unable to edit the promotion request.' });
+        }
       }
 
       return { success: true };

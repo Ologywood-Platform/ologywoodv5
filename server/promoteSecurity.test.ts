@@ -34,4 +34,22 @@ describe('Promotion security boundaries', () => {
     expect(source).toContain('type PromotionPlatform =');
     expect(source).toContain('useState<PromotionPlatform[]>(["instagram"])');
   });
+
+  it('uses an admin procedure for status transitions and redacts payment/database failures', () => {
+    const source = read('./routers/promote.ts');
+    expect(source).toContain('import { adminProcedure, router, protectedProcedure }');
+    expect(source).toContain('updateRequestStatus: adminProcedure');
+    expect(source).toContain("Payment intent creation failed', { kind: error instanceof Error ? error.name : 'UnknownError' }");
+    expect(source).toContain('Unable to start promotion payment. Please try again.');
+    expect(source).toContain('Promotion request persistence failed');
+    expect(source).toContain('Failed to cancel abandoned promotion payment');
+    expect(source).toContain('Request edit failed');
+    expect(source).not.toContain('console.error("[Promote] AI generation error:", error.message)');
+  });
+
+  it('does not allow changing a paid promotion budget after payment setup', () => {
+    const source = read('./routers/promote.ts');
+    expect(source).toContain('The budget cannot be changed after payment setup.');
+    expect(source).toContain('input.budget !== request.budget');
+  });
 });
