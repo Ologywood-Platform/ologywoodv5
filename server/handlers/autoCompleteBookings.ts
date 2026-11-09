@@ -3,7 +3,7 @@ import { getDb } from '../db';
 import { bookings, users, artistProfiles } from '../../drizzle/schema';
 import { eq, and, lte } from 'drizzle-orm';
 import { sendSettlementReminderEmail } from '../email';
-import { requireCronTaskUid } from '../services/cronAuth';
+import { requireVerifiedCronTask } from '../services/cronAuth';
 
 /**
  * Heartbeat handler: POST /api/scheduled/auto-complete-bookings
@@ -15,11 +15,11 @@ import { requireCronTaskUid } from '../services/cronAuth';
  * emails for bookings with door-split or guarantee-vs-percentage payment terms.
  * 
  * Auth: Platform gateway restricts /api/scheduled/* to cron callers only.
- * We verify via x-manus-cron-task-uid header (no §5c patches needed).
+ * We verify the signed Heartbeat cron session and match any supplied task UID header.
  */
 export async function autoCompleteBookingsHandler(req: Request, res: Response) {
   try {
-    if (!requireCronTaskUid(req, res)) return;
+    if (!await requireVerifiedCronTask(req, res)) return;
 
     const db = await getDb();
     if (!db) return res.status(500).json({ error: 'database-unavailable' });

@@ -4,7 +4,7 @@ import { venueContracts, bookings, users } from '../../drizzle/schema';
 import { eq, and, lte, gt, inArray } from 'drizzle-orm';
 import { sendEmail } from '../email';
 import { escapeFanEmailHtml, sanitizeFanEmailSubject } from '../services/fanEmailFormatting';
-import { requireCronTaskUid } from '../services/cronAuth';
+import { requireVerifiedCronTask } from '../services/cronAuth';
 
 /**
  * Heartbeat handler: POST /api/scheduled/contract-expiry-reminders
@@ -15,11 +15,11 @@ import { requireCronTaskUid } from '../services/cronAuth';
  * 2. Auto-expires contracts past their deadline → updates status to 'declined'
  * 
  * Auth: Platform gateway restricts /api/scheduled/* to cron callers only.
- * We verify via x-manus-cron-task-uid header (no §5c patches needed).
+ * We verify the signed Heartbeat cron session and match any supplied task UID header.
  */
 export async function contractExpiryRemindersHandler(req: Request, res: Response) {
   try {
-    if (!requireCronTaskUid(req, res)) return;
+    if (!await requireVerifiedCronTask(req, res)) return;
 
     const now = new Date();
     const in24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000);

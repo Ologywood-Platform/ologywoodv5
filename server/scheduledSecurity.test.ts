@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { requireCronTaskUid } from './services/cronAuth';
+import { requireCronTaskUid, requireVerifiedCronTask } from './services/cronAuth';
+import { sdk } from './_core/sdk';
 import { escapeFanEmailHtml, safeFanEmailHref, sanitizeFanEmailSubject } from './services/fanEmailFormatting';
 
 const serverDir = join(__dirname);
@@ -39,6 +40,20 @@ describe('scheduled-job security boundaries', () => {
     }
   });
 
+  it('accepts Heartbeat’s verified cron session when no duplicate header is sent', async () => {
+    const taskUid = 'Japrdw4zVGQEdTqC2kVkrK';
+    const auth = vi.spyOn(sdk, 'authenticateRequest').mockResolvedValue({
+      isCron: true,
+      taskUid,
+    } as any);
+    const res = { status: vi.fn().mockReturnThis(), json: vi.fn() } as any;
+
+    await expect(requireVerifiedCronTask({ headers: {} } as any, res)).resolves.toBe(taskUid);
+    expect(auth).toHaveBeenCalledTimes(1);
+    expect(res.status).not.toHaveBeenCalled();
+    auth.mockRestore();
+  });
+
   it('escapes HTML, rejects unsafe href protocols, and removes subject newlines', () => {
     expect(escapeFanEmailHtml('<img src=x onerror=alert(1)>')).toContain('&lt;img');
     expect(safeFanEmailHref('javascript:alert(1)')).toBe('#');
@@ -46,15 +61,14 @@ describe('scheduled-job security boundaries', () => {
     expect(sanitizeFanEmailSubject('Subject\r\nBcc: attacker@example.com')).toBe('Subject Bcc: attacker@example.com');
   });
 
-  it('uses the strict helper on every mounted scheduled handler', () => {
+  it('uses the verified helper on every mounted scheduled handler', () => {
     for (const source of Object.values(scheduledSources)) {
-      expect(source).toContain('requireCronTaskUid(req, res)');
+      expect(source).toContain('requireVerifiedCronTask(req, res)');
       expect(source).not.toMatch(/req\.headers\[['"]x-manus-cron-task-uid['"]\]\s+as\s+string/);
       expect(source).not.toContain('error.message');
       expect(source).not.toContain('error.stack');
       expect(source).not.toContain('taskUid: req.headers');
     }
-    expect(scheduledSources.session).toContain('user.taskUid !== taskUid');
   });
 
   it('does not log recipient PII or raw email exceptions in scheduled handlers', () => {

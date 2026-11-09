@@ -6,7 +6,7 @@ import { sendEmail } from "../email";
 import { ENV } from "../_core/env";
 import { getEmailLogoImage } from "../../shared/emailBranding";
 import { escapeFanEmailHtml, safeFanEmailHref, sanitizeFanEmailSubject } from "../services/fanEmailFormatting";
-import { requireCronTaskUid } from "../services/cronAuth";
+import { requireVerifiedCronTask } from "../services/cronAuth";
 
 /**
  * Credit Expiration Handler
@@ -19,7 +19,7 @@ import { requireCronTaskUid } from "../services/cronAuth";
  */
 export async function creditExpirationHandler(req: Request, res: Response) {
   try {
-    if (!requireCronTaskUid(req, res)) return;
+    if (!await requireVerifiedCronTask(req, res)) return;
 
     const database = await getDb();
     if (!database) {

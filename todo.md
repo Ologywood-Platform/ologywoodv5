@@ -5156,3 +5156,10 @@ Completed tasks have been removed from the active checklist. Keep the following 
 - Fixed Ology Live stale-hold reconciliation to use a literal bounded `LIMIT 50` instead of binding the limit as a MySQL parameter, which was causing `ER_WRONG_ARGUMENTS` and making `schedule.agenda` fail closed.
 - Hardened schedule read initialization to retry `getDb()` when schema bootstrap completes before the shared pool is exposed.
 - Verification: Ology Live checkout/reconciliation, Schedule service, and Workspace UI regressions passed (72 focused tests); TypeScript and production build passed; direct lazy-initialization agenda smoke returned successfully for user 7 with zero entries and no mutation.
+
+
+### Scheduled job readiness finding — publish required
+
+- Read-only Heartbeat logs confirmed the two existing jobs are registered but failing HTTP 403 because the deployed handlers required a header Heartbeat does not send. The scheduler uses a signed `cron_` session cookie and verified task UID.
+- Corrected all five mounted scheduled handlers to require the verified cron session, validate task UID format, and validate/match an optional header when present. Focused scheduled/security tests passed 18/18; full suite passed 4,044 tests with 23 skipped; TypeScript and production build passed.
+- The correction is checkpointed but cannot be confirmed against Heartbeat until the checkpoint is published. Do not register the three missing jobs or retry mutating production jobs against the stale deployment.

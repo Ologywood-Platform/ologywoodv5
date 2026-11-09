@@ -54,8 +54,8 @@ describe('Security Audit Fixes', () => {
   });
 
   describe('Scheduled Endpoint Authentication', () => {
-    it('should require x-manus-cron-task-uid header in creditExpiration handler', () => {
-      expect(creditExpirationContent).toContain('requireCronTaskUid(req, res)');
+    it('should require a verified Heartbeat cron session in creditExpiration handler', () => {
+      expect(creditExpirationContent).toContain('requireVerifiedCronTask(req, res)');
       expect(creditExpirationContent).toContain('cronAuth');
     });
   });

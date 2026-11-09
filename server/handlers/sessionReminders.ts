@@ -6,8 +6,7 @@ import {
   ologyLiveExperiences,
   users,
 } from "../../drizzle/schema";
-import { sdk } from "../_core/sdk";
-import { requireCronTaskUid } from "../services/cronAuth";
+import { requireVerifiedCronTask } from "../services/cronAuth";
 import { sanitizeFanEmailSubject } from "../services/fanEmailFormatting";
 
 /**
@@ -17,13 +16,8 @@ import { sanitizeFanEmailSubject } from "../services/fanEmailFormatting";
  */
 export async function sessionRemindersHandler(req: Request, res: Response) {
   try {
-    const taskUid = requireCronTaskUid(req, res);
+    const taskUid = await requireVerifiedCronTask(req, res);
     if (!taskUid) return;
-
-    const user = await sdk.authenticateRequest(req);
-    if (!user.isCron || !user.taskUid || user.taskUid !== taskUid) {
-      return res.status(403).json({ error: "cron-only" });
-    }
 
     const db = (await getDb())!;
     const now = new Date();

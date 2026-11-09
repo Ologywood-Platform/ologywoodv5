@@ -3,7 +3,7 @@ import { getDb } from '../db';
 import { contentReleases, contentReleasePurchases, artistProfiles, users } from '../../drizzle/schema';
 import { eq, and, lte, gt, gte } from 'drizzle-orm';
 import { sendPremiereReminderEmail } from '../email';
-import { requireCronTaskUid } from '../services/cronAuth';
+import { requireVerifiedCronTask } from '../services/cronAuth';
 
 /**
  * Heartbeat handler: POST /api/scheduled/premiere-reminders
@@ -17,7 +17,7 @@ import { requireCronTaskUid } from '../services/cronAuth';
  */
 export async function premiereRemindersHandler(req: Request, res: Response) {
   try {
-    if (!requireCronTaskUid(req, res)) return;
+    if (!await requireVerifiedCronTask(req, res)) return;
 
     const db = await getDb();
     if (!db) return res.status(500).json({ error: 'database-unavailable' });
