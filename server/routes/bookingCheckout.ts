@@ -17,12 +17,24 @@ import Stripe from 'stripe';
 import { getDb } from '../db';
 import { bookings, stripeConnectAccounts, artistProfiles } from '../../drizzle/schema';
 import { eq, and } from 'drizzle-orm';
+import { positiveRouteId } from './routeInput';
+import { trustedCheckoutOrigin } from '../services/trustedOrigin';
 
 const stripe = new Stripe(getDefaultStripeApiKey(), {
   apiVersion: '2025-12-15.clover',
 });
 
 const PLATFORM_FEE_PERCENT = 1; // 1% platform fee
+
+function parseUsdCents(value: unknown): number | null {
+  if (typeof value !== 'string' && typeof value !== 'number') return null;
+  const text = String(value).trim();
+  if (!/^\d+(?:\.\d{1,2})?$/.test(text)) return null;
+  const amountCents = Math.round(Number(text) * 100);
+  return Number.isSafeInteger(amountCents) && amountCents >= 0 && amountCents <= 100_000_000
+    ? amountCents
+    : null;
+}
 
 const bookingCheckoutRouter = Router();
 
@@ -35,9 +47,9 @@ const bookingCheckoutRouter = Router();
 bookingCheckoutRouter.post('/api/booking-checkout', async (req, res) => {
   try {
     const { bookingId: rawBookingId, paymentType } = req.body;
-    const bookingId = Number(rawBookingId);
+    const bookingId = positiveRouteId(rawBookingId);
 
-    if (!Number.isSafeInteger(bookingId) || bookingId <= 0 || !paymentType || !['deposit', 'final'].includes(paymentType)) {
+    if (bookingId === null || (paymentType !== 'deposit' && paymentType !== 'final')) {
       return res.status(400).json({ error: 'Missing bookingId or invalid paymentType (deposit|final)' });
     }
 
@@ -74,8 +86,8 @@ bookingCheckoutRouter.post('/api/booking-checkout', async (req, res) => {
       return res.status(400).json({ error: 'Cannot pay for a cancelled booking' });
     }
 
-    const totalFeeCents = Math.round(parseFloat(booking.totalFee || '0') * 100);
-    if (totalFeeCents < 50) {
+    const totalFeeCents = parseUsdCents(booking.totalFee);
+    if (totalFeeCents === null || totalFeeCents < 50) {
       return res.status(400).json({ error: 'Booking fee must be at least $0.50' });
     }
 
@@ -149,8 +161,8 @@ bookingCheckoutRouter.post('/api/booking-checkout', async (req, res) => {
         athleteAgentFeeIncluded: 'false',
       },
       client_reference_id: userId.toString(),
-      success_url: `${req.headers.origin}/booking/${bookingId}?payment=success&type=${paymentType}`,
-      cancel_url: `${req.headers.origin}/booking/${bookingId}?payment=cancelled`,
+      success_url: `${trustedCheckoutOrigin(process.env.BASE_URL, req.headers.origin)}/booking/${bookingId}?payment=success&type=${paymentType}`,
+      cancel_url: `${trustedCheckoutOrigin(process.env.BASE_URL, req.headers.origin)}/booking/${bookingId}?payment=cancelled`,
       allow_promotion_codes: true,
     };
 
@@ -162,7 +174,7 @@ bookingCheckoutRouter.post('/api/booking-checkout', async (req, res) => {
           destination: connectAccount.stripeAccountId,
         },
       };
-      console.log(`[BookingCheckout] Using Stripe Connect for artist ${booking.artistId}, account: ${connectAccount.stripeAccountId}, fee: ${platformFeeCents} cents`);
+      console.log(`[BookingCheckout] Using Stripe Connect for artist ${booking.artistId}, connected account enabled, fee: ${platformFeeCents} cents`);
     } else {
       console.log(`[BookingCheckout] Artist ${booking.artistId} has no connected Stripe account — payment goes to platform`);
     }
@@ -173,7 +185,7 @@ bookingCheckoutRouter.post('/api/booking-checkout', async (req, res) => {
 
     return res.json({ url: session.url });
   } catch (error: any) {
-    console.error('[BookingCheckout] Error:', error.message);
+    console.error('[BookingCheckout] Error:', { error: error instanceof Error ? error.name : 'UnknownError' });
     return res.status(500).json({ error: 'Failed to create checkout session' });
   }
 });
@@ -184,8 +196,8 @@ bookingCheckoutRouter.post('/api/booking-checkout', async (req, res) => {
  */
 bookingCheckoutRouter.get('/api/booking-payment-status/:bookingId', async (req, res) => {
   try {
-    const bookingId = Number(req.params.bookingId);
-    if (!Number.isSafeInteger(bookingId) || bookingId <= 0) {
+    const bookingId = positiveRouteId(req.params.bookingId);
+    if (bookingId === null) {
       return res.status(400).json({ error: 'Invalid booking ID' });
     }
     const userId = (req as any).user?.id;
@@ -209,12 +221,24 @@ bookingCheckoutRouter.get('/api/booking-payment-status/:bookingId', async (req, 
       return res.status(404).json({ error: 'Booking not found' });
     }
 
-    // Only venue or artist can view payment status
-    if (booking.venueId !== userId && booking.artistId !== userId) {
+    const [artistProfile] = await db
+      .select({ userId: artistProfiles.userId })
+      .from(artistProfiles)
+      .where(eq(artistProfiles.id, booking.artistId))
+      .limit(1);
+    const isVenue = booking.venueId === userId;
+    const isArtist = artistProfile?.userId === userId;
+
+    // Only venue or artist can view payment status.
+    if (!isVenue && !isArtist) {
       return res.status(403).json({ error: 'Not authorized to view this booking' });
     }
 
-    const totalFee = parseFloat(booking.totalFee || '0');
+    const totalFeeCents = parseUsdCents(booking.totalFee);
+    if (totalFeeCents === null) {
+      return res.status(500).json({ error: 'Booking fee is invalid' });
+    }
+    const totalFee = totalFeeCents / 100;
     const depositAmount = Math.round(totalFee / 2 * 100) / 100;
     const remainingAmount = Math.round((totalFee - depositAmount) * 100) / 100;
 
@@ -227,11 +251,11 @@ bookingCheckoutRouter.get('/api/booking-payment-status/:bookingId', async (req, 
       depositPaidAt: booking.depositPaidAt,
       finalPaidAt: booking.finalPaidAt,
       status: booking.status,
-      isVenue: booking.venueId === userId,
-      isArtist: booking.artistId === userId,
+      isVenue,
+      isArtist,
     });
   } catch (error: any) {
-    console.error('[BookingPaymentStatus] Error:', error.message);
+    console.error('[BookingPaymentStatus] Error:', { error: error instanceof Error ? error.name : 'UnknownError' });
     return res.status(500).json({ error: 'Failed to get payment status' });
   }
 });

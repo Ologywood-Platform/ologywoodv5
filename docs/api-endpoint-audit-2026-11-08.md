@@ -269,6 +269,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Venue-contract and booking IDs and all mutation/read objects now use strict safe integers. Generated contract clauses/data/title/description/expiry fields are bounded; PDF uploads require canonical base64, `application/pdf`, a safe filename, an actual `%PDF-` signature, a 10 MB decoded limit, and a cryptographic storage suffix; signature payloads are bounded and drawn signatures must be validated image data. Contract email links use the approved application origin, shared contract email templates escape names/titles and sanitize subjects, decline-email HTML is escaped, and raw contract email exceptions are no longer logged.
    - Venue-contract/dashboard/encryption regressions pass 36/36, with TypeScript, production build, and diff validation passing. No contracts, PDFs, signatures, emails, bookings, or records were changed during validation.
 
+60. **Legacy booking-checkout payment trust — resolved in this increment.**
+   - Body and status-route booking IDs use the shared strict positive-ID parser; booking totals must be finite, cents-safe USD values no greater than $1,000,000; Stripe success/cancel URLs use the approved checkout-origin helper rather than the request `Origin`; payment-status artist authorization resolves the booking’s artist profile to its owning user ID; and connected-account IDs/raw exception details are omitted from logs.
+   - Booking-checkout/release-checkout/booking/workflow/Live-payment regressions pass 64/64, with TypeScript, production build, and diff validation passing. No Checkout sessions, PaymentIntents, payments, bookings, or records were changed during validation.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.
