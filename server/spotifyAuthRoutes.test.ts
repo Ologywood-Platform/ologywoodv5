@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { createOAuthState, verifyOAuthState } from './services/oauthState';
 
 describe('Spotify OAuth Routes', () => {
   const BASE_URL = 'http://localhost:3000';
@@ -35,13 +36,13 @@ describe('Spotify OAuth Routes', () => {
     expect(state).toBeTruthy();
 
     // Decode state and verify returnPath
-    const decoded = JSON.parse(Buffer.from(state!, 'base64url').toString('utf-8'));
-    expect(decoded.returnPath).toBe('/dashboard');
-    expect(decoded.csrf).toBeTruthy();
+    const decoded = verifyOAuthState(state);
+    expect(decoded?.returnPath).toBe('/dashboard');
+    expect(decoded?.issuedAt).toBeTypeOf('number');
   });
 
   it('GET /api/auth/spotify/callback without code should redirect with error', async () => {
-    const response = await fetch(`${BASE_URL}/api/auth/spotify/callback`, {
+    const response = await fetch(`${BASE_URL}/api/auth/spotify/callback?state=${encodeURIComponent(createOAuthState({ returnPath: '/dashboard' }))}`, {
       redirect: 'manual',
     });
 
@@ -51,17 +52,17 @@ describe('Spotify OAuth Routes', () => {
   });
 
   it('GET /api/auth/spotify/callback with error param should redirect with that error', async () => {
-    const response = await fetch(`${BASE_URL}/api/auth/spotify/callback?error=access_denied`, {
+    const response = await fetch(`${BASE_URL}/api/auth/spotify/callback?state=${encodeURIComponent(createOAuthState({}))}&error=access_denied`, {
       redirect: 'manual',
     });
 
     expect(response.status).toBe(302);
     const location = response.headers.get('location');
-    expect(location).toContain('oauth_error=access_denied');
+    expect(location).toContain('oauth_error=PROVIDER_DENIED');
   });
 
   it('GET /api/auth/spotify/callback with invalid code should redirect with error within the bounded provider timeout', async () => {
-    const response = await fetch(`${BASE_URL}/api/auth/spotify/callback?code=invalid_code_123`, {
+    const response = await fetch(`${BASE_URL}/api/auth/spotify/callback?state=${encodeURIComponent(createOAuthState({}))}&code=invalid_code_123`, {
       redirect: 'manual',
     });
 

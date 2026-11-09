@@ -111,8 +111,8 @@ describe('Follow-up 2: Stripe Deposit/Payment for Client Bookings', () => {
     });
 
     it('rejects malformed booking IDs before database or Stripe work', () => {
-      expect(bookingCheckoutSrc).toContain('Number(rawBookingId)');
-      expect(bookingCheckoutSrc).toContain('Number.isSafeInteger(bookingId)');
+      expect(bookingCheckoutSrc).toContain('positiveRouteId(rawBookingId)');
+      expect(bookingCheckoutSrc).toContain('if (bookingId === null)');
       expect(bookingCheckoutSrc).toContain("return res.status(400).json({ error: 'Invalid booking ID' })");
     });
 

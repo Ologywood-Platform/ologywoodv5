@@ -630,12 +630,10 @@ export async function reconcileOlogyLiveReservations(scope: {
     conditions.push('(fanId=? OR talentId=?)');
     values.push(scope.userId, scope.userId);
   }
-  values.push(RECONCILIATION_LIMIT);
-
   let rows: CheckoutCandidate[];
   try {
     const [result] = await pool.execute(
-      `SELECT id, stripePaymentIntentId FROM ology_live_bookings WHERE ${conditions.join(' AND ')} ORDER BY createdAt ASC, id ASC LIMIT ?`,
+      `SELECT id, stripePaymentIntentId FROM ology_live_bookings WHERE ${conditions.join(' AND ')} ORDER BY createdAt ASC, id ASC LIMIT ${RECONCILIATION_LIMIT}`,
       values,
     );
     rows = Array.isArray(result) ? result as CheckoutCandidate[] : [];

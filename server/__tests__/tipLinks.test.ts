@@ -24,11 +24,12 @@ describe('Tip Links Feature', () => {
     const routers = readFileSync(resolve(rootDir, 'server/routers.ts'), 'utf-8');
 
     it('updateProfile accepts tipLinks input', () => {
-      expect(routers).toContain('tipLinks: z.object({');
-      expect(routers).toContain('cashapp: z.string().optional()');
-      expect(routers).toContain('venmo: z.string().optional()');
-      expect(routers).toContain('paypal: z.string().optional()');
-      expect(routers).toContain('zelle: z.string().optional()');
+      expect(routers).toContain('const artistTipLinks = z.object({');
+      expect(routers).toContain('tipLinks: artistTipLinks.optional()');
+      expect(routers).toContain('cashapp: artistShortText.optional()');
+      expect(routers).toContain('venmo: artistShortText.optional()');
+      expect(routers).toContain('paypal: artistShortText.optional()');
+      expect(routers).toContain('zelle: artistShortText.optional()');
     });
   });
 

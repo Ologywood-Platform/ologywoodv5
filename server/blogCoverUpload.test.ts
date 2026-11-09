@@ -32,10 +32,10 @@ describe('Blog Cover Image Upload Endpoint', () => {
       path.resolve(__dirname, './routers/blog.ts'),
       'utf-8'
     );
-    expect(blogRouterFile).toContain('postId: z.number()');
-    expect(blogRouterFile).toContain('fileData: z.string()');
-    expect(blogRouterFile).toContain('fileName: z.string()');
-    expect(blogRouterFile).toContain('mimeType: z.string()');
+    expect(blogRouterFile).toContain('postId: blogPostId');
+    expect(blogRouterFile).toContain('fileData: blogImageData');
+    expect(blogRouterFile).toContain('fileName: blogImageFileName');
+    expect(blogRouterFile).toContain('mimeType: blogImageMime');
   });
 
   it('should store uploads in blog-covers/ S3 prefix', async () => {
@@ -145,14 +145,17 @@ describe('Blog Cover Image Validation', () => {
     expect(adminFile).toContain('Image must be under 5MB');
   });
 
-  it('should check file type starts with image/', async () => {
+  it('should validate supported image MIME types', async () => {
     const fs = await import('fs');
     const path = await import('path');
     const adminFile = fs.readFileSync(
       path.resolve(__dirname, '../client/src/pages/AdminDashboard.tsx'),
       'utf-8'
     );
-    expect(adminFile).toContain("file.type.startsWith('image/')");
+    expect(adminFile).toContain('getBlogImageMime');
+    expect(adminFile).toContain("'image/jpeg'");
+    expect(adminFile).toContain("'image/png'");
+    expect(adminFile).toContain("'image/webp'");
   });
 
   it('should accept JPEG, PNG, and WebP formats', async () => {

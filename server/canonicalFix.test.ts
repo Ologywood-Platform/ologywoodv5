@@ -178,8 +178,9 @@ describe('Canonical Tag Fix - Google Search Console Duplicate Issue', () => {
       path.join(__dirname, './routes/sitemapRoutes.ts'), 'utf-8'
     );
 
-    it('should ensure www prefix in sitemap baseUrl', () => {
-      expect(sitemapRoutes).toContain("baseUrl.replace('https://', 'https://www.')");
+    it('should resolve sitemap base URLs through the trusted-origin helper', () => {
+      expect(sitemapRoutes).toContain('function normalizeBaseUrl(req: Request): string');
+      expect(sitemapRoutes).toContain('trustedCheckoutOrigin(process.env.BASE_URL, requestOrigin)');
     });
 
     it('should ensure www prefix in robots.txt baseUrl', () => {

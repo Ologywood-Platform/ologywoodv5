@@ -72,7 +72,7 @@ describe('Blog Management counts and access', () => {
   });
 
   it('invalidates all admin filters and the public Blog after every mutation', () => {
-    expect(clientSource.match(/utils\.blog\.adminList\.invalidate\(\)/g)).toHaveLength(4);
-    expect(clientSource.match(/utils\.blog\.list\.invalidate\(\)/g)).toHaveLength(4);
+    expect(clientSource.match(/utils\.blog\.adminList\.invalidate\(\)/g)).toHaveLength(5);
+    expect(clientSource.match(/utils\.blog\.list\.invalidate\(\)/g)).toHaveLength(5);
   });
 });

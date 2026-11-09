@@ -331,3 +331,8 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.
+
+
+## Readiness QA correction: schedule agenda
+
+During responsive QA, `schedule.agenda` was reproduced failing closed. Root causes were a MySQL-incompatible parameterized constant `LIMIT ?` in Ology Live stale-hold reconciliation and a schedule read path that could observe the DB pool before lazy initialization exposed it. The reconciliation query now uses a literal bounded `LIMIT 50`; schedule reads retry `getDb()` before returning database-unavailable. Ology Live, Schedule, and Workspace UI regressions, TypeScript, production build, and direct lazy agenda smoke passed. No records or payment state changed.

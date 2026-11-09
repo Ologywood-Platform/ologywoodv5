@@ -154,8 +154,8 @@ describe('Venue Features - Door-Split Payment Calculations', () => {
     const filePath = path.resolve(__dirname, '../routers.ts');
     const content = fs.readFileSync(filePath, 'utf-8');
     expect(content).toContain("paymentTermsType: z.enum(['flat_guarantee', 'door_split', 'guarantee_vs_percentage'])");
-    expect(content).toContain('doorSplitArtistPercent: z.number().min(0).max(100)');
-    expect(content).toContain('guaranteeAmount: z.number()');
+    expect(content).toContain('doorSplitArtistPercent: z.number().finite().min(0).max(100)');
+    expect(content).toContain('guaranteeAmount: bookingMoney.optional()');
   });
 });
 

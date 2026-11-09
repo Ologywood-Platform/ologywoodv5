@@ -289,8 +289,9 @@ describe('bounded stale-hold reconciliation', () => {
     await reconcileOlogyLiveReservations({ experienceId: 21, userId: 7 });
     const [query, values] = mocks.poolExecute.mock.calls[0];
     expect(query).toContain('SELECT id, stripePaymentIntentId');
-    expect(query).toContain('LIMIT ?');
-    expect(values.at(-1)).toBe(50);
+    expect(query).toContain('LIMIT 50');
+    expect(query).not.toContain('LIMIT ?');
+    expect(values).toHaveLength(4);
     expect(order).toEqual(['stripe', 'lock']);
     expect(conn.execute.mock.calls[0][0]).toContain("paymentStatus='paid'");
   });

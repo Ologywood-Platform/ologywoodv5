@@ -199,6 +199,7 @@ export async function resolveScheduleContext(conn: ScheduleConnection, actorUser
 }
 async function withReadConnection<T>(callback: (conn: ScheduleConnection) => Promise<T>) {
   await ensureScheduleSchema();
+  if (!getPool()) await getDb();
   const pool = getPool();
   if (!pool) throw unavailable();
   const conn = await pool.getConnection();
