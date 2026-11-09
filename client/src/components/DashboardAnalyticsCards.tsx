@@ -10,7 +10,12 @@ interface AnalyticsCardsProps {
     totalNet: number;
     sources: {
       bookings: { gross: number; net: number; count: number };
-      releases: { gross: number; net: number; count: number };
+      music: { gross: number; net: number; count: number };
+      hostedContent: { gross: number; net: number; count: number };
+      merch: { gross: number; net: number; count: number };
+      fanClub: { gross: number; net: number; count: number; recurringMonthly: number };
+      live: { gross: number; net: number; count: number };
+      tips: { gross: number; net: number; count: number };
       tickets: { gross: number; net: number; count: number };
     };
   };
@@ -80,7 +85,12 @@ export default function DashboardAnalyticsCards({
                   {revenueSummary && (
                     <div className="mt-2 space-y-0.5 text-[11px] text-slate-500 dark:text-gray-400">
                       <div className="flex justify-between gap-3"><span>Bookings</span><span>${revenueSummary.sources.bookings.net.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
-                      <div className="flex justify-between gap-3"><span>Release sales</span><span>${revenueSummary.sources.releases.net.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
+                      <div className="flex justify-between gap-3"><span>Music downloads</span><span>${revenueSummary.sources.music.net.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
+                      <div className="flex justify-between gap-3"><span>Hosted content</span><span>${revenueSummary.sources.hostedContent.net.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
+                      <div className="flex justify-between gap-3"><span>Merch & books</span><span>${revenueSummary.sources.merch.net.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
+                      <div className="flex justify-between gap-3"><span>Fan Club / month</span><span>${revenueSummary.sources.fanClub.recurringMonthly.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
+                      <div className="flex justify-between gap-3"><span>Ology Live</span><span>${revenueSummary.sources.live.net.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
+                      <div className="flex justify-between gap-3"><span>Tips</span><span>${revenueSummary.sources.tips.net.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
                       <div className="flex justify-between gap-3"><span>Tickets</span><span>${revenueSummary.sources.tickets.net.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
                     </div>
                   )}
@@ -89,7 +99,7 @@ export default function DashboardAnalyticsCards({
             </CardContent>
           </Card>
         </TooltipTrigger>
-        <TooltipContent>Total net revenue from confirmed/completed bookings, release sales, and completed ticket sales</TooltipContent>
+        <TooltipContent>Total net revenue across bookings, music, hosted content, merch/books, Fan Club, Ology Live, tips, and tickets</TooltipContent>
       </Tooltip>
 
       {/* Average Review Score */}

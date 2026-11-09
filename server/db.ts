@@ -27,6 +27,7 @@ import {
   userSubscriptions, InsertUserSubscription, UserSubscription,
   stripeConnectAccounts, InsertStripeConnectAccount, StripeConnectAccount,
   artistPayouts, InsertArtistPayout, ArtistPayout,
+  artistEarnings,
   invoices, InsertInvoice, Invoice,
   events, InsertEvent, Event,
   ticketOrders,
@@ -36,6 +37,8 @@ import {
   savedEvents, InsertSavedEvent, SavedEvent,
   artistReleases, InsertArtistRelease, ArtistRelease,
   releasePurchases, InsertReleasePurchase, ReleasePurchase,
+  contentReleases, contentReleasePurchases,
+  merchOrders, fanClubTiers, fanClubMemberships, ologyLiveBookings,
   notifications, InsertNotification, Notification,
   notificationPreferences, InsertNotificationPreference, NotificationPreference,
   unsubscribeFeedback, InsertUnsubscribeFeedback, UnsubscribeFeedback,
@@ -1797,13 +1800,18 @@ export async function getRevenueByMonth(artistId: number, months: number = 12): 
     .map(([month, revenue]) => ({ month, revenue }));
 }
 
-/** Unified revenue totals for bookings, release sales, and completed tickets. */
+/** Unified revenue totals across every native talent monetization stream. */
 export async function getArtistRevenueSummary(artistId: number): Promise<{
   totalGross: number;
   totalNet: number;
   sources: {
     bookings: { gross: number; net: number; count: number };
-    releases: { gross: number; net: number; count: number };
+    music: { gross: number; net: number; count: number };
+    hostedContent: { gross: number; net: number; count: number };
+    merch: { gross: number; net: number; count: number };
+    fanClub: { gross: number; net: number; count: number; recurringMonthly: number };
+    live: { gross: number; net: number; count: number };
+    tips: { gross: number; net: number; count: number };
     tickets: { gross: number; net: number; count: number };
   };
 }> {
@@ -1813,16 +1821,28 @@ export async function getArtistRevenueSummary(artistId: number): Promise<{
     totalNet: 0,
     sources: {
       bookings: { gross: 0, net: 0, count: 0 },
-      releases: { gross: 0, net: 0, count: 0 },
+      music: { gross: 0, net: 0, count: 0 },
+      hostedContent: { gross: 0, net: 0, count: 0 },
+      merch: { gross: 0, net: 0, count: 0 },
+      fanClub: { gross: 0, net: 0, count: 0, recurringMonthly: 0 },
+      live: { gross: 0, net: 0, count: 0 },
+      tips: { gross: 0, net: 0, count: 0 },
       tickets: { gross: 0, net: 0, count: 0 },
     },
   };
   if (!database) return empty;
 
-  const artistBookings = await database.select({ totalFee: bookings.totalFee })
-    .from(bookings)
-    .where(and(eq(bookings.artistId, artistId), sql`${bookings.status} IN ('confirmed', 'completed')`));
-  const bookingGross = artistBookings.reduce((sum, booking) => sum + (Number(booking.totalFee) || 0), 0);
+  // artistEarnings is the payment-confirmed ledger. Positive booking IDs are
+  // bookings; negative synthetic IDs are tips recorded by the Stripe webhook.
+  const earnings = await database.select({ bookingId: artistEarnings.bookingId, grossAmount: artistEarnings.grossAmount, netAmount: artistEarnings.netAmount, status: artistEarnings.status })
+    .from(artistEarnings)
+    .where(and(eq(artistEarnings.artistId, artistId), sql`${artistEarnings.status} IN ('completed', 'paid_out', 'pending')`));
+  const bookingRows = earnings.filter((earning) => earning.bookingId > 0);
+  const tipRows = earnings.filter((earning) => earning.bookingId < 0);
+  const bookingGross = bookingRows.reduce((sum, earning) => sum + (Number(earning.grossAmount) || 0), 0);
+  const bookingNet = bookingRows.reduce((sum, earning) => sum + (Number(earning.netAmount) || 0), 0);
+  const tipGross = tipRows.reduce((sum, earning) => sum + (Number(earning.grossAmount) || 0), 0);
+  const tipNet = tipRows.reduce((sum, earning) => sum + (Number(earning.netAmount) || 0), 0);
 
   const releases = await database.select({ id: artistReleases.id })
     .from(artistReleases)
@@ -1835,6 +1855,46 @@ export async function getArtistRevenueSummary(artistId: number): Promise<{
   const releaseGross = releaseRows.reduce((sum, purchase) => sum + purchase.amountPaidCents / 100, 0);
   const releaseNet = releaseRows.reduce((sum, purchase) => sum + purchase.artistNetCents / 100, 0);
 
+  const hostedRows = await database.select({ amountPaid: contentReleasePurchases.amountPaid })
+    .from(contentReleasePurchases)
+    .innerJoin(contentReleases, eq(contentReleasePurchases.releaseId, contentReleases.id))
+    .where(and(eq(contentReleases.artistProfileId, artistId), eq(contentReleasePurchases.paymentStatus, 'completed')));
+  const hostedGross = hostedRows.reduce((sum, purchase) => sum + (Number(purchase.amountPaid) || 0), 0);
+  const hostedNet = hostedGross * 0.99;
+
+  const [profile] = await database.select({ userId: artistProfiles.userId })
+    .from(artistProfiles).where(eq(artistProfiles.id, artistId)).limit(1);
+  const talentUserId = profile?.userId ?? 0;
+  const merchRows = await database.select({ totalCents: merchOrders.totalCents, sellerNetCents: merchOrders.sellerNetCents })
+    .from(merchOrders)
+    .where(and(eq(merchOrders.sellerUserId, talentUserId), eq(merchOrders.paymentStatus, 'paid')));
+  const merchGross = merchRows.reduce((sum, order) => sum + order.totalCents / 100, 0);
+  const merchNet = merchRows.reduce((sum, order) => sum + order.sellerNetCents / 100, 0);
+
+  const fanClubRows = talentUserId > 0
+    ? await database.select({ priceMonthly: fanClubTiers.priceMonthly })
+      .from(fanClubMemberships)
+      .innerJoin(fanClubTiers, eq(fanClubMemberships.tierId, fanClubTiers.id))
+      .where(and(
+        sql`COALESCE(${fanClubMemberships.artistUserId}, ${fanClubMemberships.talentUserId}) = ${talentUserId}`,
+        eq(fanClubMemberships.status, 'active'),
+      ))
+    : [];
+  const fanClubMonthlyGross = fanClubRows.reduce((sum, membership) => sum + (Number(membership.priceMonthly) || 0) / 100, 0);
+  const fanClubMonthlyNet = fanClubMonthlyGross * 0.90;
+
+  const liveRows = talentUserId > 0
+    ? await database.select({ amount: ologyLiveBookings.amount, platformFee: ologyLiveBookings.platformFee })
+      .from(ologyLiveBookings)
+      .where(and(
+        eq(ologyLiveBookings.talentId, talentUserId),
+        eq(ologyLiveBookings.paymentStatus, 'paid'),
+        sql`${ologyLiveBookings.status} IN ('confirmed', 'completed')`,
+      ))
+    : [];
+  const liveGross = liveRows.reduce((sum, booking) => sum + (Number(booking.amount) || 0), 0);
+  const liveNet = liveRows.reduce((sum, booking) => sum + ((Number(booking.amount) || 0) - (Number(booking.platformFee) || 0)), 0);
+
   const artistEvents = await database.select({ id: events.id }).from(events).where(eq(events.artistId, artistId));
   const eventIds = artistEvents.map((event) => event.id);
   const ticketRows = eventIds.length > 0
@@ -1844,12 +1904,19 @@ export async function getArtistRevenueSummary(artistId: number): Promise<{
   const ticketGross = ticketRows.reduce((sum, ticket) => sum + ticket.totalAmount / 100, 0);
   const ticketNet = ticketRows.reduce((sum, ticket) => sum + (ticket.totalAmount - ticket.platformFee) / 100, 0);
 
+  const totalGross = bookingGross + releaseGross + hostedGross + merchGross + fanClubMonthlyGross + liveGross + tipGross + ticketGross;
+  const totalNet = bookingNet + releaseNet + hostedNet + merchNet + fanClubMonthlyNet + liveNet + tipNet + ticketNet;
   return {
-    totalGross: bookingGross + releaseGross + ticketGross,
-    totalNet: bookingGross + releaseNet + ticketNet,
+    totalGross,
+    totalNet,
     sources: {
-      bookings: { gross: bookingGross, net: bookingGross, count: artistBookings.length },
-      releases: { gross: releaseGross, net: releaseNet, count: releaseRows.length },
+      bookings: { gross: bookingGross, net: bookingNet, count: bookingRows.length },
+      music: { gross: releaseGross, net: releaseNet, count: releaseRows.length },
+      hostedContent: { gross: hostedGross, net: hostedNet, count: hostedRows.length },
+      merch: { gross: merchGross, net: merchNet, count: merchRows.length },
+      fanClub: { gross: fanClubMonthlyGross, net: fanClubMonthlyNet, count: fanClubRows.length, recurringMonthly: fanClubMonthlyNet },
+      live: { gross: liveGross, net: liveNet, count: liveRows.length },
+      tips: { gross: tipGross, net: tipNet, count: tipRows.length },
       tickets: { gross: ticketGross, net: ticketNet, count: ticketRows.length },
     },
   };
