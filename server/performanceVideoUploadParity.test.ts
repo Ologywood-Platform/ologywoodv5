@@ -59,6 +59,17 @@ describe('Performance Video upload parity', () => {
     expect(() => verifyPerformanceUploadSession(signPerformanceUploadSession(session), session.expiresAt + 1)).toThrow(/expired/);
   });
 
+  it('rejects non-scalar direct-upload metadata instead of coercing arrays', () => {
+    expect(() => readPerformanceUploadInput({
+      durationSeconds: ['180'],
+      sourceFormat: 'mp4',
+      videoSize: 4 * 1024 * 1024,
+      thumbnailSize: 4,
+      videoMimeType: 'video/mp4',
+      thumbnailMimeType: 'image/jpeg',
+    })).toThrow(/5 minutes/);
+  });
+
   it('shows the requested URL and file options only after preserving guidelines consent', () => {
     expect(component).toContain('Video Guidelines');
     expect(component).toContain('I Agree — Upload Video');

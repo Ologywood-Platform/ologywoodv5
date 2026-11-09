@@ -5238,6 +5238,10 @@ Successful OG metadata logs no longer include profile/venue/blog/project IDs, na
 
 The mounted eBook upload route now rejects unknown multipart fields before database/storage writes; `rightsConfirmed` remains the only accepted text field alongside the uploaded `ebook` file. Focused eBook/Express regressions passed 16/16; TypeScript and production build passed with existing chunk-size warnings. No files, storage objects, orders, or records changed.
 
+### Direct video-upload scalar fields — 2026-11-09
+
+Performance and portfolio direct-upload readers now reject arrays/objects for titles, categories, formats, MIME types, durations, and byte sizes instead of coercing them with `String`/`Number`. Focused direct-video regressions passed 32/32; TypeScript and production build passed with existing chunk-size warnings. No uploads, storage objects, profiles, or records changed.
+
 
 ### Production image loading correction — 2026-11-09
 

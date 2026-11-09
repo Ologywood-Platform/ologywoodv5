@@ -148,6 +148,13 @@ describe('Video Portfolio authenticated chunk sessions', () => {
     expect(avi.requiresConversion).toBe(true);
   });
 
+  it('rejects repeated-field arrays instead of coercing them into metadata', () => {
+    expect(() => readPortfolioUploadInput({
+      ...validInput,
+      title: ['Portfolio title'],
+    })).toThrow(/video title/);
+  });
+
   it('binds an expiring signed session to one owner, profile, and deterministic key root', () => {
     const input = readPortfolioUploadInput(validInput);
     const payload = createPortfolioUploadSession(input, { userId: 7, profileId: 11, sessionId: 'session-abc', now: 1_000 });

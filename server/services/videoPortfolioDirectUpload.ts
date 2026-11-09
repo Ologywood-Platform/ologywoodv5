@@ -48,15 +48,23 @@ export class PortfolioUploadValidationError extends Error {
   }
 }
 
+function scalarText(value: unknown): string {
+  return typeof value === 'string' ? value : '';
+}
+
+function scalarNumber(value: unknown): number {
+  return typeof value === 'string' || typeof value === 'number' ? Number(value) : Number.NaN;
+}
+
 export function readPortfolioUploadInput(body: any): PortfolioUploadInput {
-  const title = String(body?.title || '').trim();
-  const category = String(body?.category || '') as VideoPortfolioCategory;
-  const duration = Number(body?.durationSeconds);
-  const sourceFormat = String(body?.sourceFormat || '') as PortfolioVideoSourceFormat;
-  const videoSize = Number(body?.videoSize);
-  const thumbnailSize = Number(body?.thumbnailSize);
-  const videoMimeType = String(body?.videoMimeType || '') as PortfolioUploadInput['videoMimeType'];
-  const thumbnailMimeType = String(body?.thumbnailMimeType || '') as PortfolioUploadInput['thumbnailMimeType'];
+  const title = scalarText(body?.title).trim();
+  const category = scalarText(body?.category) as VideoPortfolioCategory;
+  const duration = scalarNumber(body?.durationSeconds);
+  const sourceFormat = scalarText(body?.sourceFormat) as PortfolioVideoSourceFormat;
+  const videoSize = scalarNumber(body?.videoSize);
+  const thumbnailSize = scalarNumber(body?.thumbnailSize);
+  const videoMimeType = scalarText(body?.videoMimeType) as PortfolioUploadInput['videoMimeType'];
+  const thumbnailMimeType = scalarText(body?.thumbnailMimeType) as PortfolioUploadInput['thumbnailMimeType'];
 
   if (!title || title.length > 255) throw new PortfolioUploadValidationError('Enter a video title between 1 and 255 characters');
   if (!VIDEO_PORTFOLIO_CATEGORIES.includes(category)) throw new PortfolioUploadValidationError('Select a valid video category');

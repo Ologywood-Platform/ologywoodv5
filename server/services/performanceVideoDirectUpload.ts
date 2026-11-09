@@ -42,13 +42,21 @@ export type PerformanceUploadSession = PerformanceUploadInput & {
   expiresAt: number;
 };
 
+function scalarText(value: unknown): string {
+  return typeof value === 'string' ? value : '';
+}
+
+function scalarNumber(value: unknown): number {
+  return typeof value === 'string' || typeof value === 'number' ? Number(value) : Number.NaN;
+}
+
 export function readPerformanceUploadInput(body: any): PerformanceUploadInput {
-  const duration = Number(body?.durationSeconds);
-  const sourceFormat = String(body?.sourceFormat || '') as PortfolioVideoSourceFormat;
-  const videoSize = Number(body?.videoSize);
-  const thumbnailSize = Number(body?.thumbnailSize);
-  const videoMimeType = String(body?.videoMimeType || '') as PerformanceUploadInput['videoMimeType'];
-  const thumbnailMimeType = String(body?.thumbnailMimeType || '') as PerformanceUploadInput['thumbnailMimeType'];
+  const duration = scalarNumber(body?.durationSeconds);
+  const sourceFormat = scalarText(body?.sourceFormat) as PortfolioVideoSourceFormat;
+  const videoSize = scalarNumber(body?.videoSize);
+  const thumbnailSize = scalarNumber(body?.thumbnailSize);
+  const videoMimeType = scalarText(body?.videoMimeType) as PerformanceUploadInput['videoMimeType'];
+  const thumbnailMimeType = scalarText(body?.thumbnailMimeType) as PerformanceUploadInput['thumbnailMimeType'];
 
   if (!PORTFOLIO_VIDEO_FORMATS.includes(sourceFormat)) {
     throw new PortfolioUploadValidationError('Choose an MP4, MOV, WebM, AVI, or MKV video file');
