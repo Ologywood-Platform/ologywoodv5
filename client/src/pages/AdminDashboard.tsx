@@ -777,7 +777,7 @@ function UsersTab({
                     onClick={() => {
                       changeRoleMutation.mutate({
                         userId: confirmAction.user.id,
-                        newRole: confirmAction.newRole as 'admin' | 'artist' | 'venue' | 'user' | 'blogger',
+                        newRole: confirmAction.newRole as 'admin' | 'artist' | 'venue' | 'fan' | 'user' | 'blogger',
                       });
                     }}
                     disabled={changeRoleMutation.isPending}

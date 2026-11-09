@@ -69,7 +69,7 @@ describe('Blogger Role Feature', () => {
         path.resolve(__dirname, './routers/admin.ts'),
         'utf-8'
       );
-      expect(adminRouterContent).toContain("'admin', 'artist', 'venue', 'user', 'blogger'");
+      expect(adminRouterContent).toContain("'admin', 'artist', 'venue', 'fan', 'user', 'blogger'");
     });
 
     it('should include blogger in role labels', () => {
