@@ -445,7 +445,7 @@ function UsersTab({
       utils.admin.getAdmins.invalidate();
       utils.admin.getAnalytics.invalidate();
       if (data.changed) {
-        const roleLabels: Record<string, string> = { admin: 'Admin', artist: 'Artist', venue: 'Venue', user: 'User' };
+        const roleLabels: Record<string, string> = { admin: 'Admin', blogger: 'Blogger', artist: 'Artist', venue: 'Venue', fan: 'Fan', user: 'User' };
         setSuccessMessage(`Role changed from ${roleLabels[data.previousRole] || data.previousRole} to ${roleLabels[data.newRole] || data.newRole}. Email notification sent.`);
         setTimeout(() => setSuccessMessage(null), 4000);
       }
@@ -479,6 +479,7 @@ function UsersTab({
       case 'blogger': return 'bg-pink-100 text-pink-700';
       case 'artist': return 'bg-blue-100 text-blue-700';
       case 'venue': return 'bg-green-100 text-green-700';
+      case 'fan': return 'bg-pink-100 text-pink-700';
       default: return 'bg-gray-100 text-gray-700';
     }
   };
@@ -488,6 +489,7 @@ function UsersTab({
     { value: 'blogger', label: 'Blogger', color: 'text-pink-700' },
     { value: 'artist', label: 'Artist', color: 'text-blue-700' },
     { value: 'venue', label: 'Venue', color: 'text-green-700' },
+    { value: 'fan', label: 'Fan', color: 'text-pink-700' },
     { value: 'user', label: 'User', color: 'text-gray-700' },
   ];
 
@@ -496,6 +498,7 @@ function UsersTab({
     blogger: 'Blog management access: create, edit, publish, and manage blog posts on Ologywood.',
     artist: 'Artist access: create profile, manage bookings, set availability, upload releases, connect with venues.',
     venue: 'Venue access: create profile, browse artists, send booking requests, manage events.',
+    fan: 'Fan access: discover artists, follow favorites, purchase releases, attend events, and manage activity in My Ology.',
     user: 'Standard access: browse artists, follow favorites, book artists for events, purchase music.',
   };
 

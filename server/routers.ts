@@ -71,6 +71,7 @@ import { discoverySearchRouter } from "./routers/discoverySearch";
 import { complimentaryAccessRouter } from './routers/complimentaryAccess';
 import { newsletterLimiter } from "./utils/rateLimiter";
 import * as notif from "./services/notificationService";
+import { isPlatformOwner } from './services/platformOwnerAccess';
 
 
 // Helper to check if user is an artist
@@ -538,14 +539,10 @@ export const appRouter = router({
         // Return only the account fields the client needs; never expose password,
         // email-verification, or provider-specific credential identifiers.
         const { passwordHash, id, openId, name, email, loginMethod, role, emailVerified, oauthProvider, avatarUrl, customAvatarUrl, createdAt, updatedAt, lastSignedIn } = userData as any;
-        // Check if user has admin access (role === 'admin' OR is site owner)
-        const OWNER_OPEN_ID = process.env.OWNER_OPEN_ID || '';
-        const OWNER_NAME = process.env.OWNER_NAME || '';
-        const OWNER_EMAIL = process.env.OWNER_EMAIL || '';
-        const isAdmin = role === 'admin' || 
-          (OWNER_OPEN_ID && openId === OWNER_OPEN_ID) ||
-          (OWNER_NAME && openId === OWNER_NAME) ||
-          (OWNER_EMAIL && email && email.toLowerCase() === OWNER_EMAIL.toLowerCase());
+        // Keep the visible admin flag aligned with the server-side owner policy.
+        // This preserves owner access on deployments where OWNER_EMAIL is not set,
+        // while ordinary artist accounts remain non-admin.
+        const isAdmin = role === 'admin' || isPlatformOwner({ id, openId, email });
         return { id, openId, name, email, loginMethod, role, emailVerified, oauthProvider, avatarUrl, customAvatarUrl, createdAt, updatedAt, lastSignedIn, hasPassword: !!passwordHash, isAdmin: !!isAdmin };
       } catch (error) {
         console.error('[Auth.me] Error');

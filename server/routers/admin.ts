@@ -42,6 +42,7 @@ async function sendRoleChangeEmail(params: {
     admin: 'Admin',
     artist: 'Artist',
     venue: 'Venue',
+    fan: 'Fan',
     user: 'User',
     blogger: 'Blogger',
   };
@@ -53,6 +54,7 @@ async function sendRoleChangeEmail(params: {
     admin: 'You now have full access to the Admin Dashboard, including user management, booking oversight, blog management, and financial data.',
     artist: 'You can now create an Artist profile, manage bookings, set your availability, upload music releases, and connect with venues.',
     venue: 'You can now create a Venue profile, browse artists, send booking requests, and manage your events.',
+    fan: 'You can discover artists, follow favorites, purchase releases, attend events, and manage your activity in My Ology.',
     user: 'You have standard platform access to browse artists, follow your favorites, book artists for events, and purchase music.',
     blogger: 'You can now create, edit, publish, and manage blog posts on Ologywood. You have access to the Blog Management dashboard.',
   };
@@ -161,7 +163,7 @@ export const adminRouter = router({
     .input(
       z.object({
         search: adminSearch,
-        role: z.enum(["user", "admin", "artist", "venue", "blogger"]).optional(),
+        role: z.enum(["user", "admin", "artist", "venue", "fan", "blogger"]).optional(),
         limit: adminLimit,
         offset: adminOffset,
       }).strict()
@@ -481,13 +483,13 @@ return { success: true, userId: input.userId };
     }),
 
   /**
-   * Change any user's role directly (admin, artist, venue, user)
+   * Change any user's role directly (admin, blogger, artist, venue, fan, user)
    * Replaces the old promote/demote pattern with a single flexible endpoint
    */
   changeRole: adminOnly
     .input(z.object({
       userId: adminPositiveId,
-      newRole: z.enum(['admin', 'artist', 'venue', 'user', 'blogger']),
+      newRole: z.enum(['admin', 'artist', 'venue', 'fan', 'user', 'blogger']),
     }).strict())
     .mutation(async ({ input, ctx }) => {
       const db = await getDb();
