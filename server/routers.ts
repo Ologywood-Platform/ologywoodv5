@@ -95,6 +95,7 @@ const artistShortText = z.string().trim().max(500);
 const artistBio = z.string().trim().max(10_000);
 const artistUrl = z.string().trim().max(2_048).refine((value) => value === '' || /^https?:\/\//i.test(value), 'URL must use HTTP(S)');
 const artistOptionalUrl = artistUrl.optional().or(z.literal(''));
+const artistRequiredUrl = z.string().trim().min(1).max(2_048).url().refine((value) => /^https?:\/\//i.test(value), 'URL must use HTTP(S)');
 const artistGenres = z.array(z.string().trim().min(1).max(100)).max(20);
 const artistFee = z.number().finite().min(0).max(10_000_000);
 const artistPartySize = z.number().int().min(1).max(100);
@@ -948,7 +949,7 @@ export const appRouter = router({
 
     // Add or replace the main Performance Video with a supported hosted URL.
     setPerformanceVideoByUrl: artistProcedure
-      .input(z.object({ videoUrl: z.string().trim().min(1).max(2048) }).strict())
+      .input(z.object({ videoUrl: artistRequiredUrl }).strict())
       .mutation(async ({ ctx, input }) => {
         const profile = await db.getArtistProfileByUserId(ctx.user.id);
         if (!profile) {
@@ -1106,7 +1107,7 @@ export const appRouter = router({
     addPortfolioVideo: artistProcedure
       .input(z.object({
         title: z.string().trim().min(1).max(255),
-        videoUrl: z.string().trim().min(1).max(2048),
+        videoUrl: artistRequiredUrl,
         thumbnailUrl: artistOptionalUrl,
         category: portfolioVideoCategory,
         duration: portfolioVideoDuration,

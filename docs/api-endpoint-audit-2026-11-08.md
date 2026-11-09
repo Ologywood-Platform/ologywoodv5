@@ -249,6 +249,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Booking/message/receiver/rider IDs use safe positive integers; message and quick-message text is trimmed and bounded; rider names/data reuse bounded strict legacy schemas; all message input objects reject unknown fields; and unread-count reads now verify the caller is a booking party or admin before querying.
    - Messaging/booking/workflow/notification/admin regressions pass 33/33, with TypeScript and production build validation passing. No messages, riders, notifications, bookings, or records were changed.
 
+55. **Hosted artist-video URL boundary — resolved in this increment.**
+   - `setPerformanceVideoByUrl` and `addPortfolioVideo` now require an HTTP(S) URL schema with length and parseability checks instead of accepting arbitrary strings.
+   - Artist profile/media/photo/message regressions pass 18/18, with TypeScript and production build validation passing. No profiles, media, videos, messages, or records were changed.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.

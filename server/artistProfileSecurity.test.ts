@@ -19,6 +19,7 @@ describe('artist profile and media security boundaries', () => {
 
   it('restricts profile links and public slug input to safe values', () => {
     expect(source).toContain("const artistUrl = z.string().trim().max(2_048).refine((value) => value === '' || /^https?:\\/\\//i.test(value)");
+    expect(source).toContain("const artistRequiredUrl = z.string().trim().min(1).max(2_048).url().refine((value) => /^https?:\\/\\//i.test(value)");
     expect(source).toContain("slug: z.string().trim().min(1).max(255).regex");
     expect(source).toContain('.input(z.object({ id: artistProfileId }).strict())');
   });
@@ -50,5 +51,6 @@ describe('artist profile and media security boundaries', () => {
     expect(source).toContain("SELECT id FROM video_portfolio WHERE id = ? AND artistProfileId = ?");
     expect(source).toContain("Maximum 10 videos allowed in your portfolio");
     expect(source).toContain('video-portfolio/${ctx.user.id}/${timestamp}.${extension}');
+    expect(source).toContain('videoUrl: artistRequiredUrl');
   });
 });
