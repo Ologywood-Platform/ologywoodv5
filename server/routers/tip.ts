@@ -5,6 +5,7 @@ import { getDefaultStripeApiKey } from '../services/stripeWebhookMode';
  */
 import { z } from 'zod';
 import { publicProcedure, router } from '../_core/trpc';
+import { TRPCError } from '@trpc/server';
 import { getDb } from '../db';
 import { stripeConnectAccounts, artistProfiles } from '../../drizzle/schema';
 import { eq } from 'drizzle-orm';
@@ -61,7 +62,7 @@ export const tipRouter = router({
     }).strict())
     .mutation(async ({ input }) => {
       const db = await getDb();
-      if (!db) throw new Error('Database not available');
+      if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Tip payments are temporarily unavailable.' });
 
       const [artist] = await db
         .select({ userId: artistProfiles.userId, artistName: artistProfiles.artistName })
@@ -69,7 +70,7 @@ export const tipRouter = router({
         .where(eq(artistProfiles.id, input.artistId))
         .limit(1);
 
-      if (!artist) throw new Error('Artist not found');
+      if (!artist) throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist not found.' });
 
       const [account] = await db
         .select()
@@ -78,35 +79,38 @@ export const tipRouter = router({
         .limit(1);
 
       if (!account || account.status !== 'active' || !account.chargesEnabled || !account.payoutsEnabled) {
-        throw new Error('Artist is not set up to receive tips. They need to connect their Stripe account first.');
+        throw new TRPCError({ code: 'PRECONDITION_FAILED', message: 'This artist is not currently set up to receive tips.' });
       }
 
-      console.log(`[Tip] Creating PaymentIntent for artist profile ${input.artistId}, amount: ${input.amount}`);
-
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: input.amount,
-        currency: 'usd',
-        automatic_payment_methods: {
-          enabled: true,
-        },
-        transfer_data: {
-          destination: account.stripeAccountId,
-        },
-        metadata: {
-          type: 'tip',
-          artistId: input.artistId.toString(),
-          artistUserId: artist.userId.toString(),
-          artistName: artist.artistName,
-          tipperName: input.tipperName || 'Anonymous',
-          message: input.message || '',
-        },
-        description: `Tip for ${artist.artistName}`,
-      });
-
-      console.log(`[Tip] PaymentIntent created; clientSecret exists: ${!!paymentIntent.client_secret}`);
+      let paymentIntent: Stripe.PaymentIntent;
+      try {
+        paymentIntent = await stripe.paymentIntents.create({
+          amount: input.amount,
+          currency: 'usd',
+          automatic_payment_methods: {
+            enabled: true,
+          },
+          transfer_data: {
+            destination: account.stripeAccountId,
+          },
+          metadata: {
+            type: 'tip',
+            artistId: input.artistId.toString(),
+            artistUserId: artist.userId.toString(),
+            artistName: artist.artistName,
+            tipperName: input.tipperName || 'Anonymous',
+            message: input.message || '',
+          },
+          description: `Tip for ${artist.artistName}`,
+        });
+      } catch (error) {
+        console.error('[Tip] PaymentIntent creation failed', { kind: error instanceof Error ? error.name : 'UnknownError' });
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Unable to start this tip payment. Please try again.' });
+      }
 
       if (!paymentIntent.client_secret) {
-        throw new Error('Failed to create payment. Please try again.');
+        console.error('[Tip] PaymentIntent returned without client secret');
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Unable to start this tip payment. Please try again.' });
       }
 
       return {

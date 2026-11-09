@@ -19,10 +19,13 @@ describe('Tip payment security boundaries', () => {
     expect(source).toContain("account.status !== 'active' || !account.chargesEnabled || !account.payoutsEnabled");
   });
 
-  it('does not log connected-account or PaymentIntent identifiers', () => {
+  it('does not log connected-account or PaymentIntent identifiers and redacts provider failures', () => {
     const source = read('./routers/tip.ts');
     expect(source).not.toContain('account.stripeAccountId`');
     expect(source).not.toContain('PaymentIntent created: ${paymentIntent.id}');
-    expect(source).toContain('PaymentIntent created; clientSecret exists');
+    expect(source).not.toContain('console.log(`[Tip]');
+    expect(source).toContain("PaymentIntent creation failed', { kind: error instanceof Error ? error.name : 'UnknownError' }");
+    expect(source).toContain('Unable to start this tip payment. Please try again.');
+    expect(source).not.toContain("throw new Error('Database not available')");
   });
 });

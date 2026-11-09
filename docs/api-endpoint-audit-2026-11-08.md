@@ -319,6 +319,9 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
 75. **Release purchase, library, and confirmation-email boundary — resolved in this increment.**
    - Release/review/purchase inputs use strict objects with safe positive IDs; public cover-art and presigned-URL failures log only error kind; fallback purchase verification no longer logs release IDs; and Stripe/email failures are redacted. Purchase-confirmation titles and artist names are escaped, subjects are CRLF-safe, links use the trusted origin and HTTP(S) validation, and purchase/session ownership checks remain enforced.
    - Release purchase/checkout/commerce regressions pass 46/46, with TypeScript and production build passing. No releases, purchases, checkout sessions, emails, downloads, payments, or records were changed during validation.
+76. **Artist tip-payment boundary — resolved in this increment.**
+   - Artist profile IDs and cents amounts remain strict and bounded to $1–$500; both Stripe charge and payout readiness are required; database/provider failures return stable client-safe errors; and payment failures log only error kind without connected-account or PaymentIntent identifiers.
+   - Tip/Stripe/release-payment regressions pass 10/10, with TypeScript and production build passing. No tips, PaymentIntents, transfers, payments, or records were changed during validation.
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.
