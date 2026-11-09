@@ -13,3 +13,8 @@ All five Heartbeat jobs are now enabled: credit expiration, contract expiry remi
 
 
 Unauthenticated POST probes to the published credit-expiration, contract-expiry, and session-reminder routes all returned HTTP 403 with a generic cron-cookie permission error, confirming the scheduled surface is not publicly callable. The new session-reminder registration has no run yet; its first scheduled execution is pending.
+
+
+### Authenticated workflow matrix
+
+The non-mutating runtime matrix passed 200/200 tests across 15 suites for artist/venue/fan booking creation and status transitions, schedule conflicts, venue contracts, booking messaging/read state, ticketing, merch orders, release purchases, fan-club webhook/access behavior, subscription management, and Ology Live checkout. It used isolated mocks/fixtures and changed no production records. Live Stripe purchase, refund, payout, and cross-domain payment-history verification remains separately gated.
