@@ -174,14 +174,14 @@ bookingCheckoutRouter.post('/api/booking-checkout', async (req, res) => {
           destination: connectAccount.stripeAccountId,
         },
       };
-      console.log(`[BookingCheckout] Using Stripe Connect for artist ${booking.artistId}, connected account enabled, fee: ${platformFeeCents} cents`);
+      console.log(`[BookingCheckout] Using Stripe Connect with platform fee ${platformFeeCents} cents`);
     } else {
-      console.log(`[BookingCheckout] Artist ${booking.artistId} has no connected Stripe account — payment goes to platform`);
+      console.log('[BookingCheckout] No active Connect account; payment goes to platform');
     }
 
     const session = await stripe.checkout.sessions.create(sessionParams);
 
-    console.log(`[BookingCheckout] Created ${paymentType} checkout session for booking #${bookingId}, amount: $${(amountCents / 100).toFixed(2)}`);
+    console.log(`[BookingCheckout] Created ${paymentType} checkout session`);
 
     return res.json({ url: session.url });
   } catch (error: any) {

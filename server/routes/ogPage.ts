@@ -225,7 +225,7 @@ router.get('/artist/:slug', async (req: Request, res: Response) => {
           jsonLd: [generateArtistJsonLd(artist, baseUrl), breadcrumb],
         });
         
-        console.log(`[OG Page] Served artist OG: id=${artistId}, name=${artist.artistName}, slug=${correctSlug}`);
+        console.log('[OG Page] Served artist OG');
         return res.status(200).set('Content-Type', 'text/html').send(html);
       }
     }
@@ -302,7 +302,7 @@ router.get('/venue/:slug', async (req: Request, res: Response) => {
           jsonLd: [generateVenueJsonLd(venue, baseUrl), breadcrumb],
         });
         
-        console.log(`[OG Page] Served venue OG: id=${venueId}, name=${venue.organizationName}, slug=${correctSlug}`);
+        console.log('[OG Page] Served venue OG');
         return res.status(200).set('Content-Type', 'text/html').send(html);
       }
     }
@@ -433,7 +433,7 @@ router.get('/blog/:slug', async (req: Request, res: Response) => {
           jsonLd: [breadcrumb],
         });
         
-        console.log(`[OG Page] Served blog OG: slug=${slug}, title=${post.title}`);
+        console.log('[OG Page] Served blog OG');
         return res.status(200).set('Content-Type', 'text/html').send(html);
       }
     }
@@ -561,7 +561,7 @@ router.get('/project/:id', async (req: Request, res: Response) => {
           type: 'music.album',
         });
 
-        console.log(`[OG Page] Served project OG: id=${projectId}, title=${project.title}, artist=${artistName}`);
+        console.log('[OG Page] Served project OG');
         return res.status(200).set('Content-Type', 'text/html').send(html);
       }
     }

@@ -36,9 +36,11 @@ describe('legacy booking checkout security boundaries', () => {
   });
 
   it('does not expose connected-account identifiers or raw exception details in logs', () => {
-    expect(source).toContain('connected account enabled');
+    expect(source).toContain('Using Stripe Connect with platform fee');
     expect(source).toContain("error: error instanceof Error ? error.name : 'UnknownError'");
     expect(source).not.toContain('account: ${connectAccount.stripeAccountId}');
+    expect(source).not.toContain('for artist ${booking.artistId}');
+    expect(source).not.toContain('for booking #${bookingId}');
     expect(source).not.toContain("console.error('[BookingCheckout] Error:', error.message)");
     expect(source).not.toContain("console.error('[BookingPaymentStatus] Error:', error.message)");
   });

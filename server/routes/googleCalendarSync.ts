@@ -361,7 +361,7 @@ export async function syncGoogleCalendarForArtist(artistId: number): Promise<{ s
       .set({ lastSyncedAt: new Date() })
       .where(eq(googleCalendarIntegrations.id, integration.id));
 
-    console.log(`[Google Calendar Sync] Synced ${synced} busy dates for artist ${artistId}`);
+    console.log(`[Google Calendar Sync] Synced ${synced} busy dates`);
     return { synced };
   } catch (err: any) {
     console.error('[Google Calendar Sync] Sync error', { kind: err instanceof Error ? err.name : 'UnknownError' });

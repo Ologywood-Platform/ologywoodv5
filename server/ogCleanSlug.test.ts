@@ -34,5 +34,8 @@ describe('clean OG profile slug compatibility', () => {
     expect(source).not.toContain('process.env.BASE_URL || `https://${req.get(\'host\')}`');
     expect(source).toContain("kind: error instanceof Error ? error.name : 'UnknownError'");
     expect(source).not.toContain("console.error('[OG Page] Error generating artist OG:', error)");
+    expect(source).not.toContain('Served artist OG: id=');
+    expect(source).not.toContain('Served venue OG: id=');
+    expect(source).not.toContain('Served blog OG: slug=');
   });
 });

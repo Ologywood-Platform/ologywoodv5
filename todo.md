@@ -5230,6 +5230,10 @@ The active release checkout now rejects missing/non-object/array bodies and unkn
 
 Google, Spotify, and Google Calendar callbacks now accept only bounded scalar query strings for `code`, `state`, and provider `error` values; arrays, objects, empty strings, and oversized values are rejected before state verification or provider exchange. OAuth/route-input regressions passed 20/20; TypeScript and production build passed with existing chunk-size warnings. No OAuth exchanges, tokens, calendar rows, emails, or records changed.
 
+### Active-route success-log privacy — 2026-11-09
+
+Successful OG metadata logs no longer include profile/venue/blog/project IDs, names, slugs, titles, or artist names. Booking checkout logs no longer include artist IDs, booking IDs, or transaction amounts, and Calendar synchronization logs omit artist IDs while retaining aggregate counts. Focused OG/booking/calendar/error-safety regressions passed 14/14; TypeScript and production build passed with existing chunk-size warnings. No metadata requests, Checkout sessions, payments, calendar rows, or records changed.
+
 
 ### Production image loading correction — 2026-11-09
 
