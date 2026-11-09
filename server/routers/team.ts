@@ -7,7 +7,11 @@ import { eq, and, desc } from "drizzle-orm";
 import * as db from "../db";
 import crypto from "crypto";
 import { setTeamRiderPermission } from "../services/riderTeamPermissionService";
+import { escapeFanEmailHtml } from "../services/fanEmailFormatting";
 // Email sending is done via dynamic import of '../email'
+
+const teamMemberId = z.number().int().safe().positive();
+const invitationToken = z.string().trim().regex(/^[a-f0-9]{64}$/i, 'Invalid invitation token');
 
 // Default permissions by role
 const DEFAULT_PERMISSIONS = {
@@ -95,12 +99,19 @@ export const teamRouter = router({
 
   // Public: Get invitation preview (email, inviter name, role) without requiring login
   getInvitationPreview: publicProcedure
-    .input(z.object({ token: z.string() }))
+    .input(z.object({ token: invitationToken }).strict())
     .query(async ({ input }) => {
       const database = await getDb();
       if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
 
-      const [invitation] = await database.select().from(artistTeamInvitations)
+      const [invitation] = await database.select({
+        email: artistTeamInvitations.email,
+        invitedByUserId: artistTeamInvitations.invitedByUserId,
+        artistProfileId: artistTeamInvitations.artistProfileId,
+        role: artistTeamInvitations.role,
+        status: artistTeamInvitations.status,
+        expiresAt: artistTeamInvitations.expiresAt,
+      }).from(artistTeamInvitations)
         .where(eq(artistTeamInvitations.token, input.token))
         .limit(1);
 
@@ -124,7 +135,6 @@ export const teamRouter = router({
 
       return {
         email: maskedEmail,
-        fullEmail: invitation.email, // Full email so user knows exactly what to use
         inviterName: inviter?.name || 'A team owner',
         artistName: artistProfile?.artistName || 'an artist',
         role: invitation.role === 'manager' ? 'Manager' : 'Team Member',
@@ -174,7 +184,14 @@ export const teamRouter = router({
     const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
     if (!artistProfile) return [];
 
-    const invitations = await database.select().from(artistTeamInvitations)
+    const invitations = await database.select({
+      id: artistTeamInvitations.id,
+      email: artistTeamInvitations.email,
+      role: artistTeamInvitations.role,
+      status: artistTeamInvitations.status,
+      expiresAt: artistTeamInvitations.expiresAt,
+      createdAt: artistTeamInvitations.createdAt,
+    }).from(artistTeamInvitations)
       .where(and(
         eq(artistTeamInvitations.artistProfileId, artistProfile.id),
         eq(artistTeamInvitations.status, 'pending')
@@ -186,9 +203,9 @@ export const teamRouter = router({
   // Invite a team member by email
   invite: teamAccessProcedure
     .input(z.object({
-      email: z.string().email(),
+      email: z.string().trim().toLowerCase().email().max(320),
       role: z.enum(["manager", "team_member"]),
-    }))
+    }).strict())
     .mutation(async ({ ctx, input }) => {
       const database = await getDb();
       if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
@@ -260,7 +277,7 @@ export const teamRouter = router({
         artistProfileId: artistProfile.id,
         userId: ctx.user.id,
         action: 'team_member_invited',
-        details: { email: input.email, role: input.role },
+        details: { role: input.role },
       });
 
       // Send invitation email (best effort)
@@ -274,7 +291,7 @@ export const teamRouter = router({
           subject: `You're invited to join ${artistProfile.artistName || 'an artist'}'s team on Ologywood`,
           html: `<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
             <h2>Team Invitation</h2>
-            <p><strong>${ctx.user.name || 'Someone'}</strong> has invited you to join <strong>${artistProfile.artistName || 'an artist'}</strong>'s team as a <strong>${roleName}</strong> on Ologywood.</p>
+            <p><strong>${escapeFanEmailHtml(ctx.user.name || 'Someone')}</strong> has invited you to join <strong>${escapeFanEmailHtml(artistProfile.artistName || 'an artist')}</strong>'s team as a <strong>${roleName}</strong> on Ologywood.</p>
             <p>As a ${roleName}, you'll be able to help manage their profile and bookings.</p>
             <p style="margin: 24px 0;"><a href="${inviteLink}" style="background: #6d28d9; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">Accept Invitation</a></p>
             <p style="color: #666; font-size: 14px;">This invitation expires in 7 days.</p>
@@ -289,7 +306,7 @@ export const teamRouter = router({
 
   // Accept an invitation (by token)
   acceptInvitation: protectedProcedure
-    .input(z.object({ token: z.string() }))
+    .input(z.object({ token: invitationToken }).strict())
     .mutation(async ({ ctx, input }) => {
       const database = await getDb();
       if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
@@ -313,7 +330,7 @@ export const teamRouter = router({
       }
 
       // Check email matches
-      if (ctx.user.email !== invitation.email) {
+      if (ctx.user.email?.trim().toLowerCase() !== invitation.email.trim().toLowerCase()) {
         throw new TRPCError({ code: 'FORBIDDEN', message: 'This invitation was sent to a different email address' });
       }
 
@@ -344,7 +361,7 @@ export const teamRouter = router({
 
   // Decline an invitation
   declineInvitation: protectedProcedure
-    .input(z.object({ token: z.string() }))
+    .input(z.object({ token: invitationToken }).strict())
     .mutation(async ({ ctx, input }) => {
       const database = await getDb();
       if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
@@ -360,6 +377,10 @@ export const teamRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Invitation not found' });
       }
 
+      if (ctx.user.email?.trim().toLowerCase() !== invitation.email.trim().toLowerCase()) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'This invitation was sent to a different email address' });
+      }
+
       await database.update(artistTeamInvitations)
         .set({ status: 'declined' })
         .where(eq(artistTeamInvitations.id, invitation.id));
@@ -370,9 +391,9 @@ export const teamRouter = router({
   // Update a team member's role
   updateRole: teamAccessProcedure
     .input(z.object({
-      memberId: z.number(),
+      memberId: teamMemberId,
       role: z.enum(["manager", "team_member"]),
-    }))
+    }).strict())
     .mutation(async ({ ctx, input }) => {
       const database = await getDb();
       if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
@@ -409,7 +430,7 @@ export const teamRouter = router({
 
   // Remove a team member
   removeMember: teamAccessProcedure
-    .input(z.object({ memberId: z.number() }))
+    .input(z.object({ memberId: teamMemberId }).strict())
     .mutation(async ({ ctx, input }) => {
       const database = await getDb();
       if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
@@ -443,7 +464,7 @@ export const teamRouter = router({
 
   // Resend a pending invitation (regenerate token, reset expiry, re-send email)
   resendInvitation: teamAccessProcedure
-    .input(z.object({ invitationId: z.number() }))
+    .input(z.object({ invitationId: teamMemberId }).strict())
     .mutation(async ({ ctx, input }) => {
       const database = await getDb();
       if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
@@ -482,7 +503,7 @@ export const teamRouter = router({
           subject: `Reminder: You're invited to join ${artistProfile.artistName || 'an artist'}'s team on Ologywood`,
           html: `<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
             <h2>Team Invitation Reminder</h2>
-            <p><strong>${ctx.user.name || 'Someone'}</strong> has re-sent your invitation to join <strong>${artistProfile.artistName || 'an artist'}</strong>'s team as a <strong>${roleName}</strong> on Ologywood.</p>
+            <p><strong>${escapeFanEmailHtml(ctx.user.name || 'Someone')}</strong> has re-sent your invitation to join <strong>${escapeFanEmailHtml(artistProfile.artistName || 'an artist')}</strong>'s team as a <strong>${roleName}</strong> on Ologywood.</p>
             <p style="margin: 24px 0;"><a href="${inviteLink}" style="background: #6d28d9; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">Accept Invitation</a></p>
             <p style="color: #666; font-size: 14px;">This invitation expires in 7 days.</p>
           </div>`,
@@ -496,7 +517,7 @@ export const teamRouter = router({
 
   // Cancel a pending invitation
   cancelInvitation: teamAccessProcedure
-    .input(z.object({ invitationId: z.number() }))
+    .input(z.object({ invitationId: teamMemberId }).strict())
     .mutation(async ({ ctx, input }) => {
       const database = await getDb();
       if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
@@ -542,7 +563,7 @@ export const teamRouter = router({
 
   // Get activity log for an artist profile
   getActivityLog: teamAccessProcedure
-    .input(z.object({ limit: z.number().min(1).max(50).default(20) }))
+    .input(z.object({ limit: z.number().int().min(1).max(50).default(20) }).strict())
     .query(async ({ ctx, input }) => {
       const database = await getDb();
       if (!database) return [];
@@ -558,7 +579,12 @@ export const teamRouter = router({
       // Enrich with user names
       const enriched = await Promise.all(logs.map(async (log) => {
         const user = await db.getUserById(log.userId);
-        return { ...log, userName: user?.name || 'Unknown' };
+        return {
+          id: log.id,
+          action: log.action,
+          createdAt: log.createdAt,
+          userName: user?.name || 'Unknown',
+        };
       }));
 
       return enriched;
