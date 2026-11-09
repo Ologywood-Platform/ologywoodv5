@@ -12,6 +12,7 @@ describe('test-email route security boundary', () => {
     expect(source).toContain(".test(email)");
     expect(source).toContain("emailTestingLimiter.checkAsync(`express-ip:${getClientIp(req)}`)");
     expect(source).toContain("emailTestingLimiter.checkAsync(`express-email:${email}`)");
+    expect(source).toContain("Object.keys(req.body).some((key) => key !== 'email')");
     expect(source).toContain("res.set('Retry-After'");
     expect(source).toContain("status(429)");
   });

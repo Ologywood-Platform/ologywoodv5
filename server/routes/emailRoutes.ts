@@ -34,6 +34,10 @@ router.post('/test', requireAdmin, async (req, res) => {
       res.set('Retry-After', String(Math.max(1, Math.ceil(ipCheck.retryAfterMs / 1000))));
       return res.status(429).json({ success: false, message: 'Too many test-email requests. Please try again later.' });
     }
+    if (!req.body || typeof req.body !== 'object' || Array.isArray(req.body) ||
+        Object.keys(req.body).some((key) => key !== 'email')) {
+      return res.status(400).json({ success: false, message: 'Valid email address is required' });
+    }
     const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
 
     if (!email || email.length > 320 || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {

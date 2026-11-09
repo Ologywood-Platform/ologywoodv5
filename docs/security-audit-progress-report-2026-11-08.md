@@ -1,5 +1,5 @@
 
 
-### Legacy public event-search query contract
+### Admin test-email body contract
 
-The active legacy event-search route now validates search/query, event type, location, and date filters as bounded scalar strings through the shared `singleQueryString` helper; repeated query parameters and objects are not cast into database inputs. Existing route-parameter validation and event mutation ownership checks remain intact. Focused event-route regressions pass 22/22, TypeScript passes, and production build passes with existing chunk-size warnings. No event searches, event rows, or records changed during validation.
+The mounted admin-only test-email route now rejects array bodies and unknown JSON fields before email validation or delivery; only a scalar `email` field is accepted. Existing admin authorization, IP/email rate limits, length/format validation, retry headers, and redacted failure responses remain intact. Focused email/preference/route-input regressions pass 8/8, TypeScript passes, and production build passes with existing chunk-size warnings. No test emails, provider calls, or records changed during validation.

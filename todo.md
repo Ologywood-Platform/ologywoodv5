@@ -5250,6 +5250,10 @@ The mounted legacy audio and cover-art upload routes now reject unknown JSON fie
 
 The active legacy event-search route now validates search/query, event type, location, and date filters as bounded scalar strings through the shared `singleQueryString` helper; repeated query parameters and objects are not cast into database inputs. Focused event-route regressions passed 22/22; TypeScript and production build passed with existing chunk-size warnings. No event searches, event rows, or records changed.
 
+### Admin test-email body contract — 2026-11-09
+
+The mounted admin-only test-email route now rejects array bodies and unknown JSON fields before email validation or delivery; only a scalar `email` field is accepted. Focused email/preference/route-input regressions passed 8/8; TypeScript and production build passed with existing chunk-size warnings. No test emails, provider calls, or records changed.
+
 
 ### Production image loading correction — 2026-11-09
 
