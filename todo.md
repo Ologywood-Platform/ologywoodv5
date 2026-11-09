@@ -2341,9 +2341,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] All 8 tests passing
 
 ## SENDGRID DOMAIN AUTHENTICATION (5/10)
-- [ ] Create SendGrid domain authentication for ologywood.com via API
-- [ ] Provide DNS records (SPF/DKIM CNAME) for user to add to domain registrar
-- [ ] Verify domain authentication after DNS records are added
+- [x] Confirm the existing SendGrid domain-authentication configuration for OlogyWood; the signed-in SendGrid account shows `em4597.ologywood.com` as Verified and `support@ologywood.com` as a verified sender. No new authentication was created because the account was already configured.
+- [x] Confirm the required SPF/DKIM DNS configuration is present for the existing SendGrid authentication; no DNS changes were made.
+- [x] Verify domain authentication after DNS records were added; SendGrid’s live Sender Authentication page reports the OlogyWood domain as Verified. Link Branding has separate pending/failed entries and remains outside this domain-authentication gate.
 
 ## HOMEPAGE REFRESH - TOURING MARKETPLACE POSITIONING (5/10)
 - [x] Audit current homepage sections and copy
