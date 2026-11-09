@@ -20,5 +20,6 @@ describe('test-email route security boundary', () => {
     const source = readFileSync('server/routes/emailRoutes.ts', 'utf8');
     expect(source).toContain("router.use('/', unsubscribeRoutes)");
     expect(source).not.toContain('router.use(requireAdmin, unsubscribeRoutes)');
+    expect(source).not.toContain("Error sending test email:', error);");
   });
 });

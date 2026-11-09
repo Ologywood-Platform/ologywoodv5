@@ -64,7 +64,7 @@ router.post('/test', requireAdmin, async (req, res) => {
       });
     }
   } catch (error) {
-    console.error('[Email] Error sending test email:', error);
+    console.error('[Email] Error sending test email:', error instanceof Error ? error.name : 'UnknownError');
     return res.status(500).json({
       success: false,
       message: 'Error sending test email',

@@ -5218,6 +5218,10 @@ A residual scan found eight no-input mutations; review confirmed they are authen
 
 Redacted remaining raw exception interpolation in venue operations, admin role-change email delivery, and fire-and-forget event fan notifications. Focused venue/admin/event/email-preference regressions passed 18/18; TypeScript and production build passed with existing chunk-size warnings. No notifications, emails, profiles, events, payments, or records changed.
 
+### Reachable Express-route exception-log sweep — 2026-11-09
+
+Confirmed `/api/email` and `/api/release/checkout` are active surfaces. Email-test failures now log only error kind; release-checkout logs no longer expose Stripe account IDs, artist user IDs, Checkout session IDs, release IDs, or raw exceptions. Unmounted payment-testing and socket-metrics modules were not treated as active production surfaces. Reachable-route/commerce regressions passed 17/17; TypeScript and production build passed with existing chunk-size warnings. No emails, Checkout sessions, payments, or records changed.
+
 
 ### Production image loading correction — 2026-11-09
 

@@ -33,5 +33,8 @@ describe('release checkout security boundaries', () => {
     expect(source).toContain('trustedCheckoutOrigin(process.env.BASE_URL, req.headers.origin)');
     expect(source).not.toContain('parseInt(releaseId)');
     expect(source).not.toContain('parseInt(customAmountCents)');
+    expect(source).not.toContain('artistStripeAccountId}, fee');
+    expect(source).not.toContain('artist ${artistProfile.userId}');
+    expect(source).not.toContain('console.error("[Release Checkout] Error:", error);');
   });
 });

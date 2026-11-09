@@ -157,21 +157,21 @@ router.post("/", async (req: Request, res: Response) => {
           destination: artistStripeAccountId,
         },
       };
-      console.log(`[Release Checkout] Using Stripe Connect: ${artistStripeAccountId}, fee: ${platformFeeCents}c`);
+      console.log(`[Release Checkout] Using Stripe Connect with platform fee ${platformFeeCents}c`);
     } else {
-      console.log(`[Release Checkout] No Connect account for artist ${artistProfile.userId}, payment goes to platform`);
+      console.log('[Release Checkout] No active Connect account; payment goes to platform');
     }
 
     const session = await stripe.checkout.sessions.create(sessionParams);
 
-    console.log(`[Release Checkout] Session created: ${session.id} for release ${release.id} ($${(finalPriceCents / 100).toFixed(2)})`);
+    console.log(`[Release Checkout] Session created for release purchase ($${(finalPriceCents / 100).toFixed(2)})`);
 
     return res.json({
       checkoutUrl: session.url,
       sessionId: session.id,
     });
   } catch (error: any) {
-    console.error("[Release Checkout] Error:", error);
+    console.error("[Release Checkout] Error:", error instanceof Error ? error.name : 'UnknownError');
     return res.status(500).json({ error: "Failed to create checkout session" });
   }
 });
