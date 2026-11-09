@@ -28,3 +28,13 @@ A rendered-browser audit was run on the published homepage and Adonis profile ra
 ### Heartbeat post-publish execution
 
 The first newly registered `session-reminders` run completed naturally after publication with HTTP 200, one attempt, 680 ms duration, and `ok: true`; it found zero upcoming sessions and sent zero reminders. It was not a manual trigger. The daily credit-expiration, contract-expiry, auto-complete, and premiere jobs remain enabled and will receive their first post-publish verification on their next scheduled windows.
+
+
+### Database readiness finding
+
+A fresh read-only production check confirmed 110 database tables and presence of the core workflow tables (`users`, artist/venue profiles, bookings, contracts, merch, releases, tickets, fan club, Ology Live, and schedule appointments). `drizzle-kit check` passes locally. However, production’s `__drizzle_migrations` ledger contains 23 records, while the repository has 122 journal entries and 129 SQL files; the ledger also contains legacy/manual hashes and duplicate-looking records. The schema is operational and core tables are present, but migration-ledger parity is not proven. No migration was applied. A controlled migration-ledger reconciliation or a documented baseline/squash plan is required before claiming database readiness is fully closed.
+
+
+### Bounded production-load canary
+
+A non-mutating canary sent 20 requests each to production health, home OG, and sitemap endpoints with at most five concurrent workers. All 60 requests returned HTTP 200 with no errors. Median latency was approximately 1.43–1.46 seconds and maximum latency was 1.82–2.28 seconds. This is a healthy bounded status result but not a capacity or autoscaling test; the measured latency warrants continued performance monitoring and a provider-level load test before claiming production-load readiness complete.

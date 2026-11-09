@@ -5173,3 +5173,13 @@ A non-mutating runtime regression matrix covering artist/venue/fan paths for boo
 ### Heartbeat execution verification — 2026-11-09
 
 The newly registered 15-minute `session-reminders` job completed its first natural post-publish run successfully: HTTP 200, one attempt, `ok: true`, 680 ms, zero upcoming sessions, zero reminders sent. No manual trigger was used. The four daily jobs are enabled and their first post-publish runs remain future-dated; their natural results must be reviewed after those windows.
+
+
+### Database readiness — ledger parity remains open
+
+Read-only production verification found 110 tables and all core booking/commerce/schedule tables present, and local `drizzle-kit check` passes. Production `__drizzle_migrations` contains 23 records versus 122 repository journal entries and 129 SQL files, including legacy/manual hashes. No migration was applied. The schema is operational, but migration-ledger parity is not proven; reconcile or baseline the ledger under an owner-approved migration plan before marking database readiness fully complete.
+
+
+### Production-load canary — 2026-11-09
+
+A bounded read-only canary sent 20 requests each to production health, home OG, and sitemap endpoints with at most five concurrent workers. All 60 requests returned HTTP 200. Median latency was approximately 1.43–1.46 seconds and maximum latency 1.82–2.28 seconds. This is baseline evidence only; provider-level capacity/autoscaling/load testing remains open.
