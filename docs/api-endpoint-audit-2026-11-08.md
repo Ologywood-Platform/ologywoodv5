@@ -316,6 +316,9 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
 74. **Promotion/Boost My Event payment and admin boundary — resolved in this increment.**
    - Admin request-status transitions use `adminProcedure`; payment-intent creation and request persistence return stable client-safe errors with error-kind-only logs; abandoned payment intents are cancelled best-effort after persistence failure; request lists and edits redact database failures; and paid budgets cannot be edited after payment setup.
    - Promotion security/revenue regressions pass 11/11, with TypeScript and production build passing. No promotion requests, PaymentIntents, refunds, campaigns, or records were changed during validation.
+75. **Release purchase, library, and confirmation-email boundary — resolved in this increment.**
+   - Release/review/purchase inputs use strict objects with safe positive IDs; public cover-art and presigned-URL failures log only error kind; fallback purchase verification no longer logs release IDs; and Stripe/email failures are redacted. Purchase-confirmation titles and artist names are escaped, subjects are CRLF-safe, links use the trusted origin and HTTP(S) validation, and purchase/session ownership checks remain enforced.
+   - Release purchase/checkout/commerce regressions pass 46/46, with TypeScript and production build passing. No releases, purchases, checkout sessions, emails, downloads, payments, or records were changed during validation.
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.

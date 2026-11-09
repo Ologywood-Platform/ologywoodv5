@@ -26,6 +26,8 @@ import {
   updateMusicReleaseDescriptionForUser,
 } from "../services/musicReleaseDescriptionService";
 import { getPublicMusicSingle, PublicMusicReleaseUnavailableError } from "../services/musicReleasePublicService";
+import { escapeFanEmailHtml, safeFanEmailHref, sanitizeFanEmailSubject } from "../services/fanEmailFormatting";
+import { trustedCheckoutOrigin } from "../services/trustedOrigin";
 
 const stripe = new Stripe(getDefaultStripeApiKey(), {
   apiVersion: "2025-12-15.clover",
@@ -53,15 +55,22 @@ async function withUrls(release: any) {
       const { url } = await storageGet(release.audioFileKey);
       result.audioUrl = url;
     }
-  } catch (e) {
-    console.error("[Release] Failed to resolve S3 URLs:", e);
+  } catch (error) {
+    console.error("[Release] Failed to resolve S3 URLs", { kind: error instanceof Error ? error.name : 'UnknownError' });
   }
   return result;
 }
 
 async function publicReleaseView(release: any) {
   const { audioFileKey, previewFileKey, audioUrl, previewUrl, ...metadata } = release;
-  const coverArtUrl = release.coverArtKey ? (await storageGet(release.coverArtKey)).url : null;
+  let coverArtUrl: string | null = null;
+  if (release.coverArtKey) {
+    try {
+      coverArtUrl = (await storageGet(release.coverArtKey)).url;
+    } catch (error) {
+      console.error('[Release] Failed to resolve public cover art', { kind: error instanceof Error ? error.name : 'UnknownError' });
+    }
+  }
   return { ...metadata, audioFileKey: null, previewFileKey: null, audioUrl: null, previewUrl: null,
     hasPreview: Boolean(previewFileKey || audioFileKey), coverArtUrl };
 }
@@ -447,7 +456,7 @@ export const releaseRouter = router({
    * Get published releases for an artist (public profile view).
    */
   getByArtist: publicProcedure
-    .input(z.object({ artistId: z.number().int().safe().positive() }))
+    .input(z.object({ artistId: z.number().int().safe().positive() }).strict())
     .query(async ({ input }) => {
       const releases = await db.getPublishedReleasesByArtistId(input.artistId);
       return await Promise.all(releases.map(publicReleaseView));
@@ -469,7 +478,7 @@ export const releaseRouter = router({
    * Get purchases for a specific release (artist sales view).
    */
   getPurchases: artistProcedure
-    .input(z.object({ releaseId: z.number().int().safe().positive() }))
+    .input(z.object({ releaseId: z.number().int().safe().positive() }).strict())
     .query(async ({ ctx, input }) => {
       const profile = await db.getArtistProfileByUserId(ctx.user.id);
       if (!profile) {
@@ -492,7 +501,7 @@ export const releaseRouter = router({
    * Returns reviews with reviewer info and aggregate stats.
    */
   getReviews: publicProcedure
-    .input(z.object({ releaseId: z.number().int().safe().positive() }))
+    .input(z.object({ releaseId: z.number().int().safe().positive() }).strict())
     .query(async ({ input }) => {
       const [reviews, stats] = await Promise.all([
         db.getReviewsByReleaseId(input.releaseId),
@@ -521,7 +530,7 @@ export const releaseRouter = router({
    * Check if the current user can review a release (has purchased + hasn't reviewed yet).
    */
   canReview: protectedProcedure
-    .input(z.object({ releaseId: z.number().int().safe().positive() }))
+    .input(z.object({ releaseId: z.number().int().safe().positive() }).strict())
     .query(async ({ ctx, input }) => {
       const hasPurchased = await db.hasUserPurchasedRelease(ctx.user.id, input.releaseId);
       if (!hasPurchased) {
@@ -545,7 +554,7 @@ export const releaseRouter = router({
         releaseId: z.number().int().safe().positive(),
         rating: z.number().int().min(1).max(5),
         reviewText: z.string().max(280).optional(),
-      })
+      }).strict()
     )
     .mutation(async ({ ctx, input }) => {
       // Verify purchase
@@ -585,7 +594,7 @@ export const releaseRouter = router({
         reviewId: z.number().int().safe().positive(),
         rating: z.number().int().min(1).max(5).optional(),
         reviewText: z.string().max(280).optional(),
-      })
+      }).strict()
     )
     .mutation(async ({ ctx, input }) => {
       const review = await db.getTrackReviewById(input.reviewId);
@@ -608,7 +617,7 @@ export const releaseRouter = router({
    * Delete your own review (or artist can delete reviews on their releases).
    */
   deleteReview: protectedProcedure
-    .input(z.object({ reviewId: z.number().int().safe().positive() }))
+    .input(z.object({ reviewId: z.number().int().safe().positive() }).strict())
     .mutation(async ({ ctx, input }) => {
       const review = await db.getTrackReviewById(input.reviewId);
       if (!review) {
@@ -673,7 +682,7 @@ export const releaseRouter = router({
    * If the webhook hasn't processed the event yet, this queries Stripe directly.
    */
   verifyPurchase: protectedProcedure
-    .input(z.object({ sessionId: z.string().trim().min(1).max(255).regex(/^cs_(?:test|live)_[A-Za-z0-9]+$/, "Invalid Stripe checkout session ID") }))
+    .input(z.object({ sessionId: z.string().trim().min(1).max(255).regex(/^cs_(?:test|live)_[A-Za-z0-9]+$/, "Invalid Stripe checkout session ID") }).strict())
     .mutation(async ({ ctx, input }) => {
       // First check if purchase already exists
       const existing = await db.getPurchaseBySessionId(input.sessionId);
@@ -748,25 +757,29 @@ export const releaseRouter = router({
         // Increment sales counters
         await db.incrementReleaseSales(releaseId, amountPaid);
 
-        console.log(`[Release VerifyPurchase] Fallback purchase created for release ${releaseId}`);
+        console.log('[Release VerifyPurchase] Fallback purchase created');
 
         // Send purchase confirmation email
         try {
           const buyerEmail = session.customer_details?.email || session.metadata?.buyerEmail || ctx.user.email;
           const artistProfile = await db.getArtistProfileById(release.artistId);
           if (buyerEmail && artistProfile) {
-            const baseUrl = process.env.BASE_URL || 'https://www.ologywood.com';
+            const baseUrl = trustedCheckoutOrigin(process.env.BASE_URL, undefined);
             const unsubscribeUrl = `${baseUrl}/unsubscribe?email=${encodeURIComponent(buyerEmail)}&type=purchase`;
+            const safeTitle = escapeFanEmailHtml(release.title);
+            const safeArtistName = escapeFanEmailHtml(artistProfile.artistName);
+            const safeUnsubscribeUrl = safeFanEmailHref(unsubscribeUrl);
+            const safeBaseUrl = safeFanEmailHref(baseUrl);
             await email.sendEmail({
               to: buyerEmail,
-              subject: `Purchase Confirmed — "${release.title}" by ${artistProfile.artistName}`,
+              subject: sanitizeFanEmailSubject(`Purchase Confirmed — "${release.title}" by ${artistProfile.artistName}`),
               html: `<div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
                 <div style="background: linear-gradient(135deg, #6D28D9 0%, #00D9FF 100%); padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0;">
                   ${getEmailLogoImage({ size: 88, marginBottom: 12 })}
                   <h1 style="color: white; margin: 0; font-size: 24px;">Purchase Confirmed!</h1>
                 </div>
                 <div style="padding: 30px 24px;">
-                  <p style="font-size: 16px; color: #374151; margin: 0 0 20px 0;">You purchased <strong>"${release.title}"</strong> by <strong>${artistProfile.artistName}</strong> for <strong>$${(amountPaid / 100).toFixed(2)}</strong>.</p>
+                  <p style="font-size: 16px; color: #374151; margin: 0 0 20px 0;">You purchased <strong>"${safeTitle}"</strong> by <strong>${safeArtistName}</strong> for <strong>$${(amountPaid / 100).toFixed(2)}</strong>.</p>
                   <div style="background: #f5f3ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #6D28D9;">
                     <p style="color: #374151; margin: 0 0 8px 0; font-size: 14px;"><strong>How to download your track:</strong></p>
                     <ol style="color: #374151; margin: 0; padding-left: 20px; font-size: 14px;">
@@ -776,34 +789,34 @@ export const releaseRouter = router({
                     </ol>
                   </div>
                   <div style="text-align: center; margin: 30px 0;">
-                    <a href="${baseUrl}/my-purchases" style="display: inline-block; background: linear-gradient(135deg, #6D28D9 0%, #7c3aed 100%); color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Download Your Track</a>
+                    <a href="${safeBaseUrl}/my-purchases" style="display: inline-block; background: linear-gradient(135deg, #6D28D9 0%, #7c3aed 100%); color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Download Your Track</a>
                   </div>
                   <p style="font-size: 14px; color: #6b7280; margin: 20px 0 0 0;">You can also re-download anytime from <a href="${baseUrl}/my-purchases" style="color: #6D28D9; text-decoration: none;">My Purchases</a>.</p>
                 </div>
                 <div style="background: #f9fafb; padding: 20px; border-radius: 0 0 8px 8px; border-top: 1px solid #e5e7eb;">
                   <p style="font-size: 14px; color: #6b7280; text-align: center; margin: 0 0 10px 0;">Thank you for supporting independent artists on Ologywood!</p>
                   <p style="color: #6b7280; font-size: 12px; margin: 0; text-align: center;">
-                    <a href="${unsubscribeUrl}" style="color: #6D28D9; text-decoration: none;">Unsubscribe</a> | 
-                    <a href="${baseUrl}/privacy" style="color: #6D28D9; text-decoration: none;">Privacy Policy</a>
+                    <a href="${safeUnsubscribeUrl}" style="color: #6D28D9; text-decoration: none;">Unsubscribe</a> | 
+                    <a href="${safeBaseUrl}/privacy" style="color: #6D28D9; text-decoration: none;">Privacy Policy</a>
                   </p>
                 </div>
               </div>`,
             });
-            console.log(`[Release VerifyPurchase] Confirmation email sent to ${buyerEmail}`);
+            console.log('[Release VerifyPurchase] Confirmation email sent');
           }
         } catch (emailErr) {
-          console.error('[Release VerifyPurchase] Email error:', emailErr);
+          console.error('[Release VerifyPurchase] Email error', { kind: emailErr instanceof Error ? emailErr.name : 'UnknownError' });
         }
 
         return { status: 'created' as const, purchaseId: purchase.id };
       } catch (err: any) {
-        console.error('[Release VerifyPurchase] Stripe error:', err);
+        console.error('[Release VerifyPurchase] Verification failed', { kind: err instanceof Error ? err.name : 'UnknownError' });
         return { status: 'error' as const, purchaseId: null };
       }
     }),
 
   purchaseBySession: protectedProcedure
-    .input(z.object({ sessionId: z.string().trim().min(1).max(255).regex(/^cs_(?:test|live)_[A-Za-z0-9]+$/, "Invalid Stripe checkout session ID") }))
+    .input(z.object({ sessionId: z.string().trim().min(1).max(255).regex(/^cs_(?:test|live)_[A-Za-z0-9]+$/, "Invalid Stripe checkout session ID") }).strict())
     .query(async ({ ctx, input }) => {
       const purchase = await db.getPurchaseBySessionIdWithRelease(input.sessionId);
       if (!purchase) return null;
@@ -881,7 +894,7 @@ export const releaseRouter = router({
    * Get a streaming URL for a purchased track (presigned S3 URL).
    */
   getStreamUrl: protectedProcedure
-    .input(z.object({ purchaseId: z.number().int().safe().positive() }))
+    .input(z.object({ purchaseId: z.number().int().safe().positive() }).strict())
     .query(async ({ ctx, input }) => {
       const purchase = await db.getPurchaseById(input.purchaseId);
       if (!purchase) {
@@ -904,7 +917,7 @@ export const releaseRouter = router({
    * Hide a purchase from the music library (soft delete).
    */
   hideFromLibrary: protectedProcedure
-    .input(z.object({ purchaseId: z.number().int().safe().positive() }))
+    .input(z.object({ purchaseId: z.number().int().safe().positive() }).strict())
     .mutation(async ({ ctx, input }) => {
       const purchase = await db.getPurchaseById(input.purchaseId);
       if (!purchase) {
@@ -923,7 +936,7 @@ export const releaseRouter = router({
    * Restore a hidden purchase back to the music library.
    */
   restoreToLibrary: protectedProcedure
-    .input(z.object({ purchaseId: z.number().int().safe().positive() }))
+    .input(z.object({ purchaseId: z.number().int().safe().positive() }).strict())
     .mutation(async ({ ctx, input }) => {
       const purchase = await db.getPurchaseById(input.purchaseId);
       if (!purchase) {
