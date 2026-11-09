@@ -1,6 +1,7 @@
 import { trpc } from "@/lib/trpc";
 import { TRPCClientError } from "@trpc/client";
 import { useCallback, useEffect, useMemo } from "react";
+import { requestAudioCleanup } from "@/lib/audioSession";
 
 type UseAuthOptions = {
   redirectOnUnauthenticated?: boolean;
@@ -29,6 +30,7 @@ export function useAuth(options?: UseAuthOptions) {
   });
 
   const logout = useCallback(async () => {
+    requestAudioCleanup();
     try {
       await logoutMutation.mutateAsync();
     } catch (error: unknown) {
@@ -40,6 +42,7 @@ export function useAuth(options?: UseAuthOptions) {
       }
       throw error;
     } finally {
+      localStorage.removeItem("manus-runtime-user-info");
       (utils.auth.me as any).setData?.(undefined, null);
       (utils.auth.me as any).invalidate?.();
     }

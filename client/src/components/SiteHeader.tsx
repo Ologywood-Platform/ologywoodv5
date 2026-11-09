@@ -16,13 +16,16 @@ import { AIChatTrigger } from '@/components/AIChatWidget';
 import { getAccountMenuItems } from '@/lib/accountMenu';
 import { GlobalSearch } from '@/components/GlobalSearch';
 import { CURRENT_TERMS_VERSION } from '@shared/terms';
+import { requestAudioCleanup } from '@/lib/audioSession';
 
 function LogoutButton({ onAction }: { onAction?: () => void }) {
   const logoutMutation = (trpc.auth.logout as any).useMutation?.() || { mutateAsync: async () => {} };
 
   const handleLogout = async () => {
     onAction?.();
+    requestAudioCleanup();
     await logoutMutation.mutateAsync();
+    localStorage.removeItem('manus-runtime-user-info');
     window.location.href = '/';
   };
 

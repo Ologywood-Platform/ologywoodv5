@@ -12,6 +12,7 @@ import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { SiteHeader } from "@/components/SiteHeader";
+import { registerAudioElement } from "@/lib/audioSession";
 import {
   Play, Pause, SkipForward, SkipBack, Shuffle, Volume2, VolumeX,
   Download, Trash2, Music, Loader2, ArrowLeft, SortAsc, ChevronDown,
@@ -68,6 +69,7 @@ export default function MyMusic() {
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const unregisterAudioRef = useRef<(() => void) | null>(null);
   const animFrameRef = useRef<number | null>(null);
   const shuffleOrderRef = useRef<number[]>([]);
 
@@ -149,11 +151,30 @@ export default function MyMusic() {
   useEffect(() => {
     return () => {
       disposeAudio(audioRef.current);
+      unregisterAudioRef.current?.();
+      unregisterAudioRef.current = null;
       audioRef.current = null;
       if (animFrameRef.current) {
         cancelAnimationFrame(animFrameRef.current);
       }
     };
+  }, []);
+
+  useEffect(() => {
+    const handleAudioCleanup = () => {
+      disposeAudio(audioRef.current);
+      unregisterAudioRef.current?.();
+      unregisterAudioRef.current = null;
+      audioRef.current = null;
+      setCurrentTrackIndex(-1);
+      setIsPlaying(false);
+      setIsLoadingTrack(false);
+      setProgress(0);
+      setCurrentTime(0);
+      setDuration(0);
+    };
+    window.addEventListener("ologywood:audio-cleanup", handleAudioCleanup);
+    return () => window.removeEventListener("ologywood:audio-cleanup", handleAudioCleanup);
   }, []);
 
   // Play a track by index
@@ -180,11 +201,14 @@ export default function MyMusic() {
       // Stop current audio
       if (audioRef.current) {
         disposeAudio(audioRef.current);
+        unregisterAudioRef.current?.();
+        unregisterAudioRef.current = null;
       }
 
       const audio = new Audio(audioUrl);
       audio.volume = isMuted ? 0 : volume;
       audioRef.current = audio;
+      unregisterAudioRef.current = registerAudioElement(audio);
 
       audio.onloadedmetadata = () => {
         setDuration(audio.duration);
@@ -308,6 +332,8 @@ export default function MyMusic() {
     // If we're deleting the currently playing track, stop
     if (currentTrack?.purchaseId === purchaseId) {
       disposeAudio(audioRef.current);
+      unregisterAudioRef.current?.();
+      unregisterAudioRef.current = null;
       audioRef.current = null;
       setIsPlaying(false);
       setCurrentTrackIndex(-1);
