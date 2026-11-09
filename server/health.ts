@@ -53,8 +53,8 @@ async function checkDatabase(): Promise<HealthStatus> {
     return {
       status: 'error',
       responseTime,
-      message: error?.message || 'Database connection failed',
-      details: { error: error?.code },
+      message: 'Database connection failed',
+      details: { errorKind: error instanceof Error ? error.name : 'UnknownError' },
     };
   }
 }
@@ -190,7 +190,7 @@ export async function performHealthCheck(): Promise<HealthCheckResult> {
         cpu: { status: 'error', responseTime: 0, message: 'Check failed' },
         api: { status: 'error', responseTime: 0, message: 'Check failed' },
       },
-      details: { error: error?.message },
+      details: { errorKind: error instanceof Error ? error.name : 'UnknownError' },
     };
   }
 }

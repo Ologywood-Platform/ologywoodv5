@@ -62,3 +62,8 @@ The owner confirmed that Ologywood does not use Sentry. The optional Sentry boot
 
 
 After removing the unused Sentry bootstrap and its Sentry-only regressions, verification remained clean: 4,045 tests passed with 23 skipped across 335 files, TypeScript passed, and the production build passed. The remaining build warnings are the previously documented large chunks.
+
+
+### Public health-response safety
+
+The public health service now returns stable database/health failure messages with an error kind instead of raw exception text or provider error codes. Focused health-security regression passed 1/1; full suite passed 4,046 tests with 23 skipped across 336 files, TypeScript passed, and production build passed.

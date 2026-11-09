@@ -5203,3 +5203,8 @@ The Sentry health helper no longer returns raw provider exception text. Focused 
 ### Monitoring scope correction — 2026-11-09
 
 Owner confirmed Ologywood does not use Sentry. The optional bootstrap was removed from the active server, no `SENTRY_DSN` is required, and Sentry is not a production readiness gate. Existing structured application logging and provider-managed operational controls remain in scope.
+
+
+### Public health-response safety — 2026-11-09
+
+Health failures now return stable messages and an error kind rather than raw database/provider exception text. Focused regression passed 1/1; full suite passed 4,046 tests with 23 skipped across 336 files, TypeScript passed, and production build passed.
