@@ -415,6 +415,17 @@ export async function setupVite(app: Express, server: Server) {
   });
 }
 
+export function getStaticAssetCacheControl(filePath: string): string | null {
+  const normalized = filePath.replace(/\\/g, '/');
+  if (/\/assets\/[^/]+[-.][a-z0-9_-]{6,}\.[^/]+$/i.test(normalized)) {
+    return 'public, max-age=31536000, immutable';
+  }
+  if (/(^|\/)(index\.html|manifest\.json|sw\.js)$/.test(normalized)) {
+    return 'no-cache, no-store, must-revalidate';
+  }
+  return null;
+}
+
 export function serveStatic(app: Express) {
   // When running from dist/index.js, __dirname is the dist directory
   // We need to serve files from dist/public
@@ -431,7 +442,13 @@ export function serveStatic(app: Express) {
   
   // Serve static files with proper MIME types
   app.use(express.static(distPath, {
+    // Vite filenames under /assets include a content hash, so they are safe to
+    // cache for a year. HTML, manifests, service workers, and legacy filenames
+    // remain revalidated so a publish can take effect without stale app shells.
+    maxAge: 0,
     setHeaders: (res, path) => {
+      const cacheControl = getStaticAssetCacheControl(path);
+      if (cacheControl) res.setHeader('Cache-Control', cacheControl);
       if (path.endsWith('.js')) {
         res.setHeader('Content-Type', 'application/javascript');
       } else if (path.endsWith('.json')) {

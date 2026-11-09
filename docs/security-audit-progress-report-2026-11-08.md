@@ -209,3 +209,8 @@ The current source is not yet published to production. Therefore dynamic social 
 Responsive QA initially exposed `schedule.agenda` returning “Schedule is temporarily unavailable.” A controlled reproduction identified two compatibility issues: Ology Live reconciliation bound the constant stale-hold limit as `LIMIT ?`, which this MySQL driver rejects with `ER_WRONG_ARGUMENTS`, and the schedule read path did not retry DB-pool initialization after schema bootstrap. The fix uses a literal bounded `LIMIT 50` (not user-controlled) and retries `getDb()` before declaring the pool unavailable.
 
 Verification passed: Ology Live checkout/reconciliation, Schedule service, and Workspace UI focused regressions; TypeScript; production build; and a fresh lazy-initialization agenda smoke for user 7, which returned an empty agenda successfully. No records, bookings, reservations, reminders, or payments were changed.
+
+
+### Static asset caching optimization
+
+Production static serving now gives Vite content-hashed assets a one-year immutable cache policy while keeping `index.html`, `manifest.json`, and `sw.js` no-store/revalidated. Unhashed and unrelated files are not long-cached, and API or user-specific responses remain outside this policy. Static cache-policy regressions passed 3/3, TypeScript passed, and the production build succeeded.

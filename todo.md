@@ -156,7 +156,7 @@
 - [ ] Check Core Web Vitals
 - [ ] Optimize images
 - [ ] Minify CSS/JS
-- [ ] Enable caching
+- [x] Enable safe static caching; production Vite assets with content-hashed filenames now receive `public, max-age=31536000, immutable`, while `index.html`, `manifest.json`, and `sw.js` remain no-store/revalidated. Unhashed and unrelated files are not long-cached. Static cache-policy regressions pass 3/3, TypeScript passes, and the production build succeeds; API and user-specific responses remain uncached.
 
 ---
 
