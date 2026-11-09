@@ -21,6 +21,7 @@ import { createOAuthState, verifyOAuthState } from '../services/oauthState';
 import { trustedCheckoutOrigin } from '../services/trustedOrigin';
 import { artistProfiles } from '../../drizzle/schema';
 import { TRPCError } from '@trpc/server';
+import { singleQueryString } from './routeInput';
 
 const router = Router();
 
@@ -85,9 +86,9 @@ router.get('/google/connect', async (req: Request, res: Response) => {
  * Handles the OAuth callback from Google, stores tokens.
  */
 router.get('/google/callback', async (req: Request, res: Response) => {
-  const code = req.query.code as string;
-  const stateParam = req.query.state as string;
-  const error = req.query.error as string;
+  const code = singleQueryString(req.query.code);
+  const stateParam = singleQueryString(req.query.state);
+  const error = singleQueryString(req.query.error, 256);
 
   const state = verifyOAuthState(stateParam);
   const userId = state?.userId;

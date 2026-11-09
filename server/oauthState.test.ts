@@ -43,6 +43,10 @@ describe('OAuth state security', () => {
     const calendar = readFileSync('server/routes/googleCalendarSync.ts', 'utf8');
     expect(google).toContain('verifyOAuthState(stateParam)');
     expect(spotify).toContain('verifyOAuthState(stateParam)');
+    expect(google).toContain('singleQueryString(req.query.code)');
+    expect(spotify).toContain('singleQueryString(req.query.code)');
+    expect(google).not.toContain('req.query.code as string');
+    expect(spotify).not.toContain('req.query.code as string');
     expect(calendar).toContain('verifyOAuthState(stateParam)');
     expect(google).toContain('oauth_error=PROVIDER_DENIED');
     expect(spotify).toContain('oauth_error=PROVIDER_DENIED');

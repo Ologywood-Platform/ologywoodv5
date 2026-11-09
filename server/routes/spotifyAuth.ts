@@ -9,6 +9,7 @@ import { FreeTrialService } from '../services/freeTrialService';
 import { getUserSubscription } from '../services/pricingTierService';
 import { persistAvatarToS3 } from '../utils/persistAvatar';
 import { createOAuthState, safeOAuthReturnPath, verifyOAuthState } from '../services/oauthState';
+import { singleQueryString } from './routeInput';
 
 const router = Router();
 
@@ -74,9 +75,9 @@ router.get('/spotify', (req: Request, res: Response) => {
  * Handles the OAuth callback from Spotify
  */
 router.get('/spotify/callback', async (req: Request, res: Response) => {
-  const code = req.query.code as string;
-  const stateParam = req.query.state as string;
-  const error = req.query.error as string;
+  const code = singleQueryString(req.query.code);
+  const stateParam = singleQueryString(req.query.state);
+  const error = singleQueryString(req.query.error, 256);
 
   const state = verifyOAuthState(stateParam);
   const origin = getOrigin(req);

@@ -5,3 +5,7 @@ export function positiveRouteId(value: unknown): number | null {
   const parsed = Number(text);
   return Number.isSafeInteger(parsed) ? parsed : null;
 }
+
+export function singleQueryString(value: unknown, maxLength = 4_096): string | null {
+  return typeof value === 'string' && value.length > 0 && value.length <= maxLength ? value : null;
+}

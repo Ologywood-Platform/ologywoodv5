@@ -23,6 +23,8 @@ describe('Google Calendar sync route security boundaries', () => {
   });
 
   it('keeps OAuth state/session binding and encrypted token storage', () => {
+    expect(source).toContain('singleQueryString(req.query.code)');
+    expect(source).not.toContain('req.query.code as string');
     expect(source).toContain('createOAuthState({ userId })');
     expect(source).toContain('verifyOAuthState(stateParam)');
     expect(source).toContain('if (callbackUser.id !== userId)');

@@ -5226,6 +5226,10 @@ Confirmed `/api/email` and `/api/release/checkout` are active surfaces. Email-te
 
 The active release checkout now rejects missing/non-object/array bodies and unknown fields before release lookup or Stripe work; only `releaseId` and `customAmountCents` are accepted. Focused release-checkout/Express regressions passed 12/12; TypeScript and production build passed with existing chunk-size warnings. No Checkout sessions, payments, emails, or records changed.
 
+### OAuth callback query contract — 2026-11-09
+
+Google, Spotify, and Google Calendar callbacks now accept only bounded scalar query strings for `code`, `state`, and provider `error` values; arrays, objects, empty strings, and oversized values are rejected before state verification or provider exchange. OAuth/route-input regressions passed 20/20; TypeScript and production build passed with existing chunk-size warnings. No OAuth exchanges, tokens, calendar rows, emails, or records changed.
+
 
 ### Production image loading correction — 2026-11-09
 
