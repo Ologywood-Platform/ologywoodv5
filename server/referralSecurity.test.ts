@@ -34,4 +34,12 @@ describe('referral security boundaries', () => {
     expect(emails).not.toContain('Hi ${referrerName}');
     expect(emails).not.toContain('<strong>${referredName}</strong>');
   });
+
+  it('returns a stable database error and redacts referral email failures', () => {
+    expect(router).toContain("Referral services are temporarily unavailable.");
+    expect(router).toContain("Failed to send signup email",);
+    expect(router).toContain("kind: error instanceof Error ? error.name : 'UnknownError'");
+    expect(router).not.toContain('console.error("[Referral] Failed to send signup email:", err)');
+    expect(router).not.toContain('console.error("[Referral] Failed to send credit email:", err)');
+  });
 });

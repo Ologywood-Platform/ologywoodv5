@@ -62,8 +62,8 @@ describe("Referral Router Email Integration", () => {
   });
 
   it("email sending is non-blocking (uses .catch)", () => {
-    expect(routerSource).toContain('.catch((err: unknown) => console.error("[Referral] Failed to send signup email:"');
-    expect(routerSource).toContain('.catch((err: unknown) => console.error("[Referral] Failed to send credit email:"');
+    expect(routerSource).toContain('.catch((error: unknown) => console.error("[Referral] Failed to send signup email"');
+    expect(routerSource).toContain('.catch((error: unknown) => console.error("[Referral] Failed to send credit email"');
   });
 
   it("looks up referrer info for email", () => {

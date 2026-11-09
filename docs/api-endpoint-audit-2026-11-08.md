@@ -325,6 +325,9 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
 77. **Profile release-order boundary — resolved in this increment.**
    - Read and write input objects now reject unknown fields, retain strict kinds/revisions/positive safe IDs and bounded arrays, and the service derives the artist profile scope exclusively from the authenticated account. Forged profile/user fields are rejected before the owner service runs.
    - Release-order and release-commerce regressions pass 56/56, with TypeScript and production build passing. No order rows, releases, profiles, or records were changed during validation.
+78. **Referral attribution and notification boundary — resolved in this increment.**
+   - Referral code inputs remain strict and grammar-bounded; public validation remains rate-limited; referred email addresses remain masked; database-unavailable failures return a stable client-safe error; and asynchronous referral email failures log only error kind rather than raw exceptions.
+   - Referral/security/email-branding regressions pass 71/71, with TypeScript and production build passing. No referral codes, credits, subscriptions, emails, payments, or records were changed during validation.
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.

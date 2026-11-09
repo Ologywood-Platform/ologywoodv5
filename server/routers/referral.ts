@@ -6,7 +6,7 @@ import { sendReferralSignupEmail, sendReferralCreditEarnedEmail } from "../refer
 
 async function db() {
   const database = await getDb();
-  if (!database) throw new Error("Database not available");
+  if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Referral services are temporarily unavailable.' });
   return database;
 }
 import { referrals, referralCredits, users } from "../../drizzle/schema";
@@ -345,7 +345,7 @@ export const referralRouter = router({
           referrerEmail,
           referrerName,
           referredName,
-        }).catch((err: unknown) => console.error("[Referral] Failed to send signup email:", err));
+        }).catch((error: unknown) => console.error("[Referral] Failed to send signup email", { kind: error instanceof Error ? error.name : 'UnknownError' }));
 
         // Email 2: Credit earned notification
         sendReferralCreditEarnedEmail({
@@ -353,7 +353,7 @@ export const referralRouter = router({
           referrerName,
           referredName,
           creditAmount: REFERRER_CREDIT_AMOUNT,
-        }).catch((err: unknown) => console.error("[Referral] Failed to send credit email:", err));
+        }).catch((error: unknown) => console.error("[Referral] Failed to send credit email", { kind: error instanceof Error ? error.name : 'UnknownError' }));
       }
 
       return {
