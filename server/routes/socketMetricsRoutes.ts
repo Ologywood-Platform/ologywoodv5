@@ -56,7 +56,7 @@ router.post('/metrics/update', (req: Request, res: Response) => {
       metrics: socketMetrics,
     });
   } catch (error) {
-    console.error('[SocketMetricsRoutes] Error updating metrics:', error);
+    console.error('[SocketMetricsRoutes] Error updating metrics', { kind: error instanceof Error ? error.name : 'UnknownError' });
     res.status(500).json({
       success: false,
       error: 'Unable to update socket metrics',
@@ -82,7 +82,7 @@ router.post('/metrics/connection', (req: Request, res: Response) => {
       metrics: socketMetrics,
     });
   } catch (error) {
-    console.error('[SocketMetricsRoutes] Error recording connection:', error);
+    console.error('[SocketMetricsRoutes] Error recording connection', { kind: error instanceof Error ? error.name : 'UnknownError' });
     res.status(500).json({
       success: false,
       error: 'Unable to record socket connection',
@@ -106,7 +106,7 @@ router.post('/metrics/disconnection', (req: Request, res: Response) => {
       metrics: socketMetrics,
     });
   } catch (error) {
-    console.error('[SocketMetricsRoutes] Error recording disconnection:', error);
+    console.error('[SocketMetricsRoutes] Error recording disconnection', { kind: error instanceof Error ? error.name : 'UnknownError' });
     res.status(500).json({
       success: false,
       error: 'Unable to record socket disconnection',
@@ -140,7 +140,7 @@ router.post('/metrics/message', (req: Request, res: Response) => {
       metrics: socketMetrics,
     });
   } catch (error) {
-    console.error('[SocketMetricsRoutes] Error recording message:', error);
+    console.error('[SocketMetricsRoutes] Error recording message', { kind: error instanceof Error ? error.name : 'UnknownError' });
     res.status(500).json({
       success: false,
       error: 'Unable to record socket message',
@@ -161,7 +161,7 @@ router.post('/metrics/notification', (req: Request, res: Response) => {
       metrics: socketMetrics,
     });
   } catch (error) {
-    console.error('[SocketMetricsRoutes] Error recording notification:', error);
+    console.error('[SocketMetricsRoutes] Error recording notification', { kind: error instanceof Error ? error.name : 'UnknownError' });
     res.status(500).json({
       success: false,
       error: 'Unable to record socket notification',
@@ -193,7 +193,7 @@ router.post('/metrics/reset', (req: Request, res: Response) => {
       metrics: socketMetrics,
     });
   } catch (error) {
-    console.error('[SocketMetricsRoutes] Error resetting metrics:', error);
+    console.error('[SocketMetricsRoutes] Error resetting metrics', { kind: error instanceof Error ? error.name : 'UnknownError' });
     res.status(500).json({
       success: false,
       error: 'Unable to reset socket metrics',

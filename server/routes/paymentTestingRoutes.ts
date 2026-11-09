@@ -31,7 +31,7 @@ router.get('/success/:bookingId', async (req: Request, res: Response) => {
       result,
     });
   } catch (error) {
-    console.error('[PaymentTestingRoutes] Error testing payment success:', error);
+    console.error('[PaymentTestingRoutes] Error testing payment success', { kind: error instanceof Error ? error.name : 'UnknownError' });
     res.status(500).json({
       success: false,
       error: 'Unable to test payment success flow',
@@ -61,7 +61,7 @@ router.get('/failure/:bookingId', async (req: Request, res: Response) => {
       result,
     });
   } catch (error) {
-    console.error('[PaymentTestingRoutes] Error testing payment failure:', error);
+    console.error('[PaymentTestingRoutes] Error testing payment failure', { kind: error instanceof Error ? error.name : 'UnknownError' });
     res.status(500).json({
       success: false,
       error: 'Unable to test payment failure flow',
@@ -91,7 +91,7 @@ router.get('/retry/:bookingId', async (req: Request, res: Response) => {
       result,
     });
   } catch (error) {
-    console.error('[PaymentTestingRoutes] Error testing payment retry:', error);
+    console.error('[PaymentTestingRoutes] Error testing payment retry', { kind: error instanceof Error ? error.name : 'UnknownError' });
     res.status(500).json({
       success: false,
       error: 'Unable to test payment retry flow',
@@ -126,7 +126,7 @@ router.get('/all/:bookingId', async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    console.error('[PaymentTestingRoutes] Error running all payment tests:', error);
+    console.error('[PaymentTestingRoutes] Error running all payment tests', { kind: error instanceof Error ? error.name : 'UnknownError' });
     res.status(500).json({
       success: false,
       error: 'Unable to run payment tests',
@@ -173,7 +173,7 @@ router.post('/verify-urls', async (req: Request, res: Response) => {
       verification,
     });
   } catch (error) {
-    console.error('[PaymentTestingRoutes] Error verifying URLs:', error);
+    console.error('[PaymentTestingRoutes] Error verifying URLs', { kind: error instanceof Error ? error.name : 'UnknownError' });
     res.status(500).json({
       success: false,
       error: 'Unable to verify payment redirect URLs',

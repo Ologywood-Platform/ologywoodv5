@@ -1,5 +1,5 @@
 
 
-### Final Express coercion/log scan
+### Legacy route log cleanup
 
-The active Express scan found no remaining direct query/body/param casts in mounted route handlers. Calendar and direct-video exceptions were corrected in the latest pass. Remaining `String(req.header(...))` uses are for Node-normalized header values, and raw-looking catches in session reminders, OAuth, uploads, OG, sitemap, events, and checkout routes emit only classified error names. Two legacy files (`socketMetricsRoutes.ts` and `paymentTestingRoutes.ts`) still contain old raw-log patterns but are not mounted by the active server bootstrap; they were not changed as unreachable code.
+Although `socketMetricsRoutes.ts` and `paymentTestingRoutes.ts` are not mounted by the active server bootstrap, their remaining exception logs were normalized to classified error kinds so future reactivation cannot leak raw exception objects. Route-safety and Express-boundary regressions pass 6/6, TypeScript passes, and production build passes with existing chunk-size warnings. No metrics, payment tests, provider calls, or records changed.

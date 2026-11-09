@@ -23,6 +23,10 @@ describe('API route error safety', () => {
     expect(patchedRoutes).not.toMatch(/\b(error|err):\s*error\s+instanceof\s+Error\s*\?/i);
     expect(patchedRoutes).not.toContain("error: error.message");
     expect(patchedRoutes).not.toContain("error: err.message");
+    expect(readRoute('paymentTestingRoutes.ts')).toContain("kind: error instanceof Error ? error.name : 'UnknownError'");
+    expect(readRoute('socketMetricsRoutes.ts')).toContain("kind: error instanceof Error ? error.name : 'UnknownError'");
+    expect(readRoute('paymentTestingRoutes.ts')).not.toContain("console.error('[PaymentTestingRoutes] Error testing payment success:', error)");
+    expect(readRoute('socketMetricsRoutes.ts')).not.toContain("console.error('[SocketMetricsRoutes] Error updating metrics:', error)");
   });
 
   it('keeps validation-specific upload messages limited to the typed validation error', () => {
