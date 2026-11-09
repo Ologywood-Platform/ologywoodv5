@@ -9,6 +9,7 @@ import sgMail from "@sendgrid/mail";
 import { getEmailLogoImage } from "../../shared/emailBranding";
 import { isPlatformOwner } from "../services/platformOwnerAccess";
 import { getAdminProfileNavigation } from "../services/adminProfileNavigation";
+import { escapeFanEmailHtml } from "../services/fanEmailFormatting";
 
 // Initialize SendGrid
 if (process.env.SENDGRID_API_KEY) {
@@ -53,6 +54,10 @@ async function sendRoleChangeEmail(params: {
   };
 
   const description = roleDescriptions[params.newRole] || 'Your platform access has been updated.';
+  const safeRecipientName = escapeFanEmailHtml(params.recipientName || 'there');
+  const safeChangedByName = escapeFanEmailHtml(params.changedByName);
+  const safePreviousRole = escapeFanEmailHtml(prevRoleLabel);
+  const safeNewRole = escapeFanEmailHtml(newRoleLabel);
 
   const htmlContent = `
     <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff;">
@@ -63,23 +68,23 @@ async function sendRoleChangeEmail(params: {
       <div style="padding: 30px 20px;">
         <h2 style="color: #1f2937; margin: 0 0 20px 0; font-size: 22px;">Your Role Has Been Updated</h2>
         <p style="color: #4b5563; font-size: 15px; line-height: 1.6; margin: 0 0 20px 0;">
-          Hi ${params.recipientName || 'there'},
+          Hi ${safeRecipientName},
         </p>
         <p style="color: #4b5563; font-size: 15px; line-height: 1.6; margin: 0 0 20px 0;">
-          Your role on Ologywood has been changed by ${params.changedByName}.
+          Your role on Ologywood has been changed by ${safeChangedByName}.
         </p>
         <div style="background: #f3f4f6; border-radius: 8px; padding: 20px; margin: 0 0 20px 0;">
           <table style="width: 100%; border-collapse: collapse;">
             <tr>
               <td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Previous Role:</td>
               <td style="padding: 8px 0; color: #1f2937; font-size: 14px; font-weight: 600; text-align: right;">
-                <span style="background: #e5e7eb; padding: 4px 12px; border-radius: 12px;">${prevRoleLabel}</span>
+                <span style="background: #e5e7eb; padding: 4px 12px; border-radius: 12px;">${safePreviousRole}</span>
               </td>
             </tr>
             <tr>
               <td style="padding: 8px 0; color: #6b7280; font-size: 14px;">New Role:</td>
               <td style="padding: 8px 0; color: #1f2937; font-size: 14px; font-weight: 600; text-align: right;">
-                <span style="background: #ede9fe; color: #6D28D9; padding: 4px 12px; border-radius: 12px;">${newRoleLabel}</span>
+                <span style="background: #ede9fe; color: #6D28D9; padding: 4px 12px; border-radius: 12px;">${safeNewRole}</span>
               </td>
             </tr>
           </table>
@@ -113,7 +118,7 @@ async function sendRoleChangeEmail(params: {
       subject: `Your Ologywood Role Has Been Updated to ${newRoleLabel}`,
       html: htmlContent,
     });
-    console.log(`[Admin] Role change email sent to ${params.recipientEmail}: ${prevRoleLabel} → ${newRoleLabel}`);
+    console.log(`[Admin] Role change email sent: ${prevRoleLabel} → ${newRoleLabel}`);
   } catch (error) {
     console.error('[Admin] Failed to send role change email:', error);
   }
@@ -135,9 +140,12 @@ const adminOnly = protectedProcedure.use(async (opts) => {
   return opts.next({ ctx: { ...opts.ctx, isOwner } });
 });
 
-const adminPositiveId = z.number().int().positive();
-const adminLimit = z.number().int().min(1).max(500).default(50);
-const adminOffset = z.number().int().min(0).max(1_000_000).default(0);
+const adminPositiveId = z.number().int().safe().positive();
+const adminLimit = z.number().int().safe().min(1).max(500).default(50);
+const adminOffset = z.number().int().safe().min(0).max(1_000_000).default(0);
+const adminSearch = z.string().trim().max(200).optional();
+const adminReason = z.string().trim().min(1).max(2_000);
+const adminNotes = z.string().trim().max(2_000).optional();
 
 export const adminRouter = router({
   // ============ USER MANAGEMENT ============
@@ -148,11 +156,11 @@ export const adminRouter = router({
   getUsers: adminOnly
     .input(
       z.object({
-        search: z.string().optional(),
+        search: adminSearch,
         role: z.enum(["user", "admin", "artist", "venue", "blogger"]).optional(),
         limit: adminLimit,
         offset: adminOffset,
-      })
+      }).strict()
     )
     .query(async ({ input }) => {
       const db = await getDb();
@@ -198,7 +206,7 @@ export const adminRouter = router({
    * Get single user details with profile
    */
   getUser: adminOnly
-    .input(z.object({ userId: adminPositiveId }))
+    .input(z.object({ userId: adminPositiveId }).strict())
     .query(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new Error("Database not available");
@@ -263,7 +271,7 @@ export const adminRouter = router({
       z.object({
         userId: adminPositiveId,
         verified: z.boolean(),
-      })
+      }).strict()
     )
     .mutation(async ({ input }) => {
       const db = await getDb();
@@ -293,7 +301,7 @@ export const adminRouter = router({
    * Suspend or unsuspend a user
    */
   adminResendVerification: adminOnly
-    .input(z.object({ userId: adminPositiveId }))
+    .input(z.object({ userId: adminPositiveId }).strict())
     .mutation(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new Error("Database not available");
@@ -336,7 +344,7 @@ export const adminRouter = router({
     }),
 
   adminManualVerify: adminOnly
-    .input(z.object({ userId: adminPositiveId }))
+    .input(z.object({ userId: adminPositiveId }).strict())
     .mutation(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new Error("Database not available");
@@ -358,8 +366,8 @@ export const adminRouter = router({
       z.object({
         userId: adminPositiveId,
         suspended: z.boolean(),
-        reason: z.string().optional(),
-      })
+        reason: adminNotes,
+      }).strict()
     )
     .mutation(async ({ input }) => {
       const db = await getDb();
@@ -379,7 +387,7 @@ return { success: true, userId: input.userId };
    * @deprecated Use changeRole instead
    */
   promoteToAdmin: adminOnly
-    .input(z.object({ userId: adminPositiveId }))
+    .input(z.object({ userId: adminPositiveId }).strict())
     .mutation(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) throw new Error("Database not available");
@@ -417,7 +425,7 @@ return { success: true, userId: input.userId };
     .input(z.object({
       userId: adminPositiveId,
       restoreRole: z.enum(['artist', 'venue', 'user']).default('user'),
-    }))
+    }).strict())
     .mutation(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) throw new Error("Database not available");
@@ -476,7 +484,7 @@ return { success: true, userId: input.userId };
     .input(z.object({
       userId: adminPositiveId,
       newRole: z.enum(['admin', 'artist', 'venue', 'user', 'blogger']),
-    }))
+    }).strict())
     .mutation(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) throw new Error("Database not available");
@@ -551,10 +559,10 @@ return { success: true, userId: input.userId };
    */
   getAuditLog: adminOnly
     .input(z.object({
-      search: z.string().optional(),
-      limit: z.number().min(1).max(100).default(50),
-      offset: z.number().min(0).default(0),
-    }).optional())
+      search: adminSearch,
+      limit: z.number().int().safe().min(1).max(100).default(50),
+      offset: z.number().int().safe().min(0).max(1_000_000).default(0),
+    }).strict().optional())
     .query(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new Error("Database not available");
@@ -654,7 +662,7 @@ return { success: true, userId: input.userId };
    * Get booking details
    */
   getBookingDetails: adminOnly
-    .input(z.object({ bookingId: z.number() }))
+    .input(z.object({ bookingId: adminPositiveId }).strict())
     .query(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new Error("Database not available");
@@ -673,11 +681,11 @@ return { success: true, userId: input.userId };
   resolveDispute: adminOnly
     .input(
       z.object({
-        bookingId: z.number(),
+        bookingId: adminPositiveId,
         resolution: z.enum(["full_refund", "partial_refund", "no_refund"]),
-        reason: z.string(),
-        refundAmount: z.number().optional(),
-      })
+        reason: adminReason,
+        refundAmount: z.number().finite().nonnegative().max(1_000_000).optional(),
+      }).strict()
     )
     .mutation(async ({ input }) => {
       const db = await getDb();
@@ -738,7 +746,7 @@ return { success: true, bookingId: input.bookingId };
         status: z.enum(["pending", "completed", "failed"]).optional(),
         limit: adminLimit,
         offset: adminOffset,
-      })
+      }).strict()
     )
     .query(async ({ input }) => {
       const db = await getDb();
@@ -774,10 +782,10 @@ return { success: true, bookingId: input.bookingId };
   processPayout: adminOnly
     .input(
       z.object({
-        payoutId: z.number(),
+        payoutId: adminPositiveId,
         action: z.enum(["approve", "reject"]),
-        notes: z.string().optional(),
-      })
+        notes: adminNotes,
+      }).strict()
     )
     .mutation(async ({ input }) => {
       const db = await getDb();
@@ -877,7 +885,9 @@ return { success: true, payoutId: input.payoutId };
    * Send a reminder email to users with incomplete profiles
    */
   sendProfileReminder: adminOnly
-    .input(z.object({ userIds: z.array(z.number()).optional() }))
+    .input(z.object({
+      userIds: z.array(adminPositiveId).max(500).refine(ids => new Set(ids).size === ids.length, 'Duplicate user IDs are not allowed').optional(),
+    }).strict())
     .mutation(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new Error("Database not available");
@@ -895,8 +905,10 @@ return { success: true, payoutId: input.payoutId };
       
       // If specific userIds provided, filter to those
       if (input.userIds && input.userIds.length > 0) {
-        targetUsers = targetUsers.filter(u => input.userIds!.includes(u.id));
+      targetUsers = targetUsers.filter(u => input.userIds!.includes(u.id));
       }
+
+      targetUsers = targetUsers.slice(0, 500);
       
       let sentCount = 0;
       if (process.env.SENDGRID_API_KEY) {
@@ -910,7 +922,7 @@ return { success: true, payoutId: input.payoutId };
               html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                   <h2 style="color: #7c3aed;">Complete Your Profile on OlogyWood</h2>
-                  <p>Hi ${user.name || 'there'},</p>
+                  <p>Hi ${escapeFanEmailHtml(user.name || 'there')},</p>
                   <p>We noticed you signed up for OlogyWood but haven't finished setting up your ${user.role === 'venue' ? 'venue' : 'artist'} profile yet.</p>
                   <p>Complete your profile to:</p>
                   <ul>
@@ -926,7 +938,7 @@ return { success: true, payoutId: input.payoutId };
             });
             sentCount++;
           } catch (e) {
-            console.error(`Failed to send reminder to ${user.email}:`, e);
+            console.error('[Admin] Profile reminder delivery failed', { targetUserId: user.id });
           }
         }
       }
@@ -1005,8 +1017,8 @@ return { success: true, payoutId: input.payoutId };
   getReleases: adminOnly
     .input(z.object({
       status: z.enum(["draft", "published", "archived", "taken_down"]).optional(),
-      limit: z.number().min(1).max(100).default(50),
-    }).optional())
+      limit: z.number().int().safe().min(1).max(100).default(50),
+    }).strict().optional())
     .query(async ({ input }) => {
       const db = await getDb();
       const status = input?.status;
@@ -1048,9 +1060,9 @@ return { success: true, payoutId: input.payoutId };
    */
   takedownRelease: adminOnly
     .input(z.object({
-      releaseId: z.number(),
-      reason: z.string().min(10, "Reason must be at least 10 characters"),
-    }))
+      releaseId: adminPositiveId,
+      reason: z.string().trim().min(10, "Reason must be at least 10 characters").max(2_000),
+    }).strict())
     .mutation(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new Error("Database not available");
@@ -1107,8 +1119,8 @@ return { success: true, payoutId: input.payoutId };
    */
   restoreRelease: adminOnly
     .input(z.object({
-      releaseId: z.number(),
-    }))
+      releaseId: adminPositiveId,
+    }).strict())
     .mutation(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new Error("Database not available");
@@ -1129,13 +1141,13 @@ return { success: true, payoutId: input.payoutId };
    */
   logActivity: adminOnly
     .input(z.object({
-      action: z.string(),
+      action: z.string().trim().min(1).max(200),
       category: z.enum(["users", "bookings", "payouts", "blog", "disputes", "releases", "settings"]),
-      targetType: z.string().optional(),
-      targetId: z.string().optional(),
-      targetLabel: z.string().optional(),
-      details: z.string().optional(),
-    }))
+      targetType: z.string().trim().max(100).optional(),
+      targetId: z.string().trim().max(200).optional(),
+      targetLabel: z.string().trim().max(300).optional(),
+      details: z.string().trim().max(4_000).optional(),
+    }).strict())
     .mutation(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) throw new Error("Database not available");
@@ -1160,11 +1172,11 @@ return { success: true, payoutId: input.payoutId };
    */
   getActivityLog: adminOnly
     .input(z.object({
-      page: z.number().default(1),
+      page: z.number().int().safe().min(1).max(100_000).default(1),
       limit: adminLimit,
       category: z.enum(["all", "users", "bookings", "payouts", "blog", "disputes", "releases", "settings"]).default("all"),
-      search: z.string().default(""),
-    }))
+      search: z.string().trim().max(200).default(""),
+    }).strict())
     .query(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new Error("Database not available");
@@ -1250,7 +1262,7 @@ return { success: true, payoutId: input.payoutId };
    * Dismiss flags on a video (restore to approved)
    */
   dismissVideoFlags: adminOnly
-    .input(z.object({ artistProfileId: z.number() }))
+    .input(z.object({ artistProfileId: adminPositiveId }).strict())
     .mutation(async ({ input, ctx }) => {
       const dbModule = await import('../db');
       await dbModule.dismissVideoFlags(input.artistProfileId, ctx.user.id);
@@ -1277,7 +1289,7 @@ return { success: true, payoutId: input.payoutId };
    * Take down a flagged video
    */
   takeDownVideo: adminOnly
-    .input(z.object({ artistProfileId: z.number() }))
+    .input(z.object({ artistProfileId: adminPositiveId }).strict())
     .mutation(async ({ input, ctx }) => {
       const dbModule = await import('../db');
       await dbModule.takeDownVideo(input.artistProfileId, ctx.user.id);
@@ -1321,9 +1333,9 @@ return { success: true, payoutId: input.payoutId };
    */
   setArtistTier: adminOnly
     .input(z.object({
-      artistProfileId: z.number(),
+      artistProfileId: adminPositiveId,
       tier: z.enum(['free', 'pro']),
-    }))
+    }).strict())
     .mutation(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) throw new Error('Database not available');
@@ -1353,7 +1365,7 @@ return { success: true, payoutId: input.payoutId };
   syncSubscriptionFromStripe: adminOnly
     .input(z.object({
       userId: adminPositiveId,
-    }))
+    }).strict())
     .mutation(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) throw new Error('Database not available');
