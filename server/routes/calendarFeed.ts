@@ -66,7 +66,7 @@ function escapeICalText(text: string): string {
     .replace(/\\/g, '\\\\')
     .replace(/;/g, '\\;')
     .replace(/,/g, '\\,')
-    .replace(/\n/g, '\\n');
+    .replace(/\r\n?|\n/g, '\\n');
 }
 
 /**
@@ -194,7 +194,7 @@ router.get('/:artistId/bookings.ics', async (req: Request, res: Response) => {
         `DTSTAMP:${dtstamp}`,
         ...dateLines,
         `SUMMARY:${escapeICalText(summary)}`,
-        `DESCRIPTION:${description}`,
+        `DESCRIPTION:${escapeICalText(description)}`,
         `LOCATION:${escapeICalText(location)}`,
         `LAST-MODIFIED:${lastModified}`,
         `STATUS:${booking.status === 'confirmed' ? 'CONFIRMED' : 'TENTATIVE'}`,
@@ -212,7 +212,7 @@ router.get('/:artistId/bookings.ics', async (req: Request, res: Response) => {
     
     return res.send(ical.join('\r\n'));
   } catch (error) {
-    console.error('[Calendar Feed] Error generating iCal feed:', error);
+    console.error('[Calendar Feed] Error generating iCal feed', { kind: error instanceof Error ? error.name : 'UnknownError' });
     return res.status(500).send('Internal server error');
   }
 });
@@ -360,7 +360,7 @@ router.get('/venue/:venueId/events.ics', async (req: Request, res: Response) => 
         `DTSTAMP:${dtstamp}`,
         ...dateLines,
         `SUMMARY:${escapeICalText(summary)}`,
-        `DESCRIPTION:${description}`,
+        `DESCRIPTION:${escapeICalText(description)}`,
         `LAST-MODIFIED:${lastModified}`,
         `STATUS:${booking.status === 'confirmed' ? 'CONFIRMED' : 'TENTATIVE'}`,
         'TRANSP:OPAQUE',
@@ -377,7 +377,7 @@ router.get('/venue/:venueId/events.ics', async (req: Request, res: Response) => 
     
     return res.send(ical.join('\r\n'));
   } catch (error) {
-    console.error('[Calendar Feed] Error generating venue iCal feed:', error);
+    console.error('[Calendar Feed] Error generating venue iCal feed', { kind: error instanceof Error ? error.name : 'UnknownError' });
     return res.status(500).send('Internal server error');
   }
 });

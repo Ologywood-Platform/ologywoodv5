@@ -4,6 +4,17 @@ import { mediaUploadService, MediaUploadError, type AuthenticatedMediaUser } fro
 
 const router = Router();
 const RAW_LIMIT = 1024 * 1024 + 1;
+const UPLOAD_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function uploadId(value: unknown): string | null {
+  return typeof value === 'string' && UPLOAD_ID.test(value) ? value : null;
+}
+
+function chunkIndex(value: unknown): number | null {
+  if (typeof value !== 'string' || !/^(?:0|[1-9][0-9]*)$/.test(value)) return null;
+  const parsed = Number(value);
+  return Number.isSafeInteger(parsed) && parsed >= 0 ? parsed : null;
+}
 
 function safeError(res: Response, error: unknown): Response {
   if (error instanceof MediaUploadError) return res.status(error.status).json({ error: error.message, code: error.code });
@@ -28,8 +39,10 @@ async function authenticatedUser(req: Request, res: Response): Promise<Authentic
 function startBody(body: unknown): { requestId: string; purpose: string; releaseId?: number; fileName: string; mimeType: string; fileSize: number } | undefined {
   if (!body || typeof body !== 'object' || Array.isArray(body)) return undefined;
   const value = body as Record<string, unknown>;
+  const allowed = new Set(['requestId', 'purpose', 'releaseId', 'fileName', 'mimeType', 'fileSize']);
+  if (Object.keys(value).some(key => !allowed.has(key))) return undefined;
   if (typeof value.requestId !== 'string' || typeof value.purpose !== 'string' || typeof value.fileName !== 'string' || typeof value.mimeType !== 'string' || !Number.isSafeInteger(value.fileSize)) return undefined;
-  if (value.releaseId !== undefined && !Number.isSafeInteger(value.releaseId)) return undefined;
+  if (value.releaseId !== undefined && (!Number.isSafeInteger(value.releaseId) || Number(value.releaseId) < 1)) return undefined;
   return { requestId: value.requestId, purpose: value.purpose, fileName: value.fileName, mimeType: value.mimeType, fileSize: value.fileSize as number, ...(value.releaseId === undefined ? {} : { releaseId: value.releaseId as number }) };
 }
 
@@ -46,9 +59,10 @@ router.post('/start', async (req: Request, res: Response) => {
 router.post('/:id/chunks/:index', async (req: Request, res: Response) => {
   const user = await authenticatedUser(req, res);
   if (!user) return;
-  const id = req.params.id;
-  const index = Number(req.params.index);
-  if (!Number.isSafeInteger(index) || index < 0) return res.status(400).json({ error: 'Invalid chunk index.', code: 'INVALID_UPLOAD' });
+  const id = uploadId(req.params.id);
+  const index = chunkIndex(req.params.index);
+  if (!id) return res.status(400).json({ error: 'Invalid upload ID.', code: 'INVALID_UPLOAD' });
+  if (index === null) return res.status(400).json({ error: 'Invalid chunk index.', code: 'INVALID_UPLOAD' });
   try {
     const contentType = String(req.headers['content-type'] ?? '').toLowerCase().split(';', 1)[0];
     if (contentType !== 'application/octet-stream') return res.status(400).json({ error: 'A binary chunk is required.', code: 'INVALID_UPLOAD' });
@@ -70,7 +84,9 @@ router.post('/:id/chunks/:index', async (req: Request, res: Response) => {
 router.post('/:id/complete', async (req: Request, res: Response) => {
   const user = await authenticatedUser(req, res);
   if (!user) return;
-  try { return res.status(202).json(await mediaUploadService.complete(user, req.params.id)); }
+  const id = uploadId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid upload ID.', code: 'INVALID_UPLOAD' });
+  try { return res.status(202).json(await mediaUploadService.complete(user, id)); }
   catch (error) { return safeError(res, error); }
 });
 
@@ -78,7 +94,9 @@ router.post('/:id/complete', async (req: Request, res: Response) => {
 router.get('/:id/status', async (req: Request, res: Response) => {
   const user = await authenticatedUser(req, res);
   if (!user) return;
-  try { return res.status(200).json(await mediaUploadService.status(user, req.params.id)); }
+  const id = uploadId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid upload ID.', code: 'INVALID_UPLOAD' });
+  try { return res.status(200).json(await mediaUploadService.status(user, id)); }
   catch (error) { return safeError(res, error); }
 });
 
@@ -86,7 +104,9 @@ router.get('/:id/status', async (req: Request, res: Response) => {
 router.post('/:id/process', async (req: Request, res: Response) => {
   const user = await authenticatedUser(req, res);
   if (!user) return;
-  try { return res.status(200).json(await mediaUploadService.process(user, req.params.id)); }
+  const id = uploadId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid upload ID.', code: 'INVALID_UPLOAD' });
+  try { return res.status(200).json(await mediaUploadService.process(user, id)); }
   catch (error) { return safeError(res, error); }
 });
 

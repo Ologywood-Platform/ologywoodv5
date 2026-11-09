@@ -280,6 +280,9 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
 62. **Google Calendar OAuth/provider logging — resolved in this increment.**
    - OAuth callback redirect URIs now use the approved application-origin helper instead of trusting forwarded host values. Token/events provider response bodies are discarded without logging, Google account email is omitted from connection logs, and callback/refresh/sync failures log only error kind; signed state, callback-session binding, and encrypted token storage remain active.
    - Calendar/OAuth/route-safety/critical-gap regressions pass 23/23, with TypeScript, production build, and diff validation passing. No OAuth flows, calendar integrations, tokens, availability rows, emails, or records were changed during validation.
+63. **Adjacent Express delivery boundaries — resolved in this increment.**
+   - Artist/venue iCalendar `DESCRIPTION` values now escape backslashes, commas, semicolons, CRLF, and LF before serialization. Chunked media-upload UUIDs and chunk indexes reject coercive formats, start bodies reject unknown keys, and invoice/release upload/download/preview failures log only error kind; release-download success logs omit user/release/purchase identifiers.
+   - Express-boundary/media/schema/release/schedule/route-safety regressions pass 43/43, with TypeScript, production build, and diff validation passing. No calendar feeds, uploads, downloads, invoices, media, emails, or records were changed during validation.
 
 ## Audit limitations
 

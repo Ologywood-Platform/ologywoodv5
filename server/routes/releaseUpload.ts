@@ -137,7 +137,7 @@ router.post("/audio", async (req: Request, res: Response) => {
       fileFormat: extensionByMimeType[body.mimeType].toUpperCase(),
     });
   } catch (error) {
-    console.error("[Release Upload] Audio upload error:", error);
+    console.error("[Release Upload] Audio upload error", { kind: error instanceof Error ? error.name : "UnknownError" });
     return sendError(res, 500, "Failed to upload audio file");
   }
 });
@@ -166,7 +166,7 @@ router.post("/cover", async (req: Request, res: Response) => {
       fileFormat: extensionByMimeType[body.mimeType].toUpperCase(),
     });
   } catch (error) {
-    console.error("[Release Upload] Cover upload error:", error);
+    console.error("[Release Upload] Cover upload error", { kind: error instanceof Error ? error.name : "UnknownError" });
     return sendError(res, 500, "Failed to upload cover art");
   }
 });

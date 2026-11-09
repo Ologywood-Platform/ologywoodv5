@@ -134,7 +134,7 @@ router.get('/:bookingId/download', async (req: Request, res: Response) => {
     res.send(pdfBuffer);
 
   } catch (error) {
-    console.error('[Invoice Download] Error:', error);
+    console.error('[Invoice Download] Error', { kind: error instanceof Error ? error.name : 'UnknownError' });
     res.status(500).json({ error: 'Failed to generate invoice PDF' });
   }
 });

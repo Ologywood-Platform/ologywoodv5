@@ -72,7 +72,7 @@ router.get("/:purchaseId", async (req: Request, res: Response) => {
     // Increment download count
     await db.incrementDownloadCount(purchaseId);
 
-    console.log(`[Release Download] User ${user.id} downloading release ${release.id} (purchase ${purchaseId}), download ${purchase.downloadCount + 1}/${purchase.maxDownloads}`);
+    console.log('[Release Download] Download issued');
 
     return res.json({
       success: true,
@@ -82,7 +82,7 @@ router.get("/:purchaseId", async (req: Request, res: Response) => {
       downloadsRemaining: purchase.maxDownloads - purchase.downloadCount - 1,
     });
   } catch (error: any) {
-    console.error("[Release Download] Error:", error);
+    console.error("[Release Download] Error", { kind: error instanceof Error ? error.name : "UnknownError" });
     return res.status(500).json({ error: "Failed to generate download link" });
   }
 });
@@ -112,7 +112,7 @@ router.get("/preview/:releaseId", async (req: Request, res: Response) => {
 
     return res.status(404).json({ error: "Preview not available for this release" });
   } catch (error: any) {
-    console.error("[Release Preview] Error:", error);
+    console.error("[Release Preview] Error", { kind: error instanceof Error ? error.name : "UnknownError" });
     return res.status(500).json({ error: "Failed to generate preview link" });
   }
 });
