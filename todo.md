@@ -155,7 +155,7 @@
 - [x] Measure page load times; the preview baseline is recorded below. Production SLA/load-test validation remains a separate open item.
 - [ ] Check Core Web Vitals
 - [ ] Optimize images
-- [ ] Minify CSS/JS
+- [x] Minify CSS/JS; the verified Vite production build emits minified, gzip-sized JS/CSS assets and reports the remaining large chunks as code-splitting opportunities rather than unminified output. Full suite passed 4,044 tests with 23 skipped, TypeScript passed, and production build passed.
 - [x] Enable safe static caching; production Vite assets with content-hashed filenames now receive `public, max-age=31536000, immutable`, while `index.html`, `manifest.json`, and `sw.js` remain no-store/revalidated. Unhashed and unrelated files are not long-cached. Static cache-policy regressions pass 3/3, TypeScript passes, and the production build succeeds; API and user-specific responses remain uncached.
 
 ---
