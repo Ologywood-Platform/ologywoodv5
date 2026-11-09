@@ -121,9 +121,9 @@
 
 ### Payments (Stripe)
 - [x] Test Stripe integration in test mode; corrected test/live signing configuration was verified against the existing test destination, and Stripe Workbench recorded the reused sandbox Checkout event as HTTP 200 Delivered with zero pending webhooks. No new customer, charge, refund, or application fixture was created.
-- [ ] Verify payment processing
+- [x] Verify payment processing; the approved live Adonis Silent Night purchase completed at $2.00 and produced a purchase-confirmation email and a downloadable My Purchases record. Two separate $2.00 charges were intentionally created during the test and remain pending refund action.
 - [ ] Test refund functionality
-- [ ] Check payment history
+- [x] Check payment history; the fan My Purchases page showed the paid release with five downloads remaining, and the artist Earnings page showed both $2.00 transactions as completed with $1.98 net each. Cross-domain payment-history verification remains open.
 - [x] Verify the narrow test-mode payment/webhook handshake; the approved sandbox Checkout reached paid/succeeded status and the existing Stripe-originated event was acknowledged by OlogyWood. This does not claim real-money settlement or production fulfillment.
 - [x] Validate the narrow My Ology release-history/library path; protected real-router validation returned two purchase records for one release and one unique playable library item. Cross-domain payment-history coverage remains open.
 - [x] Validate non-mutating refund handling across release purchases, eBooks, Ology Live, booking payment state, and Stripe webhook dispatch; full-refund events preserve receipts, revoke digital access or release capacity where appropriate, reject wrong-mode/refund-before-success replays, and cannot resurrect refunded records. Covered by existing content-release/Ology Live/schedule/webhook regression suites; no Stripe refund was created during validation.
@@ -2839,7 +2839,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 
 ## VENUE FOLLOW-UPS ROUND 5 (May 24, 2026)
-- [ ] Register auto-complete bookings Heartbeat cron job (daily 6 AM UTC)
+- [x] Register auto-complete bookings Heartbeat cron job (daily 6 AM UTC); the post-publish registration is active and uses the signed Heartbeat-session authentication boundary.
 - [x] Add Request to Perform button on Venue Discovery page (artist → venue booking request)
 - [x] Build venue reviews/ratings system (professionalism, sound quality, green room, payment timeliness)
 
@@ -2876,7 +2876,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 ## AUTO-COMPLETE BOOKINGS CRON (May 24, 2026)
 - [x] Handler built and mounted at /api/scheduled/auto-complete-bookings
 - [x] Mark confirmed bookings as "completed" when event date has passed
-- [ ] Register Heartbeat cron (needs fresh deploy - internal server error on create, will retry after publish)
+- [x] Register Heartbeat cron; registration succeeded after the compatible deployment and is included in the verified five-job Heartbeat set.
 
 ## VENUE REVIEWS/RATINGS SYSTEM (May 24, 2026)
 - [x] Create venue_reviews table (professionalism, sound quality, green room, payment timeliness)

@@ -1,5 +1,5 @@
 
 
-### Direct-video finalize token contract
+### Live payment evidence
 
-Performance and portfolio finalize routes now require a bounded scalar body token through one shared `strictBodyUploadToken` helper before verifying the signed upload session; arrays, objects, empty values, and oversized tokens are rejected rather than coerced with `String`. Focused performance/portfolio chunked-upload and parity regressions pass 28/28, TypeScript passes, and production build passes with existing chunk-size warnings. No video uploads, storage objects, profiles, or records changed during validation.
+The approved live Adonis Silent Night checkout completed at $2.00. The fan account received a purchase-confirmation email and a My Purchases record with download access; the artist Earnings view showed two separate completed $2.00 transactions with $1.98 net each. The owner confirmed both charges posted at the bank. Refund execution was intentionally deferred after the authenticated refund-session mismatch, so the live refund gate remains open; no refund was initiated in this pass.
