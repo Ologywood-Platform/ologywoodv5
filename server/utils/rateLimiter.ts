@@ -158,6 +158,12 @@ export const aiChatLimiter = new RateLimiter({
   windowMs: 60 * 1000,
 });
 
+/** NIL contract analysis: 6 LLM requests per 15 minutes per signed-in user */
+export const contractAnalyzerLimiter = new RateLimiter({
+  maxRequests: 6,
+  windowMs: 15 * 60 * 1000,
+});
+
 // Forgot password: 3 requests per 15 min per IP/email
 export const forgotPasswordLimiter = new RateLimiter({
   maxRequests: 10,

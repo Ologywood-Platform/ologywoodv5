@@ -1,7 +1,9 @@
 import { z } from "zod";
 import { router, protectedProcedure } from "../_core/trpc";
+import { TRPCError } from "@trpc/server";
 import { invokeLLM } from "../_core/llm";
 import { requireOwnedAthleteProfile } from "../services/nilComplianceService";
+import { contractAnalyzerLimiter } from "../utils/rateLimiter";
 
 const ANALYZER_SYSTEM_PROMPT = `You are an educational contract-readiness analyzer specializing in NIL (Name, Image, Likeness) agreements for athletes. Review the text for material terms, proposed protections, fee separation, reporting questions, and athlete risks without claiming legal or eligibility certification.
 
@@ -73,9 +75,17 @@ export const contractAnalyzerRouter = router({
     .input(
       z.object({
         contractText: z.string().min(50, "Contract text must be at least 50 characters").max(50000, "Contract text is too long (max 50,000 characters)"),
-      })
+      }).strict()
     )
     .mutation(async ({ input, ctx }) => {
+      const requestLimit = contractAnalyzerLimiter.check(`user:${ctx.user.id}`);
+      if (!requestLimit.allowed) {
+        const retryMinutes = Math.max(1, Math.ceil(requestLimit.retryAfterMs / 60_000));
+        throw new TRPCError({
+          code: 'TOO_MANY_REQUESTS',
+          message: `Too many contract analysis requests. Please try again in ${retryMinutes} minute${retryMinutes === 1 ? '' : 's'}.`,
+        });
+      }
       try {
         await requireOwnedAthleteProfile(ctx.user.id);
         const result = await invokeLLM({
@@ -109,7 +119,7 @@ export const contractAnalyzerRouter = router({
             "This analysis is educational only, may be incomplete, does not certify eligibility or compliance, and is not legal advice. Consult qualified sports counsel and your institution's compliance office before signing an NIL agreement.",
         };
       } catch (error: any) {
-        console.error("[ContractAnalyzer] Error:", error);
+        console.error("[ContractAnalyzer] Analysis failed");
         return {
           success: false,
           analysis: null,

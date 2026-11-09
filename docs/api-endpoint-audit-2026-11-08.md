@@ -193,6 +193,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Prompt/history messages are trimmed and bounded with strict nested objects and finite history; expensive LLM calls are capped at 30 per minute per client IP, generated output is capped before return, and raw LLM exceptions are no longer logged.
    - AI-chat/navigation/header/public-rate-limit regressions pass 52/52, with TypeScript and production build validation passing. No LLM calls, user records, emails, or external settings were changed during validation.
 
+41. **NIL contract-analysis LLM boundaries — resolved in this increment.**
+   - Analysis remains signed-in and athlete-profile-owned, contract input is strict with a 50–50,000-character bound, per-user LLM requests are capped at 6 per 15 minutes, and raw contract-analysis exceptions are no longer logged.
+   - Contract-analysis/AI/public-rate-limit regressions pass 51/51, with TypeScript and production build validation passing. No LLM calls, contract text, NIL records, emails, or external settings were changed.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.
