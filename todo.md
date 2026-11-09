@@ -5174,12 +5174,12 @@ A non-mutating runtime regression matrix covering artist/venue/fan paths for boo
 
 ### Heartbeat execution verification — 2026-11-09
 
-All five Heartbeat jobs are registered and enabled. `session-reminders` has 34 successful natural runs through 22:47:23Z; that latest run predates the 22:54Z publish. After publication, no new run appeared by 23:06Z: the job remains enabled but `last_executed_at` is 22:47:23Z and `next_execution_at` remains 23:00:00Z. The post-publish verification gate therefore remains open as a scheduler-delay investigation; no manual trigger or mutating retry was performed. Before publication, `credit-expiration` had 35 successes and 135 failures, and `contract-expiry-reminders` had 1 success and 176 failures; their latest failures were HTTP 403 with `Missing x-manus-cron-task-uid header`, matching the stale header-required deployment. `premiere-reminders` and `auto-complete-bookings` remain future-dated.
+All five Heartbeat jobs are registered and enabled. The first post-publish `session-reminders` run executed naturally at 23:06:15Z, returned HTTP 200, completed in 673 ms, and was not manually triggered; the job advanced to its next 15-minute slot. Before publication, `credit-expiration` had 35 successes and 135 failures, and `contract-expiry-reminders` had 1 success and 176 failures; their latest failures were HTTP 403 with `Missing x-manus-cron-task-uid header`, matching the stale header-required deployment. `premiere-reminders`, `auto-complete-bookings`, `credit-expiration`, and `contract-expiry-reminders` remain open for their own natural post-publish windows.
 
 
 ### Database readiness — ledger parity remains open
 
-Read-only production verification found 110 tables and all core booking/commerce/schedule tables present, and local `drizzle-kit check` passes. Production `__drizzle_migrations` contains 23 records versus 122 repository journal entries and 129 SQL files, including legacy/manual hashes. No migration was applied. The schema is operational, but migration-ledger parity is not proven; reconcile or baseline the ledger under an owner-approved migration plan before marking database readiness fully complete.
+Read-only production verification found 110 tables and all core booking/commerce/schedule tables present, and local `drizzle-kit check` passes. Production `__drizzle_migrations` contains 23 records versus 122 repository journal entries and 129 SQL files. Of the 23 production rows, 21 match local SQL SHA-256 values (including one duplicate hash represented by two historical local files); two remain legacy/unmatched: the initial `814a08…` record and the manual/tag-style `0046_certain_mockingbird` record. No migration was applied. The schema is operational, but ledger parity is not proven; reconcile or baseline these legacy rows under an owner-approved migration plan before marking database readiness fully complete.
 
 
 ### Production-load canary — 2026-11-09
