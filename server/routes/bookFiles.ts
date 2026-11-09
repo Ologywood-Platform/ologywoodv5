@@ -46,6 +46,9 @@ router.post('/upload/:itemId', ebookUpload.single('ebook'), async (req: Request,
     const itemId = positiveRouteId(req.params.itemId);
     if (itemId === null) return res.status(400).json({ error: 'Invalid book item' });
     if (!req.file) return res.status(400).json({ error: 'Select a PDF or EPUB file' });
+    if (Object.keys(req.body ?? {}).some((key) => key !== 'rightsConfirmed')) {
+      return res.status(400).json({ error: 'Unknown eBook upload field' });
+    }
     if (!hasValidEbookSignature(req.file.buffer, req.file.mimetype)) {
       return res.status(400).json({ error: 'The eBook file contents do not match its declared format' });
     }

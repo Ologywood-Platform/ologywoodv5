@@ -1,5 +1,5 @@
 
 
-### Active-route success-log privacy
+### eBook multipart body contract
 
-Successful OG metadata logs no longer include profile/venue/blog/project IDs, names, slugs, titles, or artist names. Booking checkout logs no longer include artist IDs, booking IDs, or transaction amounts, and Calendar synchronization logs omit artist IDs while retaining aggregate counts. Focused OG/booking/calendar/error-safety regressions pass 14/14, TypeScript passes, and production build passes with existing chunk-size warnings. No metadata requests, Checkout sessions, payments, calendar rows, or records changed during validation.
+The mounted eBook upload route now rejects unknown multipart fields before database/storage writes; `rightsConfirmed` remains the only accepted text field alongside the uploaded `ebook` file. Existing strict item IDs, MIME/signature checks, ownership, rights confirmation, safe storage keys, paid-access checks, download limits, and redacted errors remain intact. Focused eBook/Express regressions pass 16/16, TypeScript passes, and production build passes with existing chunk-size warnings. No files, storage objects, orders, or records changed during validation.

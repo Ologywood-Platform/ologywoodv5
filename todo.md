@@ -5234,6 +5234,10 @@ Google, Spotify, and Google Calendar callbacks now accept only bounded scalar qu
 
 Successful OG metadata logs no longer include profile/venue/blog/project IDs, names, slugs, titles, or artist names. Booking checkout logs no longer include artist IDs, booking IDs, or transaction amounts, and Calendar synchronization logs omit artist IDs while retaining aggregate counts. Focused OG/booking/calendar/error-safety regressions passed 14/14; TypeScript and production build passed with existing chunk-size warnings. No metadata requests, Checkout sessions, payments, calendar rows, or records changed.
 
+### eBook multipart body contract — 2026-11-09
+
+The mounted eBook upload route now rejects unknown multipart fields before database/storage writes; `rightsConfirmed` remains the only accepted text field alongside the uploaded `ebook` file. Focused eBook/Express regressions passed 16/16; TypeScript and production build passed with existing chunk-size warnings. No files, storage objects, orders, or records changed.
+
 
 ### Production image loading correction — 2026-11-09
 

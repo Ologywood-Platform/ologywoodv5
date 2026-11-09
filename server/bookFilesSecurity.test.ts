@@ -27,6 +27,7 @@ describe('eBook file route security boundaries', () => {
 
   it('keeps uploader ownership, rights confirmation, paid access, and atomic download limits', () => {
     expect(source).toContain("req.body?.rightsConfirmed !== 'true'");
+    expect(source).toContain("Unknown eBook upload field");
     expect(source).toContain('Number(item.userId) !== user.id');
     expect(source).toContain("access.paymentStatus !== 'paid' || access.status !== 'active'");
     expect(source).toContain("downloadCount < maxDownloads");
