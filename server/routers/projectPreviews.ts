@@ -11,9 +11,10 @@ import { z } from "zod";
 import { router, protectedProcedure, publicProcedure } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { getDb } from "../db";
-import { projectPreviews, projectPreviewTracks } from "../../drizzle/schema";
+import { projectPreviews, projectPreviewTracks, users } from "../../drizzle/schema";
 import { eq, and, asc, desc, sql, sum } from "drizzle-orm";
 import { storagePut } from "../storage";
+import { RateLimiter } from "../utils/rateLimiter";
 import {
   getUserSubscription,
   PRICING_TIERS,
@@ -26,6 +27,64 @@ const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const ALLOWED_AUDIO_TYPES = ["audio/mpeg", "audio/wav", "audio/x-m4a", "audio/mp4", "audio/m4a"];
 const MAX_IMAGE_SIZE = 2 * 1024 * 1024; // 2MB
 const MAX_AUDIO_SIZE = 5 * 1024 * 1024; // 5MB
+const projectIdSchema = z.number().int().safe().positive();
+const trackIdSchema = z.number().int().safe().positive();
+const projectPreviewPlayLimiter = new RateLimiter({ maxRequests: 30, windowMs: 60 * 1000 });
+const projectDateSchema = z.string().trim().max(40).refine((value) => {
+  const parsed = new Date(value);
+  return !Number.isNaN(parsed.getTime());
+}, 'Invalid release date');
+const externalLinkSchema = z.string().trim().url().max(2048).refine((value) => {
+  const protocol = new URL(value).protocol;
+  return protocol === 'http:' || protocol === 'https:';
+}, 'Only HTTP(S) links are allowed');
+const fileNameSchema = z.string().trim().min(1).max(255).refine((value) => !/[\\/\0]/u.test(value), 'Invalid file name');
+const encodedMediaSchema = z.string().min(1).max(8_000_000);
+
+function decodeMediaDataUrl(fileData: string, mimeType: string): Buffer {
+  const match = fileData.match(/^data:([^;,]+);base64,([A-Za-z0-9+/=\s]+)$/u);
+  if (!match || match[1].toLowerCase() !== mimeType.toLowerCase()) {
+    throw new TRPCError({ code: 'BAD_REQUEST', message: 'The uploaded file does not match its declared MIME type.' });
+  }
+  const encoded = match[2].replace(/\s+/gu, '');
+  const buffer = Buffer.from(encoded, 'base64');
+  if (!buffer.length || buffer.toString('base64') !== encoded.replace(/=+$/u, '') + '='.repeat((4 - (encoded.replace(/=+$/u, '').length % 4)) % 4)) {
+    throw new TRPCError({ code: 'BAD_REQUEST', message: 'The uploaded file data is invalid.' });
+  }
+  return buffer;
+}
+
+function validateMediaSignature(buffer: Buffer, mimeType: string): void {
+  const isJpeg = buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+  const isPng = buffer.length >= 8 && buffer.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
+  const isWebp = buffer.length >= 12 && buffer.subarray(0, 4).toString('ascii') === 'RIFF' && buffer.subarray(8, 12).toString('ascii') === 'WEBP';
+  const isMp3 = buffer.subarray(0, 3).toString('ascii') === 'ID3' || (buffer.length >= 2 && buffer[0] === 0xff && (buffer[1] & 0xe0) === 0xe0);
+  const isWav = buffer.length >= 12 && buffer.subarray(0, 4).toString('ascii') === 'RIFF' && buffer.subarray(8, 12).toString('ascii') === 'WAVE';
+  const isMp4 = buffer.length >= 12 && buffer.subarray(4, 8).toString('ascii') === 'ftyp';
+  const valid = mimeType === 'image/jpeg' ? isJpeg
+    : mimeType === 'image/png' ? isPng
+    : mimeType === 'image/webp' ? isWebp
+    : mimeType === 'audio/mpeg' ? isMp3
+    : mimeType === 'audio/wav' ? isWav
+    : isMp4;
+  if (!valid) throw new TRPCError({ code: 'BAD_REQUEST', message: 'The uploaded file does not match its declared format.' });
+}
+
+function extensionForMime(mimeType: string): string {
+  const extensions: Record<string, string> = {
+    'image/jpeg': 'jpg',
+    'image/png': 'png',
+    'image/webp': 'webp',
+    'audio/mpeg': 'mp3',
+    'audio/wav': 'wav',
+    'audio/x-m4a': 'm4a',
+    'audio/mp4': 'm4a',
+    'audio/m4a': 'm4a',
+  };
+  const extension = extensions[mimeType];
+  if (!extension) throw new TRPCError({ code: 'BAD_REQUEST', message: 'Unsupported project-preview media type.' });
+  return extension;
+}
 
 export const projectPreviewsRouter = router({
   /**
@@ -87,13 +146,13 @@ export const projectPreviewsRouter = router({
   createProject: protectedProcedure
     .input(
       z.object({
-        title: z.string().min(1).max(255),
+        title: z.string().trim().min(1).max(255),
         releaseType: z.enum(["album", "ep", "mixtape", "deluxe", "single_collection"]).default("album"),
-        description: z.string().max(500).optional(),
-        releaseDate: z.string().optional(), // ISO date string
-        externalLink: z.string().url().max(2048).optional(),
+        description: z.string().trim().max(500).optional(),
+        releaseDate: projectDateSchema.optional(),
+        externalLink: externalLinkSchema.optional(),
         status: z.enum(["active", "coming_soon"]).default("active"),
-      })
+      }).strict()
     )
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
@@ -132,14 +191,14 @@ export const projectPreviewsRouter = router({
   updateProject: protectedProcedure
     .input(
       z.object({
-        id: z.number().int().positive(),
-        title: z.string().min(1).max(255).optional(),
+        id: projectIdSchema,
+        title: z.string().trim().min(1).max(255).optional(),
         releaseType: z.enum(["album", "ep", "mixtape", "deluxe", "single_collection"]).optional(),
-        description: z.string().max(500).optional(),
-        releaseDate: z.string().optional(),
-        externalLink: z.string().url().max(2048).optional().nullable(),
+        description: z.string().trim().max(500).optional(),
+        releaseDate: projectDateSchema.optional().nullable(),
+        externalLink: externalLinkSchema.optional().nullable(),
         status: z.enum(["active", "coming_soon", "archived"]).optional(),
-      })
+      }).strict()
     )
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
@@ -203,11 +262,11 @@ export const projectPreviewsRouter = router({
   uploadCoverArt: protectedProcedure
     .input(
       z.object({
-        projectId: z.number().int().positive(),
-        fileData: z.string(), // base64
-        fileName: z.string(),
-        mimeType: z.string(),
-      })
+        projectId: projectIdSchema,
+        fileData: encodedMediaSchema,
+        fileName: fileNameSchema,
+        mimeType: z.enum(ALLOWED_IMAGE_TYPES as [string, ...string[]]),
+      }).strict()
     )
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
@@ -228,15 +287,15 @@ export const projectPreviewsRouter = router({
         throw new TRPCError({ code: "NOT_FOUND", message: "Project not found" });
       }
 
-      const base64Data = input.fileData.split(",")[1] || input.fileData;
-      const buffer = Buffer.from(base64Data, "base64");
+      const buffer = decodeMediaDataUrl(input.fileData, input.mimeType);
+      validateMediaSignature(buffer, input.mimeType);
 
       if (buffer.length > MAX_IMAGE_SIZE) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Image must be under 2MB." });
       }
 
       const timestamp = Date.now();
-      const ext = input.fileName.split(".").pop() || "jpg";
+      const ext = extensionForMime(input.mimeType);
       const fileKey = `project-previews/${ctx.user.id}/${input.projectId}/cover-${timestamp}.${ext}`;
 
       const { url } = await storagePut(fileKey, buffer, input.mimeType);
@@ -255,10 +314,10 @@ export const projectPreviewsRouter = router({
   addTrack: protectedProcedure
     .input(
       z.object({
-        projectId: z.number().int().positive(),
-        title: z.string().min(1).max(255),
+        projectId: projectIdSchema,
+        title: z.string().trim().min(1).max(255),
         durationSeconds: z.number().int().min(1).max(300).optional(),
-      })
+      }).strict()
     )
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
@@ -312,10 +371,10 @@ export const projectPreviewsRouter = router({
   updateTrack: protectedProcedure
     .input(
       z.object({
-        trackId: z.number().int().positive(),
-        title: z.string().min(1).max(255).optional(),
+        trackId: trackIdSchema,
+        title: z.string().trim().min(1).max(255).optional(),
         durationSeconds: z.number().int().min(1).max(300).optional(),
-      })
+      }).strict()
     )
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
@@ -359,7 +418,7 @@ export const projectPreviewsRouter = router({
    * Delete a track
    */
   deleteTrack: protectedProcedure
-    .input(z.object({ trackId: z.number().int().positive() }))
+    .input(z.object({ trackId: trackIdSchema }).strict())
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
@@ -410,11 +469,11 @@ export const projectPreviewsRouter = router({
   uploadAudio: protectedProcedure
     .input(
       z.object({
-        trackId: z.number().int().positive(),
-        fileData: z.string(), // base64
-        fileName: z.string(),
-        mimeType: z.string(),
-      })
+        trackId: trackIdSchema,
+        fileData: encodedMediaSchema,
+        fileName: fileNameSchema,
+        mimeType: z.enum(ALLOWED_AUDIO_TYPES as [string, ...string[]]),
+      }).strict()
     )
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
@@ -445,15 +504,15 @@ export const projectPreviewsRouter = router({
         throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
       }
 
-      const base64Data = input.fileData.split(",")[1] || input.fileData;
-      const buffer = Buffer.from(base64Data, "base64");
+      const buffer = decodeMediaDataUrl(input.fileData, input.mimeType);
+      validateMediaSignature(buffer, input.mimeType);
 
       if (buffer.length > MAX_AUDIO_SIZE) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Audio file must be under 5MB." });
       }
 
       const timestamp = Date.now();
-      const ext = input.fileName.split(".").pop() || "mp3";
+      const ext = extensionForMime(input.mimeType);
       const fileKey = `project-previews/${ctx.user.id}/${project.id}/tracks/${track.id}-${timestamp}.${ext}`;
 
       const { url } = await storagePut(fileKey, buffer, input.mimeType);
@@ -472,8 +531,12 @@ export const projectPreviewsRouter = router({
   reorderTracks: protectedProcedure
     .input(
       z.object({
-        projectId: z.number().int().positive(),
-        trackIds: z.array(z.number().int().positive()),
+        projectId: projectIdSchema,
+        trackIds: z.array(trackIdSchema).min(1).max(50),
+      }).strict().superRefine((value, ctx) => {
+        if (new Set(value.trackIds).size !== value.trackIds.length) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['trackIds'], message: 'Track IDs must be unique.' });
+        }
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -489,6 +552,15 @@ export const projectPreviewsRouter = router({
 
       if (!project) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Project not found" });
+      }
+
+      const existingTracks = await db
+        .select({ id: projectPreviewTracks.id })
+        .from(projectPreviewTracks)
+        .where(eq(projectPreviewTracks.projectId, input.projectId));
+      const existingTrackIds = new Set(existingTracks.map((track) => track.id));
+      if (existingTrackIds.size !== input.trackIds.length || input.trackIds.some((id) => !existingTrackIds.has(id))) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Track order must include exactly the tracks in this project.' });
       }
 
       for (let i = 0; i < input.trackIds.length; i++) {
@@ -510,8 +582,11 @@ export const projectPreviewsRouter = router({
    * Public: Increment play count for a track
    */
   incrementPlayCount: publicProcedure
-    .input(z.object({ trackId: z.number().int().positive() }))
-    .mutation(async ({ input }) => {
+    .input(z.object({ trackId: trackIdSchema }).strict())
+    .mutation(async ({ input, ctx }) => {
+      const clientIp = ctx.req?.headers?.['x-forwarded-for']?.toString()?.split(',')[0]?.trim()
+        || ctx.req?.socket?.remoteAddress || 'unknown';
+      if (!projectPreviewPlayLimiter.check(`ip:${clientIp}`).allowed) return { success: false };
       const db = await getDb();
       if (!db) return { success: false };
 
@@ -557,20 +632,32 @@ export const projectPreviewsRouter = router({
   }),
 
   getPublicProjects: publicProcedure
-    .input(z.object({ userId: z.number().int().positive() }))
+    .input(z.object({ userId: z.number().int().safe().positive() }).strict())
     .query(async ({ input }) => {
       const db = await getDb();
       if (!db) return [];
 
       const projects = await db
-        .select()
+        .select({
+          id: projectPreviews.id,
+          userId: projectPreviews.userId,
+          title: projectPreviews.title,
+          releaseType: projectPreviews.releaseType,
+          description: projectPreviews.description,
+          coverArtUrl: projectPreviews.coverArtUrl,
+          externalLink: projectPreviews.externalLink,
+          releaseDate: projectPreviews.releaseDate,
+          status: projectPreviews.status,
+          sortOrder: projectPreviews.sortOrder,
+          createdAt: projectPreviews.createdAt,
+          updatedAt: projectPreviews.updatedAt,
+        })
         .from(projectPreviews)
-        .where(
-          and(
-            eq(projectPreviews.userId, input.userId),
-            // Only show active and coming_soon (not archived)
-          )
-        )
+        .innerJoin(users, eq(users.id, projectPreviews.userId))
+        .where(and(
+          eq(projectPreviews.userId, input.userId),
+          eq(users.role, 'artist'),
+        ))
         .orderBy(asc(projectPreviews.sortOrder));
 
       // Filter out archived
@@ -580,7 +667,15 @@ export const projectPreviewsRouter = router({
       const projectsWithTracks = await Promise.all(
         visibleProjects.map(async (project) => {
           const tracks = await db
-            .select()
+            .select({
+              id: projectPreviewTracks.id,
+              projectId: projectPreviewTracks.projectId,
+              title: projectPreviewTracks.title,
+              trackNumber: projectPreviewTracks.trackNumber,
+              durationSeconds: projectPreviewTracks.durationSeconds,
+              audioUrl: projectPreviewTracks.audioUrl,
+              playCount: projectPreviewTracks.playCount,
+            })
             .from(projectPreviewTracks)
             .where(eq(projectPreviewTracks.projectId, project.id))
             .orderBy(asc(projectPreviewTracks.trackNumber));

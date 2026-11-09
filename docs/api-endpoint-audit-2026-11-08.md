@@ -201,6 +201,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Invitation tokens must match the generated 64-hex capability format; public previews and pending lists omit raw tokens/full invitee email; accept/decline require the authenticated invitee email; invitation/member IDs and activity limits are safe bounded integers; invitation emails escape user-controlled names; invite activity details omit email PII; and activity responses expose only UI-required fields.
    - Team/rider/UI regressions pass 11/11, with TypeScript and production build validation passing. No invitations, team memberships, emails, activity rows, or records were changed.
 
+43. **Project-preview media and public-read boundaries — resolved in this increment.**
+   - Project/track IDs and mutation objects are strict and safe, titles/descriptions/dates/HTTPS links/file names/media payloads are bounded, cover/audio data URLs must match allowlisted MIME types and basic file signatures with decoded-size checks and MIME-derived storage extensions, reorder requests reject duplicate/foreign/missing IDs, public projects are limited to artist accounts with safe field projections, and public play-count increments are capped at 30 per minute per client IP.
+   - Project-preview/layout/release-section regressions pass 18/18, with TypeScript and production build validation passing. No projects, media uploads, play counts, or records were changed.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.
