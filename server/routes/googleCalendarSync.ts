@@ -18,6 +18,7 @@ import { sdk } from '../_core/sdk';
 import { setScheduledAvailability } from '../services/bookingScheduleService';
 import { decryptOAuthToken, encryptOAuthToken } from '../services/oauthTokenEncryption';
 import { createOAuthState, verifyOAuthState } from '../services/oauthState';
+import { trustedCheckoutOrigin } from '../services/trustedOrigin';
 import { artistProfiles } from '../../drizzle/schema';
 import { TRPCError } from '@trpc/server';
 
@@ -36,12 +37,10 @@ function getGoogleClientSecret(): string {
 }
 
 function getRedirectUri(req: Request): string {
-  if (process.env.BASE_URL) {
-    return `${process.env.BASE_URL}/api/calendar-sync/google/callback`;
-  }
-  const proto = req.headers['x-forwarded-proto'] || req.protocol || 'https';
-  const host = req.headers['x-forwarded-host'] || req.headers.host || '';
-  return `${proto}://${host}/api/calendar-sync/google/callback`;
+  const proto = String(req.headers['x-forwarded-proto'] || req.protocol || 'https').split(',')[0].trim();
+  const host = String(req.headers['x-forwarded-host'] || req.headers.host || '').split(',')[0].trim();
+  const requestOrigin = host ? `${proto}://${host}` : undefined;
+  return `${trustedCheckoutOrigin(process.env.BASE_URL, requestOrigin)}/api/calendar-sync/google/callback`;
 }
 
 /**
@@ -129,8 +128,8 @@ router.get('/google/callback', async (req: Request, res: Response) => {
     });
 
     if (!tokenResponse.ok) {
-      const errBody = await tokenResponse.text();
-      console.error('[Google Calendar Sync] Token exchange failed:', errBody);
+      await tokenResponse.text();
+      console.error('[Google Calendar Sync] Token exchange failed');
       return res.redirect('/dashboard?gcal=error&reason=token_exchange_failed');
     }
 
@@ -206,14 +205,14 @@ router.get('/google/callback', async (req: Request, res: Response) => {
       });
     }
 
-    console.log(`[Google Calendar Sync] Connected for artist ${artistProfile.id} (${googleEmail})`);
+    console.log('[Google Calendar Sync] Calendar connected');
 
     // Trigger initial sync
     await syncGoogleCalendarForArtist(artistProfile.id);
 
     return res.redirect('/dashboard?gcal=connected');
   } catch (err: any) {
-    console.error('[Google Calendar Sync] Callback error:', err);
+    console.error('[Google Calendar Sync] Callback error', { kind: err instanceof Error ? err.name : 'UnknownError' });
     return res.redirect('/dashboard?gcal=error&reason=unknown');
   }
 });
@@ -252,7 +251,7 @@ async function refreshAccessToken(integration: any): Promise<string | null> {
 
     return tokens.access_token;
   } catch (err) {
-    console.error('[Google Calendar Sync] Token refresh error:', err);
+    console.error('[Google Calendar Sync] Token refresh error', { kind: err instanceof Error ? err.name : 'UnknownError' });
     return null;
   }
 }
@@ -309,8 +308,8 @@ export async function syncGoogleCalendarForArtist(artistId: number): Promise<{ s
     );
 
     if (!eventsRes.ok) {
-      const errText = await eventsRes.text();
-      console.error('[Google Calendar Sync] Events fetch failed:', errText);
+      await eventsRes.text();
+      console.error('[Google Calendar Sync] Events fetch failed');
       return { synced: 0, error: 'Failed to fetch calendar events' };
     }
 
@@ -364,7 +363,7 @@ export async function syncGoogleCalendarForArtist(artistId: number): Promise<{ s
     console.log(`[Google Calendar Sync] Synced ${synced} busy dates for artist ${artistId}`);
     return { synced };
   } catch (err: any) {
-    console.error('[Google Calendar Sync] Sync error:', err);
+    console.error('[Google Calendar Sync] Sync error', { kind: err instanceof Error ? err.name : 'UnknownError' });
     return { synced: 0, error: 'Unable to sync Google Calendar availability' };
   }
 }

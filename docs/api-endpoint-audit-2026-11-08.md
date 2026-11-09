@@ -277,6 +277,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Upload/download IDs use shared strict positive parsing; PDF/EPUB uploads must match actual `%PDF-` or ZIP signatures in addition to allowlisted MIME types; eBook storage keys are constrained to a traversal-safe `ebooks/<user>/<item>/<safe-name>` grammar before retrieval; ownership, rights confirmation, paid access, and atomic download-limit checks remain active; and route logs expose only error type.
    - Book-file/author-shop/route-safety regressions pass 26/26, with TypeScript, production build, and diff validation passing. No eBook files, downloads, orders, emails, or records were changed during validation.
 
+62. **Google Calendar OAuth/provider logging — resolved in this increment.**
+   - OAuth callback redirect URIs now use the approved application-origin helper instead of trusting forwarded host values. Token/events provider response bodies are discarded without logging, Google account email is omitted from connection logs, and callback/refresh/sync failures log only error kind; signed state, callback-session binding, and encrypted token storage remain active.
+   - Calendar/OAuth/route-safety/critical-gap regressions pass 23/23, with TypeScript, production build, and diff validation passing. No OAuth flows, calendar integrations, tokens, availability rows, emails, or records were changed during validation.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.
