@@ -209,6 +209,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Creator IDs/revisions and preference/feedback objects are strict and bounded, empty preference updates are rejected, HMAC unsubscribe tokens are constrained to the generated capability grammar and 512-character maximum, public status/unsubscribe calls are limited to 60 per minute per client IP, and preference error logs no longer include raw exceptions.
    - Email-preference/fan-follow/public-rate-limit regressions pass 73/73, with TypeScript and production build validation passing. No preference changes, unsubscribes, emails, tokens, or records were changed.
 
+45. **Sandbox Post media and public-boundary validation — resolved in this increment.**
+   - Media file names, sizes, durations, data URLs, thumbnails, and content are strict and bounded; base64 data must be canonical and MIME-matched; signatures/extensions are validated; public artist IDs/slugs and admin hide IDs are safe; and active-only public/owner projections and owner/admin publication boundaries remain enforced.
+   - Sandbox/OG/social/unified-ecosystem regressions pass 35/35, with TypeScript and production build validation passing. No Sandbox Posts, media uploads, moderation changes, shares, or records were changed.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.

@@ -27,17 +27,29 @@ const videoMimeTypes = new Set<string>(SANDBOX_POST_VIDEO_MIME_TYPES);
 
 const mediaInputSchema = z.object({
   type: z.enum(['image', 'video']),
-  fileName: z.string().trim().min(1).max(255),
+  fileName: z.string().trim().min(1).max(255).refine((value) => !/[\\/\0]/u.test(value), 'Invalid file name'),
   mimeType: z.string().trim().min(1).max(100),
-  fileSizeBytes: z.number().int().positive(),
-  durationSeconds: z.number().int().positive().max(SANDBOX_POST_MAX_VIDEO_DURATION_SECONDS).optional(),
-  fileData: z.string().min(1),
-  thumbnailData: z.string().optional(),
-});
+  fileSizeBytes: z.number().int().safe().positive().max(SANDBOX_POST_MAX_VIDEO_BYTES),
+  durationSeconds: z.number().int().safe().positive().max(SANDBOX_POST_MAX_VIDEO_DURATION_SECONDS).optional(),
+  fileData: z.string().min(1).max(36_000_000),
+  thumbnailData: z.string().min(1).max(3_000_000).optional(),
+}).strict();
 
-function decodeDataUrl(value: string): Buffer {
-  const encoded = value.includes(',') ? value.slice(value.indexOf(',') + 1) : value;
-  return Buffer.from(encoded, 'base64');
+function decodeDataUrl(value: string, expectedMimeType?: string): Buffer {
+  const match = value.match(/^data:([^;,]+);base64,([A-Za-z0-9+/=\s]+)$/u);
+  if (!match || (expectedMimeType && match[1].toLowerCase() !== expectedMimeType.toLowerCase())) {
+    throw new TRPCError({ code: 'BAD_REQUEST', message: 'The uploaded media data does not match its declared MIME type.' });
+  }
+  const encoded = match[2].replace(/\s+/gu, '');
+  if (encoded.length % 4 === 1 || !/^[A-Za-z0-9+/]*={0,2}$/u.test(encoded)) {
+    throw new TRPCError({ code: 'BAD_REQUEST', message: 'The uploaded media data is invalid.' });
+  }
+  const buffer = Buffer.from(encoded, 'base64');
+  const normalized = encoded.replace(/=+$/u, '');
+  if (buffer.toString('base64').replace(/=+$/u, '') !== normalized) {
+    throw new TRPCError({ code: 'BAD_REQUEST', message: 'The uploaded media data is invalid.' });
+  }
+  return buffer;
 }
 
 function validateFileSignature(buffer: Buffer, type: 'image' | 'video', mimeType: string) {
@@ -160,7 +172,7 @@ export const sandboxPostRouter = router({
     return post ? toOwnerPost(post) : null;
   }),
 
-  getPublic: publicProcedure.input(z.object({ artistProfileId: z.number().int().positive() })).query(async ({ input }) => {
+  getPublic: publicProcedure.input(z.object({ artistProfileId: z.number().int().safe().positive() }).strict()).query(async ({ input }) => {
     const resolved = await getPublicArtistById(input.artistProfileId);
     if (!resolved) return null;
     const [post] = await resolved.db.select().from(sandboxPosts).where(and(
@@ -170,7 +182,7 @@ export const sandboxPostRouter = router({
     return post ? toPublicPost(post, resolved.artist) : null;
   }),
 
-  getPublicBySlug: publicProcedure.input(z.object({ slug: z.string().trim().min(1).max(255) })).query(async ({ input }) => {
+  getPublicBySlug: publicProcedure.input(z.object({ slug: z.string().trim().min(1).max(255).regex(/^[a-z0-9][a-z0-9 _-]*$/iu, 'Invalid artist slug') }).strict()).query(async ({ input }) => {
     const artistProfileId = await findArtistIdBySlug(input.slug);
     if (!artistProfileId) return null;
     const resolved = await getPublicArtistById(artistProfileId);
@@ -183,9 +195,9 @@ export const sandboxPostRouter = router({
   }),
 
   replace: protectedProcedure.input(z.object({
-    content: z.string().max(SANDBOX_POST_MAX_CHARACTERS),
+    content: z.string().trim().max(SANDBOX_POST_MAX_CHARACTERS),
     media: mediaInputSchema.optional(),
-  })).mutation(async ({ ctx, input }) => {
+  }).strict()).mutation(async ({ ctx, input }) => {
     const { db, profile } = await getOwnerProfile(ctx.user.id, ctx.user.role);
     const content = normalizeSandboxPostText(input.content);
     if (!content) throw new TRPCError({ code: 'BAD_REQUEST', message: 'Write something before publishing your Sandbox Post.' });
@@ -211,14 +223,14 @@ export const sandboxPostRouter = router({
       if (media.type === 'video' && !media.durationSeconds) {
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Video duration is required.' });
       }
-      const buffer = decodeDataUrl(media.fileData);
+      const buffer = decodeDataUrl(media.fileData, media.mimeType);
       if (buffer.length !== media.fileSizeBytes || buffer.length > maxBytes) {
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'The uploaded media size did not match the selected file.' });
       }
       validateFileSignature(buffer, media.type, media.mimeType);
       let validatedThumbnail: Buffer | null = null;
       if (media.type === 'video' && media.thumbnailData) {
-        validatedThumbnail = decodeDataUrl(media.thumbnailData);
+        validatedThumbnail = decodeDataUrl(media.thumbnailData, 'image/jpeg');
         if (validatedThumbnail.length > 2 * 1024 * 1024) {
           throw new TRPCError({ code: 'BAD_REQUEST', message: 'Video preview image must be 2 MB or smaller.' });
         }
@@ -282,7 +294,7 @@ export const sandboxPostRouter = router({
     return { success: true, deletedPostId: current.id };
   }),
 
-  setHidden: adminProcedure.input(z.object({ postId: z.number().int().positive(), hidden: z.boolean() })).mutation(async ({ input }) => {
+  setHidden: adminProcedure.input(z.object({ postId: z.number().int().safe().positive(), hidden: z.boolean() }).strict()).mutation(async ({ input }) => {
     const db = await getDb();
     if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
     await ensureSandboxPostSchema(db);
