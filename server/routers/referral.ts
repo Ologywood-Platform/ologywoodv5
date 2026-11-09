@@ -13,6 +13,22 @@ import { referrals, referralCredits, users } from "../../drizzle/schema";
 import { eq, and, sql, desc } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { stripe } from "../stripe";
+import { RateLimiter } from "../utils/rateLimiter";
+
+const referralCodeSchema = z.string().trim().regex(/^[A-Z0-9_-]{8}$/u, 'Invalid referral code');
+const publicReferralLimiter = new RateLimiter({ maxRequests: 60, windowMs: 60 * 1000 });
+
+function clientIp(ctx: { req?: { headers?: Record<string, unknown>; socket?: { remoteAddress?: string } } }): string {
+  return ctx.req?.headers?.['x-forwarded-for']?.toString()?.split(',')[0]?.trim()
+    || ctx.req?.socket?.remoteAddress || 'unknown';
+}
+
+function maskEmail(email: string | null): string | null {
+  if (!email) return null;
+  const [local, domain] = email.split('@');
+  if (!local || !domain) return null;
+  return `${local.slice(0, 1)}***@${domain}`;
+}
 
 // Generate a short, readable referral code
 function generateReferralCode(): string {
@@ -160,7 +176,10 @@ export const referralRouter = router({
       .orderBy(desc(referrals.createdAt))
       .limit(50);
 
-    return myReferrals;
+    return myReferrals.map((referral) => ({
+      ...referral,
+      referredEmail: maskEmail(referral.referredEmail),
+    }));
   }),
 
   /**
@@ -170,7 +189,15 @@ export const referralRouter = router({
     const database = await db();
 
     const history = await database
-      .select()
+      .select({
+        id: referralCredits.id,
+        amount: referralCredits.amount,
+        type: referralCredits.type,
+        referralId: referralCredits.referralId,
+        description: referralCredits.description,
+        expiresAt: referralCredits.expiresAt,
+        createdAt: referralCredits.createdAt,
+      })
       .from(referralCredits)
       .where(eq(referralCredits.userId, ctx.user.id))
       .orderBy(desc(referralCredits.createdAt))
@@ -183,8 +210,9 @@ export const referralRouter = router({
    * Validate a referral code (public - used during signup)
    */
   validateCode: publicProcedure
-    .input(z.object({ code: z.string().min(1) }))
-    .query(async ({ input }) => {
+    .input(z.object({ code: referralCodeSchema }).strict())
+    .query(async ({ input, ctx }) => {
+      if (!publicReferralLimiter.check(`ip:${clientIp(ctx)}`).allowed) return { valid: false, referrerName: null };
       const database = await db();
 
       const referral = await database
@@ -216,7 +244,7 @@ export const referralRouter = router({
    * Apply a referral code to the current user (called after signup with a referral link)
    */
   applyCode: protectedProcedure
-    .input(z.object({ code: z.string().min(1) }))
+    .input(z.object({ code: referralCodeSchema }).strict())
     .mutation(async ({ ctx, input }) => {
       const database = await db();
       const code = input.code.toUpperCase();
@@ -262,7 +290,7 @@ export const referralRouter = router({
       }
 
       // Update the referral with the referred user
-      await database
+      const updateResult = await database
         .update(referrals)
         .set({
           referredId: ctx.user.id,
@@ -270,7 +298,15 @@ export const referralRouter = router({
           convertedAt: new Date(),
           rewardAmount: String(REFERRER_CREDIT_AMOUNT),
         })
-        .where(eq(referrals.id, referral[0].id));
+        .where(and(
+          eq(referrals.id, referral[0].id),
+          sql`${referrals.referredId} IS NULL`,
+          eq(referrals.status, "pending"),
+        ));
+      const affectedRows = Number((updateResult as any)?.[0]?.affectedRows ?? 0);
+      if (affectedRows !== 1) {
+        throw new TRPCError({ code: "CONFLICT", message: "This referral code has already been used" });
+      }
 
       // Award credit to the referrer (expires in 90 days)
       const expiresAt = new Date();
@@ -334,7 +370,7 @@ export const referralRouter = router({
     .input(z.object({
       plan: z.enum(["starter", "professional"]),
       interval: z.enum(["month", "year"]),
-    }))
+    }).strict())
     .mutation(async ({ ctx, input }) => {
       const database = await db();
 

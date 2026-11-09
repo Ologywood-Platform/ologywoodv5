@@ -1,6 +1,7 @@
 import { sendEmail } from "./email";
 import { ENV } from "./_core/env";
 import { getEmailLogoImage } from "../shared/emailBranding";
+import { escapeFanEmailHtml } from "./services/fanEmailFormatting";
 
 /**
  * Referral email notification templates
@@ -36,6 +37,10 @@ function referralEmailWrapper(content: string, recipientEmail: string): string {
   `;
 }
 
+function safeEmailSubject(value: string): string {
+  return value.replace(/[\r\n]/gu, '').slice(0, 160);
+}
+
 /**
  * Send notification to referrer when their friend signs up
  */
@@ -46,12 +51,14 @@ export async function sendReferralSignupEmail(params: {
 }): Promise<boolean> {
   const { referrerEmail, referrerName, referredName } = params;
   const baseUrl = ENV.baseUrl;
+  const safeReferrerName = escapeFanEmailHtml(referrerName);
+  const safeReferredName = escapeFanEmailHtml(referredName);
 
   const content = `
-    <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">Hi ${referrerName},</p>
+    <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">Hi ${safeReferrerName},</p>
     
     <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">
-      Great news! <strong>${referredName}</strong> just signed up on Ologywood using your referral link. 🎉
+      Great news! <strong>${safeReferredName}</strong> just signed up on Ologywood using your referral link. 🎉
     </p>
 
     <div style="background: linear-gradient(135deg, #f5f3ff 0%, #eff6ff 100%); padding: 24px; border-radius: 8px; margin: 20px 0; border: 1px solid #e9d5ff;">
@@ -72,7 +79,7 @@ export async function sendReferralSignupEmail(params: {
 
   return sendEmail({
     to: referrerEmail,
-    subject: `🎉 ${referredName} joined Ologywood with your referral!`,
+    subject: safeEmailSubject(`🎉 ${referredName} joined Ologywood with your referral!`),
     html: referralEmailWrapper(content, referrerEmail),
   });
 }
@@ -88,9 +95,11 @@ export async function sendReferralCreditEarnedEmail(params: {
 }): Promise<boolean> {
   const { referrerEmail, referrerName, referredName, creditAmount } = params;
   const baseUrl = ENV.baseUrl;
+  const safeReferrerName = escapeFanEmailHtml(referrerName);
+  const safeReferredName = escapeFanEmailHtml(referredName);
 
   const content = `
-    <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">Hi ${referrerName},</p>
+    <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">Hi ${safeReferrerName},</p>
     
     <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">
       You just earned a referral reward! 💰
@@ -106,7 +115,7 @@ export async function sendReferralCreditEarnedEmail(params: {
     </div>
 
     <p style="color: #374151; font-size: 14px; margin: 0 0 8px 0;">
-      <strong>Reason:</strong> ${referredName} signed up using your referral link
+      <strong>Reason:</strong> ${safeReferredName} signed up using your referral link
     </p>
     
     <p style="color: #374151; font-size: 14px; margin: 0 0 20px 0;">
@@ -120,7 +129,7 @@ export async function sendReferralCreditEarnedEmail(params: {
 
   return sendEmail({
     to: referrerEmail,
-    subject: `💰 You earned $${creditAmount.toFixed(2)} referral credit!`,
+    subject: safeEmailSubject(`💰 You earned $${creditAmount.toFixed(2)} referral credit!`),
     html: referralEmailWrapper(content, referrerEmail),
   });
 }

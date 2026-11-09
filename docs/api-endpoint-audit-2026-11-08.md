@@ -213,6 +213,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Media file names, sizes, durations, data URLs, thumbnails, and content are strict and bounded; base64 data must be canonical and MIME-matched; signatures/extensions are validated; public artist IDs/slugs and admin hide IDs are safe; and active-only public/owner projections and owner/admin publication boundaries remain enforced.
    - Sandbox/OG/social/unified-ecosystem regressions pass 35/35, with TypeScript and production build validation passing. No Sandbox Posts, media uploads, moderation changes, shares, or records were changed.
 
+46. **Referral integrity and notification-email safety — resolved in this increment.**
+   - Referral codes require the generated eight-character URL-safe grammar and public validation is capped at 60 requests per minute per client IP; protected code application uses strict inputs and a conditional pending-row update to prevent concurrent reuse; referred-email history is masked and credit history is explicitly projected; and referral names are HTML-escaped with newline-free subjects before notification emails.
+   - Referral/referral-email/subscription-credit regressions pass 70/70, with TypeScript and production build validation passing. No referral applications, credits, emails, coupons, or records were changed.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.
