@@ -1024,11 +1024,13 @@ return { success: true, payoutId: input.payoutId };
     .input(z.object({
       status: z.enum(["draft", "published", "archived", "taken_down"]).optional(),
       limit: z.number().int().safe().min(1).max(100).default(50),
+      offset: adminOffset,
     }).strict().optional())
     .query(async ({ input }) => {
       const db = await getDb();
       const status = input?.status;
       const limit = input?.limit || 50;
+      const offset = input?.offset || 0;
 
       if (!db) throw new Error("Database not available");
 
@@ -1048,17 +1050,25 @@ return { success: true, payoutId: input.payoutId };
 
       if (status) {
         const { eq } = await import("drizzle-orm");
-        return await db.select(selectFields)
+        const [releases, countRows] = await Promise.all([
+          db.select(selectFields)
           .from(artistReleases)
           .where(eq(artistReleases.status, status))
           .orderBy(desc(artistReleases.createdAt))
-          .limit(limit);
+          .limit(limit).offset(offset),
+          db.select({ count: sql<number>`COUNT(*)` }).from(artistReleases).where(eq(artistReleases.status, status)),
+        ]);
+        return { releases, total: Number(countRows[0]?.count || 0), limit, offset };
       }
 
-      return await db.select(selectFields)
-        .from(artistReleases)
-        .orderBy(desc(artistReleases.createdAt))
-        .limit(limit);
+      const [releases, countRows] = await Promise.all([
+        db.select(selectFields)
+          .from(artistReleases)
+          .orderBy(desc(artistReleases.createdAt))
+          .limit(limit).offset(offset),
+        db.select({ count: sql<number>`COUNT(*)` }).from(artistReleases),
+      ]);
+      return { releases, total: Number(countRows[0]?.count || 0), limit, offset };
     }),
 
   /**

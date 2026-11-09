@@ -36,12 +36,14 @@ export default function AdminPayouts() {
   const [selectedPayout, setSelectedPayout] = useState<any>(null);
   const [showDetails, setShowDetails] = useState(false);
   const [processingId, setProcessingId] = useState<number | null>(null);
+  const [page, setPage] = useState(1);
+  const pageSize = 25;
 
   // Fetch pending payouts using tRPC hook
   const payoutsQuery = trpc.admin.getPayouts.useQuery({
     status: 'pending',
-    limit: 100,
-    offset: 0,
+    limit: pageSize,
+    offset: (page - 1) * pageSize,
   });
   const payouts = payoutsQuery.data?.payouts || [];
   const isLoading = payoutsQuery.isLoading;
@@ -209,6 +211,7 @@ export default function AdminPayouts() {
           </CardHeader>
           <CardContent>
             {payouts && payouts.length > 0 ? (
+              <>
               <Table>
                 <TableHeader>
                   <TableRow className="border-gray-200">
@@ -324,6 +327,17 @@ export default function AdminPayouts() {
                   ))}
                 </TableBody>
               </Table>
+              {payoutsQuery.data && payoutsQuery.data.total > pageSize && (
+                <div className="mt-4 flex flex-col gap-3 border-t pt-4 text-sm sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-gray-600">Showing {((page - 1) * pageSize) + 1}–{Math.min(page * pageSize, payoutsQuery.data.total)} of {payoutsQuery.data.total}</p>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" onClick={() => setPage(Math.max(1, page - 1))} disabled={page === 1}>Previous</Button>
+                    <span className="text-gray-600">Page {page} of {Math.ceil(payoutsQuery.data.total / pageSize)}</span>
+                    <Button variant="outline" size="sm" onClick={() => setPage(Math.min(Math.ceil(payoutsQuery.data.total / pageSize), page + 1))} disabled={page >= Math.ceil(payoutsQuery.data.total / pageSize)}>Next</Button>
+                  </div>
+                </div>
+              )}
+              </>
             ) : (
               <p className="text-gray-500 text-center py-8">No payouts to process</p>
             )}

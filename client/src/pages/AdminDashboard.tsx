@@ -23,6 +23,11 @@ export function AdminDashboard() {
   }
   const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'bookings' | 'payouts' | 'releases' | 'blog' | 'feedback' | 'disputes' | 'audit_log' | 'activity' | 'videos' | 'verification'>('overview');
   const [searchQuery, setSearchQuery] = useState('');
+  const [userPage, setUserPage] = useState(1);
+  const [userRole, setUserRole] = useState<'all' | 'user' | 'admin' | 'artist' | 'venue' | 'fan' | 'blogger'>('all');
+  const [bookingPage, setBookingPage] = useState(1);
+  const [payoutPage, setPayoutPage] = useState(1);
+  const [releasePage, setReleasePage] = useState(1);
 
   // Fetch analytics
   const analyticsQuery = trpc.admin.getAnalytics.useQuery();
@@ -30,14 +35,17 @@ export function AdminDashboard() {
   const financialQuery = trpc.admin.getFinancialOverview.useQuery();
 
   // Fetch data for different tabs
-  const usersQuery = trpc.admin.getUsers.useQuery({ search: searchQuery, limit: 50 });
-  const bookingsQuery = trpc.admin.getBookings.useQuery({ limit: 50 });
-  const payoutsQuery = trpc.admin.getPayouts.useQuery({ limit: 50 });
-  const releasesQuery = trpc.admin.getReleases.useQuery({ limit: 50 });
+  const pageSize = 25;
+  const usersQuery = trpc.admin.getUsers.useQuery({ search: searchQuery, role: userRole === 'all' ? undefined : userRole, limit: pageSize, offset: (userPage - 1) * pageSize });
+  const bookingsQuery = trpc.admin.getBookings.useQuery({ limit: pageSize, offset: (bookingPage - 1) * pageSize });
+  const payoutsQuery = trpc.admin.getPayouts.useQuery({ limit: pageSize, offset: (payoutPage - 1) * pageSize });
+  const releasesQuery = trpc.admin.getReleases.useQuery({ limit: pageSize, offset: (releasePage - 1) * pageSize });
   const feedbackQuery = trpc.admin.getUnsubscribeFeedback.useQuery();
   const disputesQuery = trpc.dispute.adminGetAll.useQuery();
   const [auditSearch, setAuditSearch] = useState('');
-  const auditLogQuery = trpc.admin.getAuditLog.useQuery({ search: auditSearch, limit: 50, offset: 0 });
+  const [auditPage, setAuditPage] = useState(1);
+  const auditPageSize = 25;
+  const auditLogQuery = trpc.admin.getAuditLog.useQuery({ search: auditSearch, limit: auditPageSize, offset: (auditPage - 1) * auditPageSize });
   const [activityCategory, setActivityCategory] = useState<'all' | 'users' | 'bookings' | 'payouts' | 'blog' | 'disputes' | 'releases' | 'settings'>('all');
   const [activitySearch, setActivitySearch] = useState('');
   const [activityPage, setActivityPage] = useState(1);
@@ -165,8 +173,14 @@ export function AdminDashboard() {
           {activeTab === 'users' && (
             <UsersTab
               searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
+              setSearchQuery={(value) => { setSearchQuery(value); setUserPage(1); }}
+              roleFilter={userRole}
+              setRoleFilter={(value) => { setUserRole(value); setUserPage(1); }}
               users={usersQuery.data?.users || []}
+              total={usersQuery.data?.total || 0}
+              page={userPage}
+              pageSize={pageSize}
+              setPage={setUserPage}
               isLoading={usersQuery.isLoading}
             />
           )}
@@ -174,13 +188,13 @@ export function AdminDashboard() {
             <VerificationTab />
           )}
           {activeTab === 'bookings' && (
-            <BookingsTab bookings={bookingsQuery.data?.bookings || []} isLoading={bookingsQuery.isLoading} />
+            <BookingsTab bookings={bookingsQuery.data?.bookings || []} total={bookingsQuery.data?.total || 0} page={bookingPage} pageSize={pageSize} setPage={setBookingPage} isLoading={bookingsQuery.isLoading} />
           )}
           {activeTab === 'payouts' && (
-            <PayoutsTab payouts={payoutsQuery.data?.payouts || []} isLoading={payoutsQuery.isLoading} />
+            <PayoutsTab payouts={payoutsQuery.data?.payouts || []} total={payoutsQuery.data?.total || 0} page={payoutPage} pageSize={pageSize} setPage={setPayoutPage} isLoading={payoutsQuery.isLoading} />
           )}
           {activeTab === 'releases' && (
-            <ReleasesTab releases={releasesQuery.data || []} isLoading={releasesQuery.isLoading} refetch={releasesQuery.refetch} />
+            <ReleasesTab releases={releasesQuery.data?.releases || []} total={releasesQuery.data?.total || 0} page={releasePage} pageSize={pageSize} setPage={setReleasePage} isLoading={releasesQuery.isLoading} refetch={releasesQuery.refetch} />
           )}
           {activeTab === 'blog' && (
             <div className="p-8 text-center">
@@ -217,6 +231,9 @@ export function AdminDashboard() {
               isLoading={auditLogQuery.isLoading}
               search={auditSearch}
               setSearch={setAuditSearch}
+              page={auditPage}
+              pageSize={auditPageSize}
+              setPage={(value: number) => { setAuditPage(value); }}
             />
           )}
           {activeTab === 'videos' && (
@@ -268,6 +285,21 @@ function MetricCard({
           <p className="text-[10px] sm:text-xs text-gray-500 mt-1 sm:mt-2 truncate">{subtext}</p>
         </div>
         <div className="text-gray-400 hidden sm:block">{icon}</div>
+      </div>
+    </div>
+  );
+}
+
+function AdminPagination({ total, page, pageSize, setPage }: { total: number; page: number; pageSize: number; setPage: (page: number) => void }) {
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  if (totalPages <= 1) return null;
+  return (
+    <div className="mt-4 flex flex-col gap-3 border-t border-gray-100 pt-4 text-sm sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-gray-600">Showing {((page - 1) * pageSize) + 1}–{Math.min(page * pageSize, total)} of {total}</p>
+      <div className="flex items-center gap-2">
+        <button type="button" onClick={() => setPage(Math.max(1, page - 1))} disabled={page === 1} className="rounded-lg border border-gray-300 px-3 py-1.5 disabled:opacity-50 hover:bg-gray-50">Previous</button>
+        <label className="flex items-center gap-1 text-gray-600">Page <input aria-label="Go to page" type="number" min={1} max={totalPages} value={page} onChange={(event) => { const next = Number(event.target.value); if (Number.isInteger(next)) setPage(Math.min(totalPages, Math.max(1, next))); }} className="w-16 rounded-lg border border-gray-300 px-2 py-1.5 text-center" /> of {totalPages}</label>
+        <button type="button" onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page === totalPages} className="rounded-lg border border-gray-300 px-3 py-1.5 disabled:opacity-50 hover:bg-gray-50">Next</button>
       </div>
     </div>
   );
@@ -412,15 +444,26 @@ function OverviewTab({
 function UsersTab({
   searchQuery,
   setSearchQuery,
+  roleFilter,
+  setRoleFilter,
   users,
+  total,
+  page,
+  pageSize,
+  setPage,
   isLoading,
 }: {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
+  roleFilter: 'all' | 'user' | 'admin' | 'artist' | 'venue' | 'fan' | 'blogger';
+  setRoleFilter: (role: 'all' | 'user' | 'admin' | 'artist' | 'venue' | 'fan' | 'blogger') => void;
   users: any[];
+  total: number;
+  page: number;
+  pageSize: number;
+  setPage: (page: number) => void;
   isLoading: boolean;
 }) {
-  const [roleFilter, setRoleFilter] = useState<string>('all');
   const [confirmAction, setConfirmAction] = useState<{ user: any; newRole: string } | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [selectedComplimentaryUser, setSelectedComplimentaryUser] = useState<any | null>(null);
@@ -467,8 +510,7 @@ function UsersTab({
     onError: (err: any) => alert("Manual verify failed: " + err.message),
   });
 
-  // Filter users by role
-  const filteredUsers = roleFilter === 'all' ? users : users.filter((u: any) => u.role === roleFilter);
+  const filteredUsers = users;
 
   // Check if a user is the owner
   const ownerUserId = adminsQuery.data?.owner?.id;
@@ -560,13 +602,14 @@ function UsersTab({
         </div>
         <select
           value={roleFilter}
-          onChange={(e) => setRoleFilter(e.target.value)}
+          onChange={(e) => setRoleFilter(e.target.value as 'all' | 'user' | 'admin' | 'artist' | 'venue' | 'fan' | 'blogger')}
           className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-sm"
         >
           <option value="all">All Roles</option>
           <option value="admin">Admins</option>
           <option value="artist">Artists</option>
           <option value="venue">Venues</option>
+          <option value="fan">Fans</option>
           <option value="blogger">Bloggers</option>
           <option value="user">Users</option>
         </select>
@@ -681,6 +724,7 @@ function UsersTab({
               </tbody>
             </table>
           </div>
+          <AdminPagination total={total} page={page} pageSize={pageSize} setPage={setPage} />
 
           {/* Confirmation Dialog */}
           {confirmAction && (
@@ -765,7 +809,7 @@ function UsersTab({
 }
 
 // Bookings Tab
-function BookingsTab({ bookings, isLoading }: { bookings: any[]; isLoading: boolean }) {
+function BookingsTab({ bookings, total, page, pageSize, setPage, isLoading }: { bookings: any[]; total: number; page: number; pageSize: number; setPage: (page: number) => void; isLoading: boolean }) {
   return (
     <div className="p-6">
       {isLoading ? (
@@ -806,6 +850,7 @@ function BookingsTab({ bookings, isLoading }: { bookings: any[]; isLoading: bool
               ))}
             </tbody>
           </table>
+          <AdminPagination total={total} page={page} pageSize={pageSize} setPage={setPage} />
         </div>
       )}
     </div>
@@ -813,7 +858,7 @@ function BookingsTab({ bookings, isLoading }: { bookings: any[]; isLoading: bool
 }
 
 // Releases Tab (Admin Moderation)
-function ReleasesTab({ releases, isLoading, refetch }: { releases: any[]; isLoading: boolean; refetch: () => void }) {
+function ReleasesTab({ releases, total, page, pageSize, setPage, isLoading, refetch }: { releases: any[]; total: number; page: number; pageSize: number; setPage: (page: number) => void; isLoading: boolean; refetch: () => void }) {
   const [takedownReason, setTakedownReason] = useState('');
   const [selectedRelease, setSelectedRelease] = useState<number | null>(null);
   const takedownMutation = trpc.admin.takedownRelease.useMutation({
@@ -829,7 +874,7 @@ function ReleasesTab({ releases, isLoading, refetch }: { releases: any[]; isLoad
         <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
           <Music className="w-5 h-5" /> White Label Releases
         </h3>
-        <span className="text-sm text-gray-500">{releases.length} total</span>
+        <span className="text-sm text-gray-500">{total} total</span>
       </div>
 
       {isLoading ? (
@@ -895,6 +940,7 @@ function ReleasesTab({ releases, isLoading, refetch }: { releases: any[]; isLoad
               ))}
             </tbody>
           </table>
+          <AdminPagination total={total} page={page} pageSize={pageSize} setPage={setPage} />
         </div>
       )}
 
@@ -1435,7 +1481,7 @@ function FeedbackTab({
 }
 
 // Payouts Tab
-function PayoutsTab({ payouts, isLoading }: { payouts: any[]; isLoading: boolean }) {
+function PayoutsTab({ payouts, total, page, pageSize, setPage, isLoading }: { payouts: any[]; total: number; page: number; pageSize: number; setPage: (page: number) => void; isLoading: boolean }) {
   return (
     <div className="p-6">
       {isLoading ? (
@@ -1476,6 +1522,7 @@ function PayoutsTab({ payouts, isLoading }: { payouts: any[]; isLoading: boolean
               ))}
             </tbody>
           </table>
+          <AdminPagination total={total} page={page} pageSize={pageSize} setPage={setPage} />
         </div>
       )}
     </div>
@@ -1919,12 +1966,18 @@ function AuditLogTab({
   isLoading,
   search,
   setSearch,
+  page,
+  pageSize,
+  setPage,
 }: {
   entries: any[];
   total: number;
   isLoading: boolean;
   search: string;
   setSearch: (s: string) => void;
+  page: number;
+  pageSize: number;
+  setPage: (page: number) => void;
 }) {
   const getRoleBadge = (role: string) => {
     const colors: Record<string, string> = {
@@ -1973,7 +2026,7 @@ function AuditLogTab({
             type="text"
             placeholder="Search by name or email..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-72"
           />
         </div>
@@ -2040,6 +2093,7 @@ function AuditLogTab({
               ))}
             </tbody>
           </table>
+          <AdminPagination total={total} page={page} pageSize={pageSize} setPage={setPage} />
         </div>
       )}
     </div>
@@ -2273,9 +2327,9 @@ function ActivityTab({
                 >
                   Previous
                 </button>
-                <span className="px-3 py-1 text-sm text-gray-600">
-                  Page {page} of {totalPages}
-                </span>
+                <label className="flex items-center gap-1 px-1 text-sm text-gray-600">
+                  Page <input aria-label="Go to activity page" type="number" min={1} max={totalPages} value={page} onChange={(event) => { const next = Number(event.target.value); if (Number.isInteger(next)) setPage(Math.min(totalPages, Math.max(1, next))); }} className="w-16 rounded-lg border border-gray-300 px-2 py-1 text-center" /> of {totalPages}
+                </label>
                 <button
                   onClick={() => setPage(Math.min(totalPages, page + 1))}
                   disabled={page === totalPages}
