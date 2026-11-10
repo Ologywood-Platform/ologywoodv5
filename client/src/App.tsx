@@ -157,7 +157,6 @@ const GLOBAL_HEADER_FALLBACK_PATHS = new Set([
   '/revert-email',
   '/reset-password',
   '/admin',
-  '/admin/edu',
   '/admin/payouts',
   '/admin/blog',
   '/blogger-dashboard',
