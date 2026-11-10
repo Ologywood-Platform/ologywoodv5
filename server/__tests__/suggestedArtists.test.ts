@@ -8,6 +8,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 const mockGetFollowing = vi.fn();
 const mockGetFollowRecommendations = vi.fn();
 const mockGetFollowerCount = vi.fn();
+const mockGetFollowerCounts = vi.fn();
 const mockFollowUser = vi.fn();
 const mockUnfollowUser = vi.fn();
 
@@ -15,6 +16,7 @@ vi.mock('../services/followService', () => ({
   getFollowing: (...args: any[]) => mockGetFollowing(...args),
   getFollowRecommendations: (...args: any[]) => mockGetFollowRecommendations(...args),
   getFollowerCount: (...args: any[]) => mockGetFollowerCount(...args),
+  getFollowerCounts: (...args: any[]) => mockGetFollowerCounts(...args),
   followUser: (...args: any[]) => mockFollowUser(...args),
   unfollowUser: (...args: any[]) => mockUnfollowUser(...args),
   getTrendingUsers: vi.fn().mockResolvedValue([]),
@@ -70,6 +72,7 @@ describe('getSuggestedArtists Feature', () => {
     mockGetFollowing.mockResolvedValue([]);
     mockGetFollowRecommendations.mockResolvedValue([]);
     mockGetFollowerCount.mockResolvedValue(0);
+    mockGetFollowerCounts.mockResolvedValue(new Map());
   });
 
   describe('Data enrichment', () => {
@@ -291,6 +294,25 @@ describe('getSuggestedArtists Feature', () => {
       }
 
       expect(followerCount).toBe(0);
+    });
+
+    it('should use grouped follower counts for selected candidates', async () => {
+      mockGetFollowerCounts.mockResolvedValue(new Map([[10, 12], [20, 4]]));
+
+      const counts = await mockGetFollowerCounts([10, 20]);
+
+      expect(mockGetFollowerCounts).toHaveBeenCalledWith([10, 20]);
+      expect(counts.get(10)).toBe(12);
+      expect(counts.get(20)).toBe(4);
+    });
+
+    it('treats missing grouped counts as zero', async () => {
+      mockGetFollowerCounts.mockResolvedValue(new Map([[10, 12]]));
+
+      const counts = await mockGetFollowerCounts([10, 20]);
+
+      expect(counts.get(10) ?? 0).toBe(12);
+      expect(counts.get(20) ?? 0).toBe(0);
     });
   });
 });

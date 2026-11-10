@@ -5,7 +5,7 @@
 
 import { drizzle } from "drizzle-orm/mysql2";
 import { follows, users, artistProfiles, venueProfiles, events } from "../../drizzle/schema";
-import { eq, and, ne, inArray, gte, asc } from "drizzle-orm";
+import { eq, and, ne, inArray, gte, asc, sql } from "drizzle-orm";
 import { getDb } from "../db";
 import { getEligibleFanEmailRecipients, revokeFanEmailConsent, withFanEmailUserLock } from './fanEmailConsentService';
 
@@ -562,6 +562,31 @@ export async function getFollowerCount(userId: number): Promise<number> {
     console.error("Error getting follower count:", error);
     throw error;
   }
+}
+
+/**
+ * Get follower counts for several users in one grouped query.
+ * Missing users are intentionally omitted and treated as zero by callers.
+ */
+export async function getFollowerCounts(userIds: number[]): Promise<Map<number, number>> {
+  const counts = new Map<number, number>();
+  const uniqueUserIds = [...new Set(userIds.filter((id): id is number => Number.isSafeInteger(id) && id > 0))];
+  if (uniqueUserIds.length === 0) return counts;
+
+  const db = await getDb();
+  if (!db) return counts;
+
+  const rows = await db
+    .select({
+      userId: follows.followingId,
+      followerCount: sql<number>`count(*)`,
+    })
+    .from(follows)
+    .where(inArray(follows.followingId, uniqueUserIds))
+    .groupBy(follows.followingId);
+
+  for (const row of rows) counts.set(row.userId, Number(row.followerCount) || 0);
+  return counts;
 }
 
 /**

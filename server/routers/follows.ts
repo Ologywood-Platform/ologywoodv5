@@ -301,60 +301,50 @@ export const followsRouter = router({
         } catch (_) { /* ignore */ }
       }
 
-      // Build enriched artist list
-      // Priority: recommended artists first, then remaining artists
-      const enriched: any[] = [];
+      // Build the candidate list first, then fetch follower counts in one grouped query.
+      // Priority remains: personalized recommendations first, random fallback second.
+      const artistsByUserId = new Map(allArtists.map((artist: any) => [artist.userId, artist]));
       const addedUserIds = new Set<number>();
+      const candidates: Array<{ artist: any; isRecommended: boolean }> = [];
 
-      // Helper to enrich an artist profile
-      const enrichArtist = async (artist: any, isRecommended: boolean) => {
+      const addCandidate = (artist: any, isRecommended: boolean) => {
         const userId = artist.userId;
-        if (followingIds.has(userId) || addedUserIds.has(userId)) return null;
-        // Don't suggest yourself
-        if (currentUserId && userId === currentUserId) return null;
+        if (followingIds.has(userId) || addedUserIds.has(userId)) return;
+        if (currentUserId && userId === currentUserId) return;
         addedUserIds.add(userId);
-
-        let followerCount = 0;
-        try {
-          followerCount = await followService.getFollowerCount(userId);
-        } catch (_) { /* ignore */ }
-
-        return {
-          id: artist.id,
-          userId: artist.userId,
-          artistName: artist.artistName || 'Unknown',
-          genres: Array.isArray(artist.genre) ? artist.genre : [],
-          location: artist.location || null,
-          profilePhotoUrl: artist.profilePhotoUrl || null,
-          followerCount,
-          isRecommended,
-        };
+        candidates.push({ artist, isRecommended });
       };
 
-      // Add recommended artists first
       for (const recUserId of recommendedUserIds) {
-        const artist = allArtists.find((a: any) => a.userId === recUserId);
-        if (artist) {
-          const enrichedArtist = await enrichArtist(artist, true);
-          if (enrichedArtist) enriched.push(enrichedArtist);
-        }
-        if (enriched.length >= limit) break;
+        const artist = artistsByUserId.get(recUserId);
+        if (artist) addCandidate(artist, true);
+        if (candidates.length >= limit) break;
       }
 
-      // Fill remaining slots with other artists
-      if (enriched.length < limit) {
-        // Shuffle remaining artists for variety
+      if (candidates.length < limit) {
         const remaining = allArtists
-          .filter((a: any) => !addedUserIds.has(a.userId))
+          .filter((artist: any) => !addedUserIds.has(artist.userId))
           .sort(() => Math.random() - 0.5);
-
         for (const artist of remaining) {
-          const enrichedArtist = await enrichArtist(artist, false);
-          if (enrichedArtist) enriched.push(enrichedArtist);
-          if (enriched.length >= limit) break;
+          addCandidate(artist, false);
+          if (candidates.length >= limit) break;
         }
       }
 
-      return enriched;
+      let followerCounts = new Map<number, number>();
+      try {
+        followerCounts = await followService.getFollowerCounts(candidates.map(({ artist }) => artist.userId));
+      } catch (_) { /* keep zero counts if the aggregate is unavailable */ }
+
+      return candidates.map(({ artist, isRecommended }) => ({
+        id: artist.id,
+        userId: artist.userId,
+        artistName: artist.artistName || 'Unknown',
+        genres: Array.isArray(artist.genre) ? artist.genre : [],
+        location: artist.location || null,
+        profilePhotoUrl: artist.profilePhotoUrl || null,
+        followerCount: followerCounts.get(artist.userId) ?? 0,
+        isRecommended,
+      }));
     }),
 });
