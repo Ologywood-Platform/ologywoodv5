@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Download, Loader2, LockKeyhole, MapPin, Package, Truck } from 'lucide-react';
+import { Download, HelpCircle, Loader2, LockKeyhole, MapPin, Package, Truck } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface MerchCheckoutDialogProps {
   item: any;
@@ -117,11 +118,19 @@ export function MerchCheckoutDialog({ item, open, onOpenChange }: MerchCheckoutD
       <DialogContent className="sm:max-w-2xl max-h-[92vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isDigitalBook ? 'Buy' : 'Order'} {item.title}</DialogTitle>
-          <p className="text-sm text-muted-foreground">
-            {isDigitalBook
-              ? 'An account is required so your verified purchase can be securely linked to you, your five-download limit can be enforced, and you can recover access from My Ology.'
-              : 'No account required. Enter your email for your receipt and order updates.'}
-          </p>
+          {isDigitalBook ? <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <span>An account is required for secure eBook access.</span>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button type="button" aria-label="Why an account is required for eBook access" className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500">
+                  <HelpCircle className="h-4 w-4 text-purple-700" aria-hidden="true" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-xs">
+                Your account links the verified purchase to you, protects the five-download limit, and lets you recover access later from My Ology.
+              </TooltipContent>
+            </Tooltip>
+          </div> : <p className="text-sm text-muted-foreground">No account required. Enter your email for your receipt and order updates.</p>}
         </DialogHeader>
 
         <div className="space-y-5 py-2">
