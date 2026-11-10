@@ -31,6 +31,7 @@ export function MerchCheckoutDialog({ item, open, onOpenChange }: MerchCheckoutD
   const [postalCode, setPostalCode] = useState('');
   const [country, setCountry] = useState('United States');
   const [customerNote, setCustomerNote] = useState('');
+  const [creatorUpdatesOptIn, setCreatorUpdatesOptIn] = useState(false);
 
   const variants = (item?.variants || []) as Array<{ name: string; options: string[] }>;
   const isDigitalBook = item?.productCategory === 'book' && item?.bookFormat === 'ebook';
@@ -54,6 +55,7 @@ export function MerchCheckoutDialog({ item, open, onOpenChange }: MerchCheckoutD
     setPostalCode('');
     setCountry('United States');
     setCustomerNote('');
+    setCreatorUpdatesOptIn(false);
   }, [open, item?.id, user?.name, user?.email]);
 
   const missingVariant = useMemo(
@@ -108,6 +110,7 @@ export function MerchCheckoutDialog({ item, open, onOpenChange }: MerchCheckoutD
         country: country.trim(),
       } : undefined,
       customerNote: customerNote.trim() || undefined,
+      fanEmailOptIn: Boolean(user?.emailVerified && creatorUpdatesOptIn),
     });
   }
 
@@ -199,6 +202,16 @@ export function MerchCheckoutDialog({ item, open, onOpenChange }: MerchCheckoutD
           )}
 
           <div className="space-y-2"><Label htmlFor="customer-note">Note for the creator (optional)</Label><Textarea id="customer-note" value={customerNote} onChange={(event) => setCustomerNote(event.target.value)} maxLength={500} placeholder="Special instructions or a question about the order..." /></div>
+
+          {user?.emailVerified ? <label className="flex items-start gap-2 text-sm text-muted-foreground">
+            <input
+              type="checkbox"
+              checked={creatorUpdatesOptIn}
+              onChange={(event) => setCreatorUpdatesOptIn(event.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded border-input accent-primary"
+            />
+            <span>Follow this creator and receive occasional updates by email. You can unsubscribe anytime.</span>
+          </label> : user ? <p className="text-xs text-muted-foreground">Verify your email in Settings if you want to receive updates from this creator.</p> : null}
 
           <div className="rounded-lg bg-muted p-4 space-y-2 text-sm">
             <div className="flex justify-between"><span>{item.productCategory === 'book' ? 'Book' : 'Merch'}</span><span>${(subtotal / 100).toFixed(2)}</span></div>

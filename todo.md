@@ -777,7 +777,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Create new/edit release form page (integrated into ReleaseManager)
 - [x] Add Release Manager link to artist dashboard quick actions
 - [x] Implement sales analytics (getSalesStats, getPurchases in release router)
-- [ ] Integrate fan email capture from purchases into existing fan email list
+- [x] Integrate explicit fan email capture from paid purchases into the existing fan email list. Verified signed-in buyers can opt in during music-release, native merch/eBook, and ticket checkout; after Stripe confirms payment, the buyer is added through the existing follow + revision-bound consent service. Guest buyers remain account-free and are never silently added. Focused purchase/commerce/webhook/security regressions pass 111/111; TypeScript and production build pass. No purchases, emails, follows, consent rows, or Stripe sessions were created during validation.
 - [x] Add follower notification on new release publish
 - [x] Integrate release earnings into existing Earnings dashboard (tabbed: Overview, Bookings, Releases)
 - [x] Implement "pay what you want" for Professional tier (checkout route)

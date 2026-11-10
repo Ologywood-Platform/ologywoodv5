@@ -28,6 +28,7 @@ import {
 import { getPublicMusicSingle, PublicMusicReleaseUnavailableError } from "../services/musicReleasePublicService";
 import { escapeFanEmailHtml, safeFanEmailHref, sanitizeFanEmailSubject } from "../services/fanEmailFormatting";
 import { trustedCheckoutOrigin } from "../services/trustedOrigin";
+import { capturePurchaseFanEmailOptIn } from "../services/purchaseFanEmailService";
 
 const stripe = new Stripe(getDefaultStripeApiKey(), {
   apiVersion: "2025-12-15.clover",
@@ -759,6 +760,13 @@ export const releaseRouter = router({
 
         // Increment sales counters
         await db.incrementReleaseSales(releaseId, amountPaid);
+
+        const artistProfile = await db.getArtistProfileById(release.artistId);
+        await capturePurchaseFanEmailOptIn({
+          creatorUserId: artistProfile?.userId ?? null,
+          buyerUserId: ctx.user?.id || metadataBuyerId || null,
+          optIn: session.metadata?.fanEmailOptIn === 'true',
+        });
 
         console.log('[Release VerifyPurchase] Fallback purchase created');
 

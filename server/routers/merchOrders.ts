@@ -110,6 +110,7 @@ export const merchOrdersRouter = router({
       fulfillmentMethod: z.enum(['shipping', 'pickup', 'digital']),
       shippingAddress: addressSchema.optional(),
       customerNote: z.string().trim().max(500).optional(),
+      fanEmailOptIn: z.boolean().default(false),
     }).strict())
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
@@ -258,6 +259,8 @@ export const merchOrdersRouter = router({
             orderNumber,
             sellerUserId: String(item.userId),
             merchItemId: String(item.id),
+            buyerUserId: String(ctx.user?.id || ''),
+            fanEmailOptIn: ctx.user && input.fanEmailOptIn ? 'true' : 'false',
           },
           payment_intent_data: {
             application_fee_amount: platformFeeCents,
@@ -266,6 +269,8 @@ export const merchOrdersRouter = router({
               type: 'merch_purchase',
               orderId: String(orderId),
               orderNumber,
+              buyerUserId: String(ctx.user?.id || ''),
+              fanEmailOptIn: ctx.user && input.fanEmailOptIn ? 'true' : 'false',
             },
           },
         }, { idempotencyKey: `merch_checkout_${orderNumber}` });

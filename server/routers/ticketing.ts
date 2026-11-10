@@ -62,6 +62,7 @@ const purchaseSchema = z.object({
   buyerName: z.string().trim().max(255).optional(),
   buyerEmail: z.string().trim().email().max(320).optional(),
   buyerPhone: z.string().trim().max(30).optional(),
+  fanEmailOptIn: z.boolean().default(false),
   promoCode: z.string().trim().min(2).max(50).regex(/^[A-Za-z0-9 _-]+$/).transform(v => v.toUpperCase().replace(/[^A-Z0-9]/g, '')).refine(v => v.length >= 2).optional(),
 }).strict();
 
@@ -384,6 +385,7 @@ export const ticketingRouter = router({
           totalTickets: totalTickets.toString(),
           items: JSON.stringify(input.items),
           buyerUserId: (ctx.user as any)?.id?.toString() || '',
+          fanEmailOptIn: ctx.user && input.fanEmailOptIn ? 'true' : 'false',
           promoCode: appliedPromoCode || '',
           promoDiscount: promoDiscount.toString(),
         },
@@ -400,6 +402,7 @@ export const ticketingRouter = router({
         totalTickets: totalTickets.toString(),
         items: JSON.stringify(input.items),
         buyerUserId: (ctx.user as any)?.id?.toString() || '',
+        fanEmailOptIn: ctx.user && input.fanEmailOptIn ? 'true' : 'false',
         customer_email: buyerEmail,
         customer_name: buyerName,
         promoCode: appliedPromoCode || '',

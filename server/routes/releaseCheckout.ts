@@ -57,11 +57,14 @@ router.post("/", async (req: Request, res: Response) => {
     if (!req.body || typeof req.body !== 'object' || Array.isArray(req.body)) {
       return res.status(400).json({ error: 'Request body must be an object' });
     }
-    const allowedKeys = new Set(['releaseId', 'customAmountCents', 'buyerEmail', 'buyerName']);
+    const allowedKeys = new Set(['releaseId', 'customAmountCents', 'buyerEmail', 'buyerName', 'fanEmailOptIn']);
     if (Object.keys(req.body).some((key) => !allowedKeys.has(key))) {
       return res.status(400).json({ error: 'Unknown release checkout field' });
     }
-    const { releaseId, customAmountCents, buyerEmail: rawBuyerEmail, buyerName: rawBuyerName } = req.body;
+    const { releaseId, customAmountCents, buyerEmail: rawBuyerEmail, buyerName: rawBuyerName, fanEmailOptIn } = req.body;
+    if (fanEmailOptIn !== undefined && typeof fanEmailOptIn !== 'boolean') {
+      return res.status(400).json({ error: 'fanEmailOptIn must be a boolean' });
+    }
 
     if (rawBuyerEmail !== undefined && (typeof rawBuyerEmail !== 'string' || rawBuyerEmail.trim().length > 320)) {
       return res.status(400).json({ error: 'buyerEmail must be a valid email address' });
@@ -158,6 +161,7 @@ router.post("/", async (req: Request, res: Response) => {
         buyerUserId: user?.id?.toString() || "",
         buyerEmail: user?.email || buyerEmail || "",
         buyerName: user?.name || buyerName || "",
+        fanEmailOptIn: user && fanEmailOptIn === true ? "true" : "false",
         type: "release_purchase",
         platformFeeCents: platformFeeCents.toString(),
         hasConnectAccount: artistStripeAccountId ? "true" : "false",

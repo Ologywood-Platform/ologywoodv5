@@ -20,6 +20,7 @@ export function TicketPurchase({ eventId, eventTitle }: TicketPurchaseProps) {
   const [quantities, setQuantities] = useState<Record<number, number>>({});
   const [guestEmail, setGuestEmail] = useState('');
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [creatorUpdatesOptIn, setCreatorUpdatesOptIn] = useState(false);
   const [appliedPromo, setAppliedPromo] = useState<{ code: string; discountType: string; discountValue: number } | null>(null);
 
   const { data: tiers, isLoading } = trpc.ticketing.getTiers.useQuery({ eventId }, { refetchInterval: 30000, staleTime: 10000 });
@@ -73,6 +74,7 @@ export function TicketPurchase({ eventId, eventTitle }: TicketPurchaseProps) {
         buyerEmail: user?.email || guestEmail.trim() || undefined,
         buyerName: user?.name || undefined,
         promoCode: appliedPromo?.code,
+        fanEmailOptIn: Boolean(user?.emailVerified && creatorUpdatesOptIn),
       });
 
       if (result.checkoutUrl) {
@@ -203,6 +205,16 @@ export function TicketPurchase({ eventId, eventTitle }: TicketPurchaseProps) {
             </p>
           </div>
         )}
+
+        {user?.emailVerified ? <label className="flex items-start gap-2 border-t pt-3 text-xs text-muted-foreground">
+          <input
+            type="checkbox"
+            checked={creatorUpdatesOptIn}
+            onChange={(event) => setCreatorUpdatesOptIn(event.target.checked)}
+            className="mt-0.5 h-3.5 w-3.5 rounded border-input accent-primary"
+          />
+          <span>Follow this event’s creator and receive occasional updates by email. You can unsubscribe anytime.</span>
+        </label> : user ? <p className="border-t pt-3 text-xs text-muted-foreground">Verify your email in Settings if you want to receive updates from this event’s creator.</p> : null}
 
         {/* Order Summary */}
         {totalTickets > 0 && (

@@ -66,6 +66,7 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId, 
   const [customPrice, setCustomPrice] = useState<string>(priceFormatted);
   const [showPriceInput, setShowPriceInput] = useState(false);
   const [guestEmail, setGuestEmail] = useState("");
+  const [creatorUpdatesOptIn, setCreatorUpdatesOptIn] = useState(false);
   const hasPurchased = !!purchaseId;
   const hasPreview = release.hasPreview ?? !!(release.previewFileKey || release.audioFileKey);
 
@@ -247,6 +248,7 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId, 
           releaseId: release.id,
           ...(!user ? { buyerEmail: guestEmail.trim().toLowerCase() } : {}),
           ...(release.allowPayWhatYouWant ? { customAmountCents: finalAmountCents } : {}),
+          fanEmailOptIn: Boolean(user?.emailVerified && creatorUpdatesOptIn),
         }),
       });
       const data = await response.json();
@@ -461,6 +463,15 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId, 
                   <Input id={`guest-email-${release.id}`} type="email" autoComplete="email" value={guestEmail} onChange={(event) => setGuestEmail(event.target.value)} placeholder="you@example.com" className="mt-1 h-8 text-xs" />
                   <p className="mt-1 text-[10px] text-muted-foreground">No account required. We’ll email your receipt; download access is available on the payment-success page.</p>
                 </div>}
+                {user?.emailVerified ? <label className="mb-2 flex items-start gap-2 text-[11px] text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    checked={creatorUpdatesOptIn}
+                    onChange={(event) => setCreatorUpdatesOptIn(event.target.checked)}
+                    className="mt-0.5 h-3.5 w-3.5 rounded border-input accent-primary"
+                  />
+                  <span>Follow {artistName} and receive occasional updates by email. You can unsubscribe anytime.</span>
+                </label> : user ? <p className="mb-2 text-[10px] text-muted-foreground">Verify your email in Settings if you want to receive updates from this creator.</p> : null}
                 <Button
                   size="sm"
                   onClick={handleBuy}

@@ -17,6 +17,7 @@ import {
 } from '../services/ologyLiveCheckoutService';
 import { syncFanClubMembershipFromSubscription } from '../services/fanClubMembershipService';
 import { escapeFanEmailHtml, safeFanEmailHref, sanitizeFanEmailSubject } from '../services/fanEmailFormatting';
+import { capturePurchaseFanEmailOptIn } from '../services/purchaseFanEmailService';
 
 export async function handleStripeWebhook(req: Request, res: Response) {
   const sig = req.headers['stripe-signature'];
@@ -314,6 +315,11 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session, 
 
       // Send purchase confirmation email to buyer and a separate sale notice to the artist.
       const artistProfile = await db.getArtistProfileById(release.artistId);
+      await capturePurchaseFanEmailOptIn({
+        creatorUserId: artistProfile?.userId ?? null,
+        buyerUserId: session.metadata?.buyerUserId ? parseInt(session.metadata.buyerUserId, 10) : null,
+        optIn: session.metadata?.fanEmailOptIn === 'true',
+      });
       try {
         const buyerEmail = session.customer_details?.email || session.metadata?.buyerEmail;
         if (buyerEmail && artistProfile) {
@@ -1096,6 +1102,12 @@ async function handleMerchPurchaseCompleted(session: Stripe.Checkout.Session) {
 
   console.log(`[Stripe Webhook] Merch order paid: ${order.orderNumber}`);
 
+  await capturePurchaseFanEmailOptIn({
+    creatorUserId: order.sellerType === 'artist' ? order.sellerUserId : null,
+    buyerUserId: order.buyerUserId,
+    optIn: session.metadata?.fanEmailOptIn === 'true',
+  });
+
   try {
     const sellerUser = await db.getUserById(order.sellerUserId);
     let sellerName = sellerUser?.name || 'Creator';
@@ -1148,7 +1160,7 @@ async function handleMerchPurchaseCompleted(session: Stripe.Checkout.Session) {
 
 async function handleTicketPurchaseCompleted(session: Stripe.Checkout.Session) {
   const { getDb } = await import('../db');
-  const { ticketOrders, ticketItems, ticketTiers, ticketPromoCodes } = await import('../../drizzle/schema');
+  const { ticketOrders, ticketItems, ticketTiers, ticketPromoCodes, events, artistProfiles } = await import('../../drizzle/schema');
   const { and, eq, sql } = await import('drizzle-orm');
   const { randomUUID } = await import('crypto');
 
@@ -1228,6 +1240,15 @@ async function handleTicketPurchaseCompleted(session: Stripe.Checkout.Session) {
     }
 
     console.log(`[Stripe Webhook] Ticket purchase completed: order ${orderNumber}, ${items.reduce((sum: number, i: any) => sum + i.quantity, 0)} tickets created`);
+    const [event] = await database.select({ artistId: events.artistId }).from(events).where(eq(events.id, parseInt(eventId))).limit(1);
+    const [artistProfile] = event
+      ? await database.select({ userId: artistProfiles.userId }).from(artistProfiles).where(eq(artistProfiles.id, event.artistId)).limit(1)
+      : [];
+    await capturePurchaseFanEmailOptIn({
+      creatorUserId: artistProfile?.userId ?? null,
+      buyerUserId: session.metadata?.buyerUserId ? parseInt(session.metadata.buyerUserId, 10) : null,
+      optIn: session.metadata?.fanEmailOptIn === 'true',
+    });
 
     // Send ticket confirmation email
     try {

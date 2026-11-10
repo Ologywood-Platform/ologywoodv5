@@ -31,7 +31,8 @@ describe('release checkout security boundaries', () => {
     expect(source).toContain('customAmountCents is outside the allowed range');
     expect(source).toContain('This release does not allow custom pricing');
     expect(source).toContain('trustedCheckoutOrigin(process.env.BASE_URL, req.headers.origin)');
-    expect(source).toContain("const allowedKeys = new Set(['releaseId', 'customAmountCents', 'buyerEmail', 'buyerName'])");
+    expect(source).toContain("const allowedKeys = new Set(['releaseId', 'customAmountCents', 'buyerEmail', 'buyerName', 'fanEmailOptIn'])");
+    expect(source).toContain("fanEmailOptIn must be a boolean");
     expect(source).toContain("Enter your email to continue as a guest");
     expect(source).toContain("sessionParams.customer_email = buyerEmail");
     expect(source).toContain("Request body must be an object");
