@@ -151,6 +151,27 @@ export default function Promote() {
     toast.addSuccess("Copied!", "Text copied to clipboard.");
   };
 
+  const getAdPostText = (result: AdCopyResult, includeLink = true) => [
+    result.headline,
+    result.primaryCopy,
+    result.hashtags.map((h) => `#${h}`).join(" "),
+    `${result.callToAction}${includeLink && result.callToActionUrl ? `: ${result.callToActionUrl}` : ""}`,
+  ].filter(Boolean).join("\n\n");
+
+  const shareToFacebook = (result: AdCopyResult) => {
+    if (!result.callToActionUrl) {
+      toast.addError("Choose an Event", "Select a published event first so Facebook can share the ticket link.");
+      return;
+    }
+    const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(result.callToActionUrl)}&quote=${encodeURIComponent(getAdPostText(result, false))}`;
+    window.open(shareUrl, "_blank", "noopener,noreferrer");
+  };
+
+  const shareToX = (result: AdCopyResult) => {
+    const shareUrl = `https://x.com/intent/post?text=${encodeURIComponent(getAdPostText(result, false))}${result.callToActionUrl ? `&url=${encodeURIComponent(result.callToActionUrl)}` : ""}`;
+    window.open(shareUrl, "_blank", "noopener,noreferrer");
+  };
+
   const platformIcons: Record<string, string> = {
     instagram: "📸",
     facebook: "📘",
@@ -335,9 +356,17 @@ export default function Promote() {
                           <CardTitle className="text-lg">
                             {platformIcons[adPlatform]} Generated Copy
                           </CardTitle>
-                          <Button size="sm" variant="outline" onClick={() => copyToClipboard(`${adResult.headline}\n\n${adResult.primaryCopy}\n\n${adResult.hashtags.map(h => `#${h}`).join(" ")}\n\n${adResult.callToAction}${adResult.callToActionUrl ? `: ${adResult.callToActionUrl}` : ""}`)}>
+                          <div className="flex flex-wrap items-center justify-end gap-2">
+                            <Button size="sm" variant="outline" onClick={() => copyToClipboard(getAdPostText(adResult))}>
                             <Copy className="h-3 w-3 mr-1" /> Copy All
-                          </Button>
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => shareToFacebook(adResult)} disabled={!adResult.callToActionUrl} title={!adResult.callToActionUrl ? "Choose a published event first" : "Open Facebook share composer"}>
+                              <Facebook className="h-3 w-3 mr-1" /> Share to Facebook
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => shareToX(adResult)}>
+                              <span className="font-bold mr-1">X</span> Share to X
+                            </Button>
+                          </div>
                         </div>
                       </CardHeader>
                       <CardContent className="space-y-4">
@@ -367,6 +396,13 @@ export default function Promote() {
                               {adResult.callToActionUrl}
                             </a>
                           )}
+                        </div>
+                        <div className="rounded-lg border border-dashed border-purple-300 bg-white/80 dark:bg-gray-900/60 p-4" data-testid="social-post-preview">
+                          <div className="flex items-center justify-between gap-2 mb-2">
+                            <Label className="text-xs text-gray-500">SOCIAL POST PREVIEW</Label>
+                            <span className="text-xs text-gray-400">Copy/share text</span>
+                          </div>
+                          <p className="whitespace-pre-wrap text-sm leading-6">{getAdPostText(adResult)}</p>
                         </div>
                       </CardContent>
                     </Card>

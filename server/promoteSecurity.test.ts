@@ -38,6 +38,10 @@ describe('Promotion security boundaries', () => {
     const client = read('../client/src/pages/Promote.tsx');
     expect(client).toContain('eventId: adType === "event" && adEventId !== "none" ? Number(adEventId) : undefined');
     expect(client).toContain('adResult.callToActionUrl');
+    expect(client).toContain('www.facebook.com/sharer/sharer.php');
+    expect(client).toContain('x.com/intent/post');
+    expect(client).toContain('data-testid="social-post-preview"');
+    expect(client).toContain('Copy All');
   });
 
   it('keeps the client platform state typed to the validated server enum', () => {
