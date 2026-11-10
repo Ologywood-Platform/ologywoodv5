@@ -681,14 +681,17 @@ export const releaseRouter = router({
    * Verify and create purchase from Stripe session (webhook fallback).
    * If the webhook hasn't processed the event yet, this queries Stripe directly.
    */
-  verifyPurchase: protectedProcedure
+  verifyPurchase: publicProcedure
     .input(z.object({ sessionId: z.string().trim().min(1).max(255).regex(/^cs_(?:test|live)_[A-Za-z0-9]+$/, "Invalid Stripe checkout session ID") }).strict())
     .mutation(async ({ ctx, input }) => {
       // First check if purchase already exists
       const existing = await db.getPurchaseBySessionId(input.sessionId);
       if (existing) {
-        const isOwner = existing.buyerUserId === ctx.user.id ||
-          (ctx.user.email && existing.buyerEmail?.toLowerCase() === ctx.user.email.toLowerCase());
+        const isGuestPurchase = existing.buyerUserId === null;
+        const isOwner = isGuestPurchase || Boolean(ctx.user && (
+          existing.buyerUserId === ctx.user.id ||
+          (ctx.user.email && existing.buyerEmail?.toLowerCase() === ctx.user.email.toLowerCase())
+        ));
         if (!isOwner) return { status: 'not_found' as const, purchaseId: null };
         return { status: 'already_exists' as const, purchaseId: existing.id };
       }
@@ -707,11 +710,11 @@ export const releaseRouter = router({
         }
 
         const metadataBuyerId = parsePositiveMetadataId(session.metadata?.buyerUserId);
-        if (metadataBuyerId && metadataBuyerId !== ctx.user.id) {
+        if (metadataBuyerId && (!ctx.user || metadataBuyerId !== ctx.user.id)) {
           return { status: 'not_found' as const, purchaseId: null };
         }
         const metadataBuyerEmail = session.metadata?.buyerEmail?.trim().toLowerCase();
-        if (!metadataBuyerId && metadataBuyerEmail && metadataBuyerEmail !== ctx.user.email?.toLowerCase()) {
+        if (!metadataBuyerId && ctx.user && metadataBuyerEmail && metadataBuyerEmail !== ctx.user.email?.toLowerCase()) {
           return { status: 'not_found' as const, purchaseId: null };
         }
 
@@ -745,9 +748,9 @@ export const releaseRouter = router({
         // Create the purchase record
         const purchase = await db.createReleasePurchase({
           releaseId,
-          buyerEmail: session.customer_details?.email || session.metadata?.buyerEmail || ctx.user.email || 'unknown',
-          buyerName: session.customer_details?.name || session.metadata?.buyerName || ctx.user.name || null,
-          buyerUserId: ctx.user.id,
+          buyerEmail: session.customer_details?.email || session.metadata?.buyerEmail || ctx.user?.email || 'unknown',
+          buyerName: session.customer_details?.name || session.metadata?.buyerName || ctx.user?.name || null,
+          buyerUserId: ctx.user?.id || metadataBuyerId || null,
           stripeCheckoutSessionId: session.id,
           amountPaidCents: amountPaid,
           platformFeeCents,
@@ -761,7 +764,7 @@ export const releaseRouter = router({
 
         // Send purchase confirmation email
         try {
-          const buyerEmail = session.customer_details?.email || session.metadata?.buyerEmail || ctx.user.email;
+          const buyerEmail = session.customer_details?.email || session.metadata?.buyerEmail || ctx.user?.email;
           const artistProfile = await db.getArtistProfileById(release.artistId);
           if (buyerEmail && artistProfile) {
             const baseUrl = trustedCheckoutOrigin(process.env.BASE_URL, undefined);
@@ -815,13 +818,17 @@ export const releaseRouter = router({
       }
     }),
 
-  purchaseBySession: protectedProcedure
+  purchaseBySession: publicProcedure
     .input(z.object({ sessionId: z.string().trim().min(1).max(255).regex(/^cs_(?:test|live)_[A-Za-z0-9]+$/, "Invalid Stripe checkout session ID") }).strict())
     .query(async ({ ctx, input }) => {
       const purchase = await db.getPurchaseBySessionIdWithRelease(input.sessionId);
       if (!purchase) return null;
       // Verify ownership
-      if (purchase.buyerUserId !== ctx.user.id && purchase.buyerEmail?.toLowerCase() !== ctx.user.email?.toLowerCase()) {
+      const isGuestPurchase = purchase.buyerUserId === null;
+      const isOwner = isGuestPurchase || Boolean(ctx.user && (
+        purchase.buyerUserId === ctx.user.id || purchase.buyerEmail?.toLowerCase() === ctx.user.email?.toLowerCase()
+      ));
+      if (!isOwner) {
         return null;
       }
       let coverArtUrl: string | null = null;

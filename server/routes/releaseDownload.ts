@@ -16,17 +16,17 @@ const router = Router();
 /**
  * GET /api/release/download/:purchaseId
  * Generate a presigned download URL for a purchased release.
- * Requires authentication and validates purchase ownership.
+ * Authenticated buyers use account ownership; guests use the private Stripe
+ * checkout-session token from the success URL for this single purchase.
  */
 router.get("/:purchaseId", async (req: Request, res: Response) => {
   try {
-    // Authenticate user
-    let user;
+    // Authenticate user when a session is available. Guests may use the
+    // checkout session token from the purchase-success URL.
+    let user = null;
     try {
       user = await sdk.authenticateRequest(req);
-    } catch {
-      return res.status(401).json({ error: "Authentication required" });
-    }
+    } catch {}
 
     const purchaseId = positiveRouteId(req.params.purchaseId);
     if (purchaseId === null) {
@@ -39,11 +39,14 @@ router.get("/:purchaseId", async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Purchase not found" });
     }
 
-    // Verify ownership: buyer must match the authenticated user
-    // Allow by userId match or email match
-    const userEmail = user.email?.toLowerCase();
+    // Verify ownership. A guest purchase may only be accessed with the exact
+    // Stripe session ID that was returned in its success URL.
+    const userEmail = user?.email?.toLowerCase();
     const purchaseEmail = purchase.buyerEmail?.toLowerCase();
-    const isOwner = purchase.buyerUserId === user.id || (userEmail && purchaseEmail && userEmail === purchaseEmail);
+    const sessionToken = typeof req.query.session_id === 'string' ? req.query.session_id : null;
+    const isAuthenticatedOwner = Boolean(user && (purchase.buyerUserId === user.id || (userEmail && purchaseEmail && userEmail === purchaseEmail)));
+    const isGuestSessionOwner = purchase.buyerUserId === null && sessionToken === purchase.stripeCheckoutSessionId;
+    const isOwner = isAuthenticatedOwner || isGuestSessionOwner;
 
     if (!isOwner) {
       return res.status(403).json({ error: "You do not have access to this download" });

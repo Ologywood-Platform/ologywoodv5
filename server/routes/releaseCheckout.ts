@@ -57,11 +57,23 @@ router.post("/", async (req: Request, res: Response) => {
     if (!req.body || typeof req.body !== 'object' || Array.isArray(req.body)) {
       return res.status(400).json({ error: 'Request body must be an object' });
     }
-    const allowedKeys = new Set(['releaseId', 'customAmountCents']);
+    const allowedKeys = new Set(['releaseId', 'customAmountCents', 'buyerEmail', 'buyerName']);
     if (Object.keys(req.body).some((key) => !allowedKeys.has(key))) {
       return res.status(400).json({ error: 'Unknown release checkout field' });
     }
-    const { releaseId, customAmountCents } = req.body;
+    const { releaseId, customAmountCents, buyerEmail: rawBuyerEmail, buyerName: rawBuyerName } = req.body;
+
+    if (rawBuyerEmail !== undefined && (typeof rawBuyerEmail !== 'string' || rawBuyerEmail.trim().length > 320)) {
+      return res.status(400).json({ error: 'buyerEmail must be a valid email address' });
+    }
+    if (rawBuyerName !== undefined && (typeof rawBuyerName !== 'string' || rawBuyerName.trim().length > 255)) {
+      return res.status(400).json({ error: 'buyerName must be a text value' });
+    }
+    const buyerEmail = typeof rawBuyerEmail === 'string' ? rawBuyerEmail.trim().toLowerCase() : undefined;
+    if (buyerEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(buyerEmail)) {
+      return res.status(400).json({ error: 'buyerEmail must be a valid email address' });
+    }
+    const buyerName = typeof rawBuyerName === 'string' ? rawBuyerName.trim() : undefined;
 
     const parsedReleaseId = positiveRouteId(releaseId);
     if (parsedReleaseId === null) {
@@ -84,6 +96,10 @@ router.post("/", async (req: Request, res: Response) => {
       user = await sdk.authenticateRequest(req);
     } catch {
       // Guest purchase — no user
+    }
+
+    if (!user && !buyerEmail) {
+      return res.status(400).json({ error: 'Enter your email to continue as a guest' });
     }
 
     // Get the artist profile for the release
@@ -140,8 +156,8 @@ router.post("/", async (req: Request, res: Response) => {
         artistId: release.artistId.toString(),
         artistUserId: artistProfile.userId.toString(),
         buyerUserId: user?.id?.toString() || "",
-        buyerEmail: user?.email || "",
-        buyerName: user?.name || "",
+        buyerEmail: user?.email || buyerEmail || "",
+        buyerName: user?.name || buyerName || "",
         type: "release_purchase",
         platformFeeCents: platformFeeCents.toString(),
         hasConnectAccount: artistStripeAccountId ? "true" : "false",
@@ -154,6 +170,8 @@ router.post("/", async (req: Request, res: Response) => {
     // Prefill customer email if authenticated
     if (user?.email) {
       sessionParams.customer_email = user.email;
+    } else if (buyerEmail) {
+      sessionParams.customer_email = buyerEmail;
     }
 
     // If artist has Stripe Connect, route payment to them with platform fee

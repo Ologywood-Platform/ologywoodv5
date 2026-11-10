@@ -34,7 +34,7 @@ export default function PurchaseSuccess() {
   const { data: purchase, isLoading } = trpc.release.purchaseBySession.useQuery(
     { sessionId: sessionId || "" },
     { 
-      enabled: !!user && !!sessionId,
+      enabled: !!sessionId,
       refetchInterval: (data) => {
         // Keep polling every 2s while purchase is null and we haven't verified yet
         if (!data && !verifyAttempted) return 2000;
@@ -63,7 +63,7 @@ export default function PurchaseSuccess() {
 
   // Auto-trigger verification after 3 seconds if purchase is still null
   useEffect(() => {
-    if (!user || !sessionId || purchase || verifyCalledRef.current || authLoading || isLoading) return;
+    if (!sessionId || purchase || verifyCalledRef.current || authLoading || isLoading) return;
 
     const timer = setTimeout(() => {
       if (!purchase && !verifyCalledRef.current) {
@@ -74,13 +74,14 @@ export default function PurchaseSuccess() {
     }, 3000);
 
     return () => clearTimeout(timer);
-  }, [user, sessionId, purchase, authLoading, isLoading]);
+  }, [sessionId, purchase, authLoading, isLoading]);
 
   const handleDownload = async () => {
     if (!purchase) return;
     setIsDownloading(true);
     try {
-      const response = await fetch(`/api/release/download/${purchase.id}`);
+      const guestSession = !user ? `?session_id=${encodeURIComponent(sessionId || "")}` : "";
+      const response = await fetch(`/api/release/download/${purchase.id}${guestSession}`);
       const data = await response.json();
       if (data.success && data.downloadUrl) {
         const a = document.createElement("a");
@@ -238,6 +239,7 @@ export default function PurchaseSuccess() {
             <p className="text-xs text-center text-muted-foreground mb-6">
               {purchase.maxDownloads - purchase.downloadCount} of {purchase.maxDownloads} downloads remaining
             </p>
+            {!user && <p className="text-xs text-center text-muted-foreground mb-6">Guest access is tied to this private payment-success link. Save the link or use your confirmation email if you need to return later.</p>}
 
             {/* Action links */}
             <div className="flex flex-col gap-2">
@@ -251,14 +253,14 @@ export default function PurchaseSuccess() {
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               )}
-              <Button
+              {user && <Button
                 variant="ghost"
                 className="w-full"
                 onClick={() => navigate("/my-purchases")}
               >
                 <ShoppingBag className="h-4 w-4 mr-2" />
                 View All Purchases
-              </Button>
+              </Button>}
             </div>
           </div>
         </CardContent>

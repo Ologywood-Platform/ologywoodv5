@@ -17,6 +17,7 @@ import type { AiDisclosureRecord } from "@shared/aiDisclosure";
 import { MusicReleaseShareButton } from "@/components/MusicReleaseShareButton";
 import { musicReleasePath } from "@shared/musicReleaseShare";
 import { Link } from "wouter";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 const PREVIEW_MAX_SECONDS = 30;
 
@@ -47,6 +48,7 @@ interface ReleaseCardProps {
 
 export function ReleaseCard({ release, artistName, isOwner = false, purchaseId, showDescription = true, showDetailsLink = true }: ReleaseCardProps) {
   const toast = useToast();
+  const { user } = useAuth();
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const [isBuying, setIsBuying] = useState(false);
@@ -63,6 +65,7 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId, 
   const minPrice = release.priceInCents / 100;
   const [customPrice, setCustomPrice] = useState<string>(priceFormatted);
   const [showPriceInput, setShowPriceInput] = useState(false);
+  const [guestEmail, setGuestEmail] = useState("");
   const hasPurchased = !!purchaseId;
   const hasPreview = release.hasPreview ?? !!(release.previewFileKey || release.audioFileKey);
 
@@ -225,6 +228,11 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId, 
       ? Math.round(parseFloat(customPrice) * 100)
       : release.priceInCents;
 
+    if (!user && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail.trim())) {
+      toast.addError("Email required", "Enter an email address to receive your purchase confirmation and guest download access.");
+      return;
+    }
+
     if (release.allowPayWhatYouWant && (isNaN(finalAmountCents) || finalAmountCents < release.priceInCents)) {
       toast.addError("Invalid amount", `Minimum price is $${priceFormatted}`);
       return;
@@ -237,6 +245,7 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId, 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           releaseId: release.id,
+          ...(!user ? { buyerEmail: guestEmail.trim().toLowerCase() } : {}),
           ...(release.allowPayWhatYouWant ? { customAmountCents: finalAmountCents } : {}),
         }),
       });
@@ -445,12 +454,18 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId, 
                 Download
               </Button>
             ) : !isOwner ? (
-              <Button
-                size="sm"
-                onClick={handleBuy}
-                disabled={isBuying}
-                className="w-full h-8 text-xs"
-              >
+              <>
+                {!user && <div className="mb-2">
+                  <label htmlFor={`guest-email-${release.id}`} className="text-[11px] font-medium">Guest checkout email</label>
+                  <Input id={`guest-email-${release.id}`} type="email" autoComplete="email" value={guestEmail} onChange={(event) => setGuestEmail(event.target.value)} placeholder="you@example.com" className="mt-1 h-8 text-xs" />
+                  <p className="mt-1 text-[10px] text-muted-foreground">No account required. We’ll email your receipt; download access is available on the payment-success page.</p>
+                </div>}
+                <Button
+                  size="sm"
+                  onClick={handleBuy}
+                  disabled={isBuying}
+                  className="w-full h-8 text-xs"
+                >
                 {isBuying ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
                 ) : release.allowPayWhatYouWant ? (
@@ -462,7 +477,8 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId, 
                   ? (showPriceInput ? `Pay $${parseFloat(customPrice || priceFormatted).toFixed(2)}` : "Name Your Price")
                   : `Buy $${priceFormatted}`
                 }
-              </Button>
+                </Button>
+              </>
             ) : null}
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-2">
