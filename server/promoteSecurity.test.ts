@@ -44,6 +44,9 @@ describe('Promotion security boundaries', () => {
     expect(client).toContain('data-testid="social-post-preview"');
     expect(client).toContain('aria-label="Editable social post preview"');
     expect(client).toContain('editablePostText');
+    expect(client).toContain('handleGenerateAd(true)');
+    expect(client).toContain('Regenerate');
+    expect(client).toContain('setEditablePostText(getAdPostText(typedResult))');
     expect(client).toContain('Copy All');
   });
 

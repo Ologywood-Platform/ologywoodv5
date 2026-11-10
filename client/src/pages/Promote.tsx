@@ -17,7 +17,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import {
   Sparkles, Megaphone, Copy, Download, Calculator, Send,
   Loader2, ArrowLeft, Instagram, Facebook, Clock, Target,
-  DollarSign, TrendingUp, CheckCircle, AlertCircle, Linkedin
+  DollarSign, TrendingUp, CheckCircle, AlertCircle, Linkedin, RefreshCw
 } from "lucide-react";
 import { useToast } from "@/components/ErrorToast";
 import { trpc } from "@/lib/trpc";
@@ -86,7 +86,7 @@ export default function Promote() {
   const submitBoost = trpc.promote.submitBoostRequest.useMutation();
   const myRequests = trpc.promote.getMyRequests.useQuery();
 
-  const handleGenerateAd = async () => {
+  const handleGenerateAd = async (isRegenerate = false) => {
     if (!adName.trim()) {
       toast.addError("Missing Info", "Please enter a name for what you're promoting.");
       return;
@@ -107,7 +107,7 @@ export default function Promote() {
       const typedResult = result as AdCopyResult;
       setAdResult(typedResult);
       setEditablePostText(getAdPostText(typedResult));
-      toast.addSuccess("Generated!", "Your ad copy is ready. Copy and use it!");
+      toast.addSuccess(isRegenerate ? "Regenerated!" : "Generated!", "Your ad copy is ready. Copy and use it!");
     } catch (error: any) {
       toast.addError("Generation Failed", error.message || "Please try again.");
     } finally {
@@ -345,7 +345,7 @@ export default function Promote() {
                   </div>
 
                   <Button
-                    onClick={handleGenerateAd}
+                    onClick={() => handleGenerateAd()}
                     disabled={isGenerating || !adName.trim()}
                     className="w-full bg-purple-600 hover:bg-purple-700"
                   >
@@ -415,7 +415,13 @@ export default function Promote() {
                         <div className="rounded-lg border border-dashed border-purple-300 bg-white/80 dark:bg-gray-900/60 p-4" data-testid="social-post-preview">
                           <div className="flex items-center justify-between gap-2 mb-2">
                             <Label className="text-xs text-gray-500">SOCIAL POST PREVIEW</Label>
-                            <span className="text-xs text-gray-400">Copy/share text</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-gray-400 hidden sm:inline">Copy/share text</span>
+                              <Button type="button" size="sm" variant="outline" onClick={() => handleGenerateAd(true)} disabled={isGenerating}>
+                                <RefreshCw className={`h-3 w-3 mr-1 ${isGenerating ? "animate-spin" : ""}`} />
+                                {isGenerating ? "Generating…" : "Regenerate"}
+                              </Button>
+                            </div>
                           </div>
                           <Textarea
                             aria-label="Editable social post preview"
