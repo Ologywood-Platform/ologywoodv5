@@ -3,7 +3,7 @@ import { Toaster } from "sonner";
 import CookieConsent from "./components/CookieConsent";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { Route, Switch, Redirect } from "wouter";
+import { Route, Switch, Redirect, useLocation } from 'wouter';
 import ErrorBoundary, { PageErrorBoundary } from "./components/ErrorBoundary";
 import { CanonicalUpdater } from "./components/CanonicalUpdater";
 import { RobotsMetaTag } from "./components/RobotsMetaTag";
@@ -15,6 +15,7 @@ import OfflineBanner from "./components/OfflineBanner";
 import Footer from "./components/Footer";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { TermsConsentBanner } from "./components/TermsConsentBanner";
+import { SiteHeader } from "./components/SiteHeader";
 
 // ============================================
 // EAGERLY LOADED — Critical path pages
@@ -141,10 +142,36 @@ function PageLoader() {
   );
 }
 
+// A small set of account, invitation, and management pages intentionally use
+// specialized page headers. Keep the global OlogyWood escape hatch visible on
+// those pages too so users can always return to the platform navigation.
+const GLOBAL_HEADER_FALLBACK_PATHS = new Set([
+  '/get-started',
+  '/onboarding/artist',
+  '/onboarding/venue',
+  '/verify-email',
+  '/revert-email',
+  '/reset-password',
+  '/admin',
+  '/admin/payouts',
+  '/admin/blog',
+  '/blogger-dashboard',
+  '/team/accept',
+]);
+
+function GlobalHeaderFallback() {
+  const [location] = useLocation();
+  const pathname = location.split('?')[0].replace(/\/$/, '') || '/';
+
+  if (!GLOBAL_HEADER_FALLBACK_PATHS.has(pathname)) return null;
+  return <SiteHeader />;
+}
+
 function Router() {
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50">
       <ScrollToTop />
+      <GlobalHeaderFallback />
       <div className="flex-1">
         <Suspense fallback={<PageLoader />}>
         <Switch>

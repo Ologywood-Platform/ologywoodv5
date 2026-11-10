@@ -60,4 +60,23 @@ describe('Global shell coverage', () => {
       expect(content).toContain('<SiteHeader');
     });
   }
+
+  it('keeps an escape header on standalone routes without an in-page SiteHeader', () => {
+    const app = fs.readFileSync(path.resolve(__dirname, '../client/src/App.tsx'), 'utf-8');
+    for (const route of [
+      "'/get-started'",
+      "'/onboarding/artist'",
+      "'/onboarding/venue'",
+      "'/verify-email'",
+      "'/revert-email'",
+      "'/reset-password'",
+      "'/admin/payouts'",
+      "'/blogger-dashboard'",
+      "'/team/accept'",
+    ]) {
+      expect(app).toContain(route);
+    }
+    expect(app).toContain('GLOBAL_HEADER_FALLBACK_PATHS');
+    expect(app).toContain('<GlobalHeaderFallback />');
+  });
 });
