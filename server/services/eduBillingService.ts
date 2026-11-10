@@ -792,7 +792,7 @@ export async function reconcileEduBillingLifecycle(
 /** Invoke from an existing authenticated project Heartbeat only. No registration,
  * timer, or integration call occurs at import. Errors are visible per account. */
 export async function runEduLifecycleBatch(
-  input: { limit?: number; afterUserId?: number; mode?: EduBillingMode } = {},
+  input: { limit?: number; afterUserId?: number; mode?: EduBillingMode; maxDurationMs?: number } = {},
   injectedDeps?: EduBillingDependencies
 ) {
   const limit = Math.min(200, Math.max(1, Math.floor(input.limit ?? 50)));
@@ -821,8 +821,9 @@ export async function runEduLifecycleBatch(
   const results: Array<{ userId: number; status: string; reason?: string }> =
     [];
   const batchStarted = Date.now();
+  const maxDurationMs = Math.min(80_000, Math.max(1000, input.maxDurationMs ?? 80_000));
   for (const userId of ids.slice(0, limit)) {
-    if (Date.now() - batchStarted >= 80_000) break;
+    if (Date.now() - batchStarted >= maxDurationMs) break;
     try {
       results.push({
         userId,
@@ -1019,7 +1020,7 @@ export async function defaultEduBillingDependencies(
   return {
     repository,
     stripe: createEduStripeGateway(
-      getStripeClientForWebhookMode(chosen),
+      getStripeClientForWebhookMode(chosen, { timeout: 8000, maxNetworkRetries: 0 }),
       chosen
     ),
     sendEmail: params => sendEmail(params, { timeoutMs: 10_000 }),

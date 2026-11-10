@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { trpc } from '@/lib/trpc';
 
 export default function EduNoticeRecoveryPanel() {

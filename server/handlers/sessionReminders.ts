@@ -15,6 +15,7 @@ import { sanitizeFanEmailSubject } from "../services/fanEmailFormatting";
  * and send reminder notifications to both talent and fans.
  */
 export async function sessionRemindersHandler(req: Request, res: Response) {
+  const handlerStarted = Date.now();
   try {
     const taskUid = await requireVerifiedCronTask(req, res);
     if (!taskUid) return;
@@ -99,8 +100,9 @@ export async function sessionRemindersHandler(req: Request, res: Response) {
 
     // Reuse the deployed project-owned scheduler. No in-process timer or new
     // registration is introduced; provider modes remain strictly independent.
-    const eduLifecycle: Array<{ mode: string; checked: number; blocked: number }> = [];
+    const eduLifecycle: Array<{ mode: string; checked: number; blocked: number; hasMore: boolean; nextCursor: number }> = [];
     let eduLifecycleUnavailable = false;
+    let eduLifecycleDeferred = false;
     try {
       const { sql } = await import('drizzle-orm');
       const [dueRows] = await db.execute(sql`SELECT COUNT(*) AS total FROM edu_verifications WHERE (billingMode IS NOT NULL OR status = 'approved') AND (billingReconcileAfter IS NULL OR billingReconcileAfter <= UTC_TIMESTAMP())`);
@@ -112,8 +114,17 @@ export async function sessionRemindersHandler(req: Request, res: Response) {
         if (primary.startsWith('sk_live_') || process.env.STRIPE_LIVE_SECRET_KEY?.startsWith('sk_live_')) modes.push('live');
         if (primary.startsWith('sk_test_') || process.env.STRIPE_TEST_SECRET_KEY?.startsWith('sk_test_')) modes.push('test');
         for (const mode of modes) {
-          const result = await runEduLifecycleBatch({ limit: 5 }, await defaultEduBillingDependencies(mode));
-          eduLifecycle.push({ mode, checked: result.results.length, blocked: result.blocked });
+          if (Date.now() - handlerStarted >= 35_000) { eduLifecycleDeferred = true; break; }
+          const dependencies = await defaultEduBillingDependencies(mode);
+          let cursor = 0, checked = 0, blocked = 0, hasMore = true, pages = 0;
+          while (hasMore && pages++ < 20 && Date.now() - handlerStarted < 35_000) {
+            const result = await runEduLifecycleBatch({ mode, limit: 1, afterUserId: cursor, maxDurationMs: 30_000 }, dependencies);
+            checked += result.results.length; blocked += result.blocked; hasMore = result.hasMore;
+            if (result.nextCursor <= cursor) break;
+            cursor = result.nextCursor;
+          }
+          if (hasMore) eduLifecycleDeferred = true;
+          eduLifecycle.push({ mode, checked, blocked, hasMore, nextCursor: cursor });
         }
       }
     } catch (error) {
@@ -129,6 +140,7 @@ export async function sessionRemindersHandler(req: Request, res: Response) {
       remindersSent,
       eduLifecycle,
       eduLifecycleUnavailable,
+      eduLifecycleDeferred,
       checkedAt: now.toISOString(),
     });
   } catch (error: unknown) {

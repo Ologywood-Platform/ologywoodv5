@@ -129,8 +129,9 @@ export function getDefaultStripeApiKey(
   throw new Error('Stripe default API mode is not configured');
 }
 
-export function getStripeClientForWebhookMode(mode: StripeWebhookMode) {
+export function getStripeClientForWebhookMode(mode: StripeWebhookMode, options: Pick<Stripe.StripeConfig, 'timeout' | 'maxNetworkRetries'> = {}) {
   return new Stripe(getStripeApiKeyForWebhookMode(mode), {
     apiVersion: '2025-12-15.clover',
+    ...options,
   });
 }
