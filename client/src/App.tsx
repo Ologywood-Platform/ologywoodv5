@@ -21,14 +21,14 @@ import { SiteHeader } from "./components/SiteHeader";
 // EAGERLY LOADED — Critical path pages
 // ============================================
 import Home from "./pages/Home";
-import Browse from "./pages/Browse";
-import ArtistProfile from "./pages/ArtistProfile";
-import SandboxPostPage from "./pages/SandboxPostPage";
 
 // ============================================
 // LAZY LOADED — Code-split for smaller initial bundle
 // ============================================
 const ArtistDashboardV3 = lazy(() => import('@/pages/ArtistDashboardV3').then(m => ({ default: m.ArtistDashboardV3 })));
+const Browse = lazy(() => import("./pages/Browse"));
+const ArtistProfile = lazy(() => import("./pages/ArtistProfile"));
+const SandboxPostPage = lazy(() => import("./pages/SandboxPostPage"));
 const NilComplianceCenter = lazy(() => import('@/pages/NilComplianceCenter'));
 const VenueDashboard = lazy(() => import('@/pages/VenueDashboard').then(m => ({ default: m.VenueDashboard })));
 const RoleSelection = lazy(() => import("./pages/RoleSelection"));
@@ -60,6 +60,8 @@ const FAQ = lazy(() => import("./pages/FAQ"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const Edu = lazy(() => import("./pages/Edu"));
 const EduApply = lazy(() => import("./pages/EduApply"));
+const EduVerification = lazy(() => import("./pages/EduVerification"));
+const EduAdmin = lazy(() => import("./pages/EduAdmin"));
 const SponsorAnalytics = lazy(() => import("./pages/SponsorAnalytics"));
 const SponsorOpportunities = lazy(() => import("./pages/SponsorOpportunities"));
 const SponsorDashboard = lazy(() => import("./pages/SponsorDashboard"));
@@ -155,6 +157,7 @@ const GLOBAL_HEADER_FALLBACK_PATHS = new Set([
   '/revert-email',
   '/reset-password',
   '/admin',
+  '/admin/edu',
   '/admin/payouts',
   '/admin/blog',
   '/blogger-dashboard',
@@ -207,6 +210,7 @@ function Router() {
           <Route path="/help" component={Help} />
           <Route path="/admin" component={AdminDashboard} />
           <Route path="/admin/payouts" component={AdminPayouts} />
+          <Route path="/admin/edu" component={EduAdmin} />
           <Route path="/admin/blog" component={BlogAdmin} />
           <Route path="/blogger-dashboard" component={BloggerDashboard} />
           <Route path="/workspace">{() => <PageErrorBoundary><Workspace /></PageErrorBoundary>}</Route>
@@ -290,6 +294,7 @@ function Router() {
           <Route path="/pricing" component={Pricing} />
           <Route path="/edu" component={Edu} />
           <Route path="/edu/apply" component={EduApply} />
+          <Route path="/edu/verify" component={EduVerification} />
           <Route path="/sponsor-opportunities" component={SponsorOpportunities} />
           <Route path="/sponsor-dashboard" component={SponsorDashboard} />
           <Route path="/sponsor-analytics" component={SponsorAnalytics} />

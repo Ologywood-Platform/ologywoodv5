@@ -75,6 +75,7 @@ export default function Edu() {
                 </Link>
               </div>
               <p className="mt-5 text-sm text-slate-400">Free entry-level access is available. Approved EDU pricing is designed around OlogyWood&apos;s existing plans and activates only after eligibility is verified.</p>
+              <Link href="/edu/verify" className="mt-3 inline-flex text-sm font-semibold text-purple-300 hover:text-purple-200">Already have an account? Submit student verification →</Link>
             </div>
             <div className="relative rounded-3xl border border-white/15 bg-white/[0.06] p-6 shadow-2xl shadow-purple-950/30 backdrop-blur sm:p-8">
               <div className="absolute -right-3 -top-3 rounded-full bg-fuchsia-500 px-3 py-1 text-xs font-bold uppercase tracking-widest text-white">Launchpad</div>

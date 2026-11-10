@@ -2901,3 +2901,41 @@ export const mediaUploadWorkerSlots = mysqlTable("media_upload_worker_slots", {
   leaseToken: varchar("leaseToken", { length: 36 }),
   leaseExpiresAt: timestamp("leaseExpiresAt"),
 });
+
+// EDU verification is separate from Stripe billing so approval/revocation is auditable
+// and does not silently create or replace a paid subscription.
+export const eduVerifications = mysqlTable('edu_verifications', {
+  id: int('id').autoincrement().primaryKey(),
+  userId: int('userId').notNull().unique(),
+  status: mysqlEnum('status', ['pending', 'approved', 'rejected', 'revoked']).default('pending').notNull(),
+  verificationMethod: mysqlEnum('verificationMethod', ['school_email', 'school_code', 'manual']).notNull(),
+  institution: varchar('institution', { length: 200 }).notNull(),
+  program: varchar('program', { length: 200 }),
+  schoolEmail: varchar('schoolEmail', { length: 320 }),
+  schoolCodeLast4: varchar('schoolCodeLast4', { length: 4 }),
+  verificationNote: varchar('verificationNote', { length: 1000 }),
+  verifiedUntil: timestamp('verifiedUntil'),
+  graceUntil: timestamp('graceUntil'),
+  reviewedAt: timestamp('reviewedAt'),
+  reviewedByUserId: int('reviewedByUserId'),
+  rejectionReason: varchar('rejectionReason', { length: 500 }),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  statusIdx: index('idx_edu_verifications_status').on(table.status),
+  verifiedUntilIdx: index('idx_edu_verifications_verified_until').on(table.verifiedUntil),
+}));
+export type EduVerification = typeof eduVerifications.$inferSelect;
+export type InsertEduVerification = typeof eduVerifications.$inferInsert;
+
+export const eduVerificationEvents = mysqlTable('edu_verification_events', {
+  id: int('id').autoincrement().primaryKey(),
+  verificationId: int('verificationId').notNull(),
+  userId: int('userId').notNull(),
+  actorUserId: int('actorUserId').notNull(),
+  action: mysqlEnum('action', ['submitted', 'approved', 'rejected', 'revoked']).notNull(),
+  note: varchar('note', { length: 1000 }),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+}, (table) => ({
+  verificationHistoryIdx: index('idx_edu_verification_events_history').on(table.verificationId, table.id),
+}));

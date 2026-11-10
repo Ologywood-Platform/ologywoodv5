@@ -71,6 +71,14 @@ export function AdminDashboard() {
             <div className="flex items-center gap-1 sm:gap-2">
               <AIChatTrigger />
               <button
+                onClick={() => navigate('/admin/edu')}
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 text-sm font-medium text-fuchsia-700 bg-fuchsia-50 border border-fuchsia-200 rounded-lg hover:bg-fuchsia-100 transition-colors"
+              >
+                <Shield className="h-4 w-4" />
+                <span className="hidden sm:inline">EDU Review</span>
+                <span className="sm:hidden">EDU</span>
+              </button>
+              <button
                 onClick={() => navigate('/dashboard')}
                 className="flex items-center gap-2 px-3 sm:px-4 py-2 text-sm font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors"
               >

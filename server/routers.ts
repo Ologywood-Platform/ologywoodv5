@@ -69,6 +69,7 @@ import { sandboxPostRouter } from "./routers/sandboxPost";
 import { nilComplianceRouter } from "./routers/nilCompliance";
 import { discoverySearchRouter } from "./routers/discoverySearch";
 import { complimentaryAccessRouter } from './routers/complimentaryAccess';
+import { eduRouter } from './routers/edu';
 import { newsletterLimiter } from "./utils/rateLimiter";
 import * as notif from "./services/notificationService";
 import { isPlatformOwner } from './services/platformOwnerAccess';
@@ -355,6 +356,7 @@ export const appRouter = router({
   merchOrders: merchOrdersRouter,
   sandboxPost: sandboxPostRouter,
   nilCompliance: nilComplianceRouter,
+  edu: eduRouter,
   discoverySearch: discoverySearchRouter,
   complimentaryAccess: complimentaryAccessRouter,
   releaseOrder: releaseOrderRouter,
@@ -2993,8 +2995,34 @@ export const appRouter = router({
 
         let couponId: string | undefined;
 
+        // EDU is an auditable entitlement, not a role or a complimentary grant.
+        // Only an admin-approved verification inside its 12-month + 30-day grace
+        // window can receive the discount. Enterprise is intentionally excluded.
+        let eduDiscountApplied = false;
+        if ((input.plan === 'starter' || input.plan === 'professional') && stripeClient) {
+          const [eduVerification] = await db.getDb().then(async database => database
+            ? database.select().from(schema.eduVerifications).where(eq(schema.eduVerifications.userId, ctx.user.id)).limit(1)
+            : []);
+          const eduEnd = eduVerification?.graceUntil || eduVerification?.verifiedUntil;
+          if (eduVerification?.status === 'approved' && eduEnd && eduEnd.getTime() >= Date.now()) {
+            const eduCoupon = await stripeClient.coupons.create({
+              percent_off: 50,
+              duration: 'repeating',
+              duration_in_months: 12,
+              name: 'OlogyWood EDU Student (50% for 12 months)',
+              metadata: {
+                type: 'edu_student_discount',
+                userId: ctx.user.id.toString(),
+                verificationId: eduVerification.id.toString(),
+              },
+            });
+            couponId = eduCoupon.id;
+            eduDiscountApplied = true;
+          }
+        }
+
         // If user wants to apply referral credits, create a Stripe coupon
-        if (input.useCredits && stripeClient) {
+        if (input.useCredits && stripeClient && !eduDiscountApplied) {
           const { referralCredits } = await import('../drizzle/schema');
           const { eq } = await import('drizzle-orm');
           const { getDb: getDatabase } = await import('./db');

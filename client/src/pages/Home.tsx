@@ -256,6 +256,8 @@ export default function Home() {
             className="home-hero-image"
             width="2200"
             height="943"
+            sizes="100vw"
+            decoding="async"
             fetchPriority="high"
           />
           <div className="home-hero-shade" />

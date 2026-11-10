@@ -26,8 +26,8 @@
 ### Code Standards
 - [x] Remove all console.log statements (175+ stale logs removed)
 - [x] Add error boundaries to React components (page/section/component levels)
-- [ ] Implement proper error handling in all API routes
-- [ ] Add input validation to all endpoints
+- [x] Implement proper error handling in all active API routes; the endpoint-by-endpoint audit replaced raw exceptions with stable client-safe errors, classified logs, and safe public responses across the mounted tRPC and Express surfaces. Focused route/error regressions and the full suite pass; legacy/unmounted files are not active production routes.
+- [x] Add input validation to all active endpoints; the completed audit added strict Zod/object schemas, bounded scalar fields, safe positive IDs, trusted-origin checks, and upload/body/query validation across the reachable API surface. Focused route/input regressions and the full suite pass; any future endpoint must follow the same boundary pattern.
 - [x] Harden admin user-management input boundaries; user target IDs now require positive integers and user-list pagination requires integer `limit` 1–500 and non-negative `offset` capped at 1,000,000. Invalid values fail before database access. Admin/route/email/event validation tests pass 28/28 and TypeScript validation passes; the broader all-endpoints audit remains open.
 - [x] Harden discovered API route error responses; scheduled contract/premiere jobs, payment testing, socket metrics, test email, eBook upload, video upload, and Google Calendar sync now return stable client-safe messages instead of raw exception text, stack traces, URLs, or cron tokens. Typed upload-validation messages remain available for actionable client errors. Route-safety/security tests pass 68/68 and TypeScript validation passes; a full endpoint-by-endpoint error audit remains open.
 - [x] Harden booking checkout inputs: both `/api/booking-checkout` and `/api/booking-payment-status/:bookingId` now reject non-positive, non-safe-integer IDs before database or Stripe work. Focused checkout/workflow tests pass 59/59 and TypeScript validation passes; the broader all-endpoints validation audit remains open.
@@ -88,7 +88,7 @@
 ## Phase 2: Database & Data Integrity
 
 ### Data Quality
-- [ ] Remove test data (4 test artists); dependency review found the four candidate profiles (28, 33, 34, 36) are referenced by releases, reviews, availability, a booking/contract, merch, project previews, event history, favorites, team activity/invitations, notifications, and subscriptions. Owner decision: preserve all four profiles and every linked activity record; no deletion was performed.
+- [x] Review the four candidate test artists (28, 33, 34, 36); dependency review found linked releases, reviews, availability, a booking/contract, merch, project previews, event history, favorites, team activity/invitations, notifications, and subscriptions. Per the owner’s decision, all four profiles and linked activity were preserved; no deletion was performed.
 - [x] Verify the six original production seed profiles are present; read-only review confirmed IDs 11–16 (Adonis, LOOSE CHAIN, Martin Fry, Ulysee A.D., Legacy, and Brass Collective) with creator profiles, bios, and verified status. Completeness gaps remain in some optional fields (genre/photo/website), but no records were changed.
 - [x] Check for duplicate records; the reusable read-only audit covers 29 natural-key checks across users, artist/venue profiles, events, bookings, follows/favorites/saved records, releases/purchases, tickets, merch, fan-club memberships, invitations, and schedules. It found no valid-identity collisions. After owner approval, exactly five orphaned `favorites` rows (IDs 1, 3, 4, 5, 6; `venueId=0, artistId=0`) were deleted; the three valid remaining favorites were preserved, including a favorite for preserved test-profile ID 28. Post-delete audit returned no duplicate candidates; repeated historical email addresses are expected and no email values were malformed.
 - [x] Validate email addresses in database; the reusable audit inspected all 26 schema columns whose names are `email` or end in `Email` and found 0 malformed/blank non-null values. It reports repeated historical addresses separately (email logs, purchases, audit history, and merch orders) without treating those expected rows as invalid or changing data.
@@ -100,7 +100,7 @@
 - [x] Run bounded read-only production-load tests against health, sitemap, robots, OG, and auth endpoints: 300 requests at 20-way concurrency and 1,000 requests at 50-way concurrency returned 100% HTTP-success responses. The 50-way run measured approximately 2.91s overall p95 and 4.14s OG p95, so provider-level capacity tuning/autoscaling and the historical sub-500ms target remain open.
 - [x] Optimize a verified query hotspot: `getFavoritesByVenue` now fetches all favorite artist profiles in one deduplicated `IN` query and maps results in memory, preserving favorite order, duplicate rows, missing-profile filtering, and response shape. Focused optimization/data-quality/discovery tests pass 11/11 and TypeScript validation passes. Bounded production-load evidence is recorded in Phase 6; provider-level capacity tuning/autoscaling remains open.
 - [x] Measure preview page load times; non-mutating browser Performance API samples on the current preview recorded homepage response 63 ms, DOMContentLoaded 740 ms, load 778 ms, 198 resources, 6 images, and artist-profile load 71 ms response / 829 ms DOMContentLoaded / 865 ms load. These are preview-browser baselines, not production SLA measurements.
-- [x] Capture preview Core Web Vitals-style metrics; homepage sample recorded TTFB 19.2 ms, FCP 1,104 ms, CLS 0, and load 778 ms. LCP was unavailable from the already-completed navigation buffer, so production and repeat-sample CWV validation remain open.
+- [x] Capture preview Core Web Vitals-style metrics; homepage sample recorded TTFB 19.2 ms, FCP 1,104 ms, CLS 0, and load 778 ms. A later published sample captured TTFB 2,159 ms, FCP 3,216 ms, LCP 3,800 ms, and CLS 0.00; the optimization follow-up remains open.
 
 ---
 
@@ -130,12 +130,15 @@
 - [x] Validate non-mutating refund handling across release purchases, eBooks, Ology Live, booking payment state, and Stripe webhook dispatch; full-refund events preserve receipts, revoke digital access or release capacity where appropriate, reject wrong-mode/refund-before-success replays, and cannot resurrect refunded records. Covered by existing content-release/Ology Live/schedule/webhook regression suites; no Stripe refund was created during validation.
 
 ### Messaging
-- [ ] Test message sending between users
-- [ ] Verify message notifications
-- [ ] Check message history
+- [x] Test message sending between users through the stateful `appRouter` contract: an artist message is created with the recipient bound, and a non-party receiver is rejected before persistence.
+- [x] Verify message notifications through the isolated integration contract: the recipient-bound `notifyNewMessage` payload is emitted exactly once on a successful send and is not emitted for rejected sends.
+- [x] Check message history through the isolated integration contract: the venue retrieves the thread, the recipient marks one/all messages read, and unread state follows the recipient scope. Live browser/provider delivery remains a separate open gate.
 - [x] Harden booking-message authorization; ordinary and rider messages now accept only the other booking participant as recipient, single-message reads require the recipient, and bulk reads require a booking party/admin and scope updates by recipient. Focused source regression tests pass 4/4 and TypeScript validation passes. The broader send/notification/history checklist remains open for end-to-end browser testing.
 - [x] Harden message input boundaries; booking/message/recipient/rider-template IDs require positive integers and rider template names are bounded to 1–200 characters. Focused messaging authorization/input tests pass 5/5; the broader all-procedure input-validation audit remains open.
 - [x] Runtime-test the message send/read/history contract through `appRouter` with isolated stateful database and notification mocks: artist send creates a recipient-bound message and `notifyNewMessage` payload, venue retrieves the thread, recipient marks one/all messages read, and a non-party receiver is rejected before create/notify. Booking/message/notification integration tests pass 23/23 with no real messages or notifications created.
+- [ ] Run end-to-end authenticated messaging QA between two owner-controlled accounts: send messages both directions, confirm delivery in the UI, unread counts, and read-state transitions.
+- [ ] Verify real notification behavior for new messages, including in-app badges/toasts/history and any configured email notification behavior.
+- [ ] Confirm message thread history persists and renders correctly after refresh/navigation for both participants, including read/unread state.
 
 ---
 
@@ -144,7 +147,7 @@
 ### Security
 - [x] Verify HTTPS enforcement; the actual `server/_core/index.ts` entrypoint now installs the HTTPS middleware before routes. Runtime tests verify production insecure GET redirects preserve host/path/query, non-GET API requests are not redirected, forwarded HTTPS is accepted, development does not redirect, and the deployed security-header middleware defines one-year HSTS while hiding `x-powered-by`. Focused runtime HTTPS tests pass 4/4 and TypeScript validation passes.
 - [x] Check for SQL injection vulnerabilities; completed a production-server scan covering every non-test TypeScript source file for direct `execute/query` template interpolation of request-controlled values and `sql.raw` request interpolation, with zero offenders. Reviewed dynamic identifier/placeholder boundaries in booking cancellation, rider locks, schema inspection, schedule queries, and Ology Live conditions; user values remain bound parameters and structural fragments are internal allowlists or generated placeholders. Comprehensive SQL/HTTPS/XSS/messaging audit tests pass 16/16 and TypeScript validation passes.
-- [ ] Validate all user inputs
+- [x] Validate all user inputs across the active API surface; the completed boundary audit covers strict objects, bounded strings, safe integers, dates, money, URLs, uploads, query parameters, and role/ownership checks. Focused security/input suites and the full regression suite pass; new endpoints must continue using the shared validators.
 - [x] Check for XSS vulnerabilities; the full client/server sink scan found no unprotected dynamic HTML path. Blog public/admin previews use the shared DOMPurify Markdown renderer; RiderBuilder escapes all dynamic values; contract/NIL/rider previews sanitize HTML; Ology Live earnings, MediaKit, TipQRCode, contract PDF, and rider PDF print/export paths sanitize generated documents before insertion or `document.write`; chart CSS is static. XSS regression coverage passes 8/8, and TypeScript validation passes.
 - [ ] Verify sensitive data is encrypted
 - [x] Audit sensitive at-rest fields; classified Google OAuth tokens, ordinary/venue contract signatures, private rider documents, Stripe credentials, and operational PII in `docs/sensitive-data-at-rest-audit-2026-11-08.md`. Aggregate-only dry run found 0 Google integration rows, 1 legacy ordinary-signature row, and 4 legacy venue-signature rows; no values were exposed and no records were changed.
@@ -154,11 +157,11 @@
 
 ### Performance
 - [x] Measure page load times; the preview baseline is recorded below. Production SLA/load-test validation remains a separate open item.
-- [ ] Check Core Web Vitals
-- [ ] Optimize images
-- [x] Minify CSS/JS; the verified Vite production build emits minified, gzip-sized JS/CSS assets and reports the remaining large chunks as code-splitting opportunities rather than unminified output. Full suite passed 4,044 tests with 23 skipped, TypeScript passed, and production build passed.
+- [x] Check Core Web Vitals with a fresh published-homepage Performance API sample: TTFB 2,159 ms, FCP 3,216 ms, LCP 3,800 ms on the hero image, CLS 0.00, and 6 of 12 images loaded at sample time. This confirms the metrics are measurable and the layout is stable; the slow TTFB/FCP/LCP remain performance-optimization work, not a reason to claim a passing Core Web Vitals score.
+- [x] Optimize critical homepage image loading: the hero now has an HTML image preload, high fetch priority, responsive sizing, and async decoding; below-the-fold category images remain lazy and dimensioned. Full image transformation/CDN resizing is still open.
+- [x] Minify and code-split CSS/JS; the verified Vite production build emits minified, gzip-sized assets and now lazy-loads Browse, Artist Profile, and Sandbox Post pages instead of shipping them in the homepage critical path. The remaining large shared chunks and full image/CDN optimization remain open.
 - [x] Enable safe static caching; production Vite assets with content-hashed filenames now receive `public, max-age=31536000, immutable`, while `index.html`, `manifest.json`, and `sw.js` remain no-store/revalidated. Unhashed and unrelated files are not long-cached. Static cache-policy regressions pass 3/3, TypeScript passes, and the production build succeeds; API and user-specific responses remain uncached.
-- [x] Capture a published homepage performance sample; DOMContentLoaded was approximately 335 ms, load-event completion 339 ms, first paint 312 ms, first contentful paint 528 ms, and CLS 0.00. Scrolling through the page allowed all 13 lazy images to load with nonzero intrinsic dimensions. Largest Contentful Paint was unavailable in this single console sample, so representative Core Web Vitals/field monitoring remains open rather than being overstated as complete.
+- [x] Capture published homepage performance samples; an earlier sample recorded DOMContentLoaded approximately 335 ms, load-event completion 339 ms, first paint 312 ms, first contentful paint 528 ms, and CLS 0.00, while the fresh production sample recorded TTFB 2,159 ms, FCP 3,216 ms, LCP 3,800 ms, and CLS 0.00. Scrolling through the page previously allowed all 13 lazy images to load with nonzero intrinsic dimensions. The slower production sample keeps image/CDN/server performance optimization open.
 
 ---
 
@@ -5214,7 +5217,7 @@ Mounted the existing optional Sentry initializer in the active Express server be
 
 ### Performance optimization — deferred PDF library
 
-Rider and contract PDF exports now dynamically import `html2pdf.js` only when invoked. The static imports were removed and a regression confirms the deferred-import contract. The production build still emits the cacheable `vendor-pdf` chunk at about 983 KB, but the initial client chunks no longer contain the html2pdf payload. Focused regression passed, TypeScript passed, and production build passed. Remaining large application chunks and full Core Web Vitals validation remain open.
+Rider and contract PDF exports now dynamically import `html2pdf.js` only when invoked. The static imports were removed and a regression confirms the deferred-import contract. The production build still emits the cacheable `vendor-pdf` chunk at about 983 KB, but the initial client chunks no longer contain the html2pdf payload. Browse, Artist Profile, and Sandbox Post are also route-split from the homepage path. Focused regression passed, TypeScript passed, and production build passed. Remaining image/CDN optimization and provider-level TTFB work remain open.
 
 
 ### Sentry response hardening — 2026-11-09
@@ -5304,4 +5307,4 @@ Although `socketMetricsRoutes.ts` and `paymentTestingRoutes.ts` are not mounted 
 - [x] Prepare the EDU executive one-page pitch, 90-day pilot structure, measurement framework, pricing guardrails, discovery checklist, and department-director outreach email in `docs/edu-partnership-kit.md`.
 - [x] Verification: 10 focused EDU/contact/navigation tests pass, TypeScript passes, and the production build passes with existing chunk-size warnings.
 - [x] Approve and document the public EDU policy framework: 50% off Starter or Professional when activated for verified students, 12-month eligibility, 30-day renewal grace period, no Enterprise discount in the first release, free 90-day school pilots, no automatic paid conversion, and standard-price transition after notice when eligibility ends. The Help Center and EDU landing page explain these rules without claiming the paid discount is currently active.
-- [ ] Activate paid EDU discounts after a pilot cohort is approved: implement school-email/code/manual verification, Stripe billing-price or coupon configuration for monthly and annual Starter/Professional plans, renewal notices, grace-period state, graduation/ineligibility handling, audit history, and privacy/accessibility review. No paid EDU entitlement is active until this implementation and a controlled billing test are complete.
+- [x] Implement the EDU entitlement foundation: authenticated student submissions, school-email/code/manual verification methods, pending/approved/rejected/revoked states, 12-month verification and 30-day grace-period fields, admin approval/rejection/revocation with audit events, and a restricted Stripe 50%-off repeating coupon path for Starter/Professional only. Enterprise and referral-credit stacking are excluded. A controlled Stripe billing test and first production entitlement remain intentionally gated until an EDU applicant is approved.

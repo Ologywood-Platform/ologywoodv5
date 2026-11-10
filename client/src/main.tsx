@@ -34,6 +34,8 @@ const PUBLIC_ROUTE_PATTERNS = [
   /^\/events/,
   /^\/blog/,
   /^\/pricing/,
+  /^\/edu$/,
+  /^\/edu\/apply$/,
   /^\/how-it-works/,
   /^\/faq/,
   /^\/contact/,
