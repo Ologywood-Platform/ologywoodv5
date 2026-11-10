@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Link } from "wouter";
 import { ArrowRight, Award, BriefcaseBusiness, CheckCircle2, GraduationCap, Handshake, Layers3, Mail, Sparkles, Users } from "lucide-react";
 import SiteHeader from "@/components/SiteHeader";
+import EduShareButtons from '@/components/EduShareButtons';
 import { setMetaTags } from "@/utils/seoMeta";
 import { EDU_SHARE_TITLE, EDU_SHARE_DESCRIPTION, EDU_SHARE_URL, EDU_SHARE_IMAGE, EDU_SHARE_IMAGE_ALT } from '@shared/eduShare';
 
@@ -80,6 +81,7 @@ export default function Edu() {
               </div>
               <p className="mt-5 text-sm text-slate-400">Free entry-level access is available. The approved 50% Starter/Professional discount requires manual eligibility approval and a separate successful checkout; approval alone does not activate a paid plan.</p>
               <Link href="/edu/verify" className="mt-3 inline-flex text-sm font-semibold text-purple-300 hover:text-purple-200">Already have an account? Submit student verification →</Link>
+              <EduShareButtons />
             </div>
             <div className="relative rounded-3xl border border-white/15 bg-white/[0.06] p-6 shadow-2xl shadow-purple-950/30 backdrop-blur sm:p-8">
               <div className="absolute -right-3 -top-3 rounded-full bg-fuchsia-500 px-3 py-1 text-xs font-bold uppercase tracking-widest text-white">Launchpad</div>

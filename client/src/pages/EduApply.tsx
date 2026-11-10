@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { CheckCircle2, ArrowLeft, Loader2, Send } from "lucide-react";
 import { Link } from "wouter";
 import SiteHeader from "@/components/SiteHeader";
@@ -15,8 +15,13 @@ export default function EduApply() {
   const [program, setProgram] = useState("");
   const [message, setMessage] = useState("");
   const [website, setWebsite] = useState("");
-  const [submitted, setSubmitted] = useState(false);
+  const [submitted, setSubmitted] = useState<{ path: Path; email: string } | null>(null);
   const [error, setError] = useState("");
+  const successRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (submitted) successRef.current?.focus();
+  }, [submitted]);
 
   useEffect(() => {
     setMetaTags({
@@ -30,15 +35,23 @@ export default function EduApply() {
 
   const subject = useMemo(() => path === "school" ? "EDU School Pilot" as const : "EDU Student Interest" as const, [path]);
   const submitMutation = trpc.contact.submit.useMutation({
-    onSuccess: () => {
-      setSubmitted(true);
+    onSuccess: (_result, request) => {
+      // Use the completed request, not fields or tabs that may have changed in flight.
+      const completedPath = request.subject === "EDU School Pilot" ? "school" : "student";
+      setPath(completedPath);
+      setSubmitted({ path: completedPath, email: request.email });
       setError("");
     },
-    onError: (submissionError) => setError(submissionError.message || "We could not send your interest form. Please try again."),
+    onError: (submissionError) => {
+      setSubmitted(null);
+      setError(submissionError.message || "We could not send your interest form. Please try again.");
+    },
   });
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (submitMutation.isPending) return;
+    setSubmitted(null);
     setError("");
     if (name.trim().length < 2) return setError("Please enter your name.");
     if (!email.trim()) return setError("Please enter your email.");
@@ -75,25 +88,44 @@ export default function EduApply() {
               <div className="flex gap-3"><CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600" />Approved eligibility lasts 12 months with a 30-day renewal grace period. Enterprise pricing remains institution-specific.</div>
               <div className="flex gap-3"><CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600" />A free OlogyWood account remains available separately.</div>
             </div>
-            <Link href="/edu/verify" className="mt-5 inline-flex text-sm font-semibold text-purple-700 underline">Already have an account? Submit evidence for manual eligibility review.</Link>
+            {path === "student" && <Link href="/edu/verify" className="mt-5 inline-flex text-sm font-semibold text-purple-700 underline">Already have an account? Submit evidence for manual eligibility review.</Link>}
           </div>
 
           <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8" aria-labelledby="edu-apply-title">
             <h2 id="edu-apply-title" className="text-2xl font-bold">Tell us about your interest</h2>
             <div className="mt-6 grid grid-cols-2 rounded-xl bg-slate-100 p-1" role="tablist" aria-label="EDU interest path">
               {(["student", "school"] as const).map(option => (
-                <button key={option} type="button" role="tab" aria-selected={path === option} onClick={() => { setPath(option); setSubmitted(false); setError(""); }} className={`rounded-lg px-3 py-2.5 text-sm font-semibold transition ${path === option ? "bg-white text-purple-800 shadow-sm" : "text-slate-600 hover:text-slate-900"}`}>
+                <button key={option} type="button" role="tab" aria-selected={path === option} disabled={submitMutation.isPending} onClick={() => { if (submitMutation.isPending) return; setPath(option); setSubmitted(null); setError(""); }} className={`rounded-lg px-3 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${path === option ? "bg-white text-purple-800 shadow-sm" : "text-slate-600 hover:text-slate-900"}`}>
                   {option === "student" ? "I’m a student" : "I represent a school"}
                 </button>
               ))}
             </div>
 
             {submitted ? (
-              <div className="mt-8 rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-center">
-                <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-600" />
-                <h3 className="mt-4 text-xl font-bold text-emerald-950">Thanks—we received your interest.</h3>
-                <p className="mt-2 text-sm leading-6 text-emerald-900">We&apos;ll review the details and follow up at the email you provided. You can also create a free profile whenever you&apos;re ready.</p>
-                <Link href="/get-started" className="mt-5 inline-flex items-center gap-2 rounded-lg bg-purple-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-purple-800">Create a free profile</Link>
+              <div ref={successRef} tabIndex={-1} role="status" aria-live="polite" aria-atomic="true" aria-labelledby="edu-interest-success" className="mt-8 rounded-2xl border border-emerald-200 bg-emerald-50 p-6 outline-none focus:ring-2 focus:ring-emerald-600">
+                <CheckCircle2 aria-hidden="true" className="h-10 w-10 text-emerald-600" />
+                <h3 id="edu-interest-success" className="mt-4 text-2xl font-bold text-emerald-950">{submitted.path === "school" ? "School interest submitted successfully." : "Student interest submitted successfully."}</h3>
+                <p className="mt-2 break-words text-sm leading-6 text-emerald-900">We received your interest form with the contact email <strong>{submitted.email}</strong>.</p>
+                <h4 className="mt-5 font-semibold text-emerald-950">What happens next</h4>
+                {submitted.path === "school" ? <>
+                  <ol className="mt-2 list-decimal space-y-2 pl-5 text-sm leading-6 text-emerald-900">
+                    <li>The OlogyWood team will review your request and follow up at <span className="break-words">{submitted.email}</span> to discuss a possible pilot.</li>
+                    <li>Prepare your cohort goals, approximate cohort size, and the creative work you want students to practice.</li>
+                  </ol>
+                  <p className="mt-4 text-sm font-semibold leading-6 text-emerald-950">This interest form does not automatically activate a school pilot or start billing. Pilot scope and institution-specific pricing require a separate discussion.</p>
+                  <Link href="/edu" className="mt-5 inline-flex rounded-lg bg-purple-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-purple-800">Review EDU school pilot information</Link>
+                </> : <>
+                  <ol className="mt-2 list-decimal space-y-2 pl-5 text-sm leading-6 text-emerald-900">
+                    <li>Create or sign in to a free OlogyWood profile using Sign Up or Sign In in the header.</li>
+                    <li>Submit your enrollment evidence on the EDU verification page for manual eligibility review.</li>
+                    <li>Check your review status on that page. If approved, discounted paid activation still requires a separate successful checkout.</li>
+                  </ol>
+                  <p className="mt-4 text-sm font-semibold leading-6 text-emerald-950">This interest form did not create an account, approve your eligibility, or charge any payment.</p>
+                  <div className="mt-5 flex flex-wrap gap-3">
+                    <Link href="/" className="inline-flex rounded-lg bg-purple-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-purple-800">Create or sign in to a free profile</Link>
+                    <Link href="/edu/verify" className="inline-flex rounded-lg border border-purple-700 px-4 py-2.5 text-sm font-semibold text-purple-800 hover:bg-purple-50">Submit evidence / check status</Link>
+                  </div>
+                </>}
               </div>
             ) : (
               <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
