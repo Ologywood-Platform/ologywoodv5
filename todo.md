@@ -5295,3 +5295,12 @@ Although `socketMetricsRoutes.ts` and `paymentTestingRoutes.ts` are not mounted 
 ### Production image loading correction — 2026-11-09
 
 `LazyImage` now observes its sized container rather than the empty image element, fixing six homepage images that remained `src=""` after scrolling in production QA. Focused regression passed 1/1; full suite passed 4,047 tests with 23 skipped across 337 files, TypeScript passed, and production build passed.
+
+
+## OLOGYWOOD EDU FOUNDATION — 2026-11-10
+- [x] Build the public OlogyWood EDU landing page with separate student and school-pilot paths, a role-neutral creator-business value proposition, responsible no-guarantees language, and a current-plan pricing link. No billing, roles, or entitlements changed.
+- [x] Add `/edu/apply` with validated student and school-pilot interest paths, honeypot protection, success state, free-profile CTA, and explicit privacy/eligibility language.
+- [x] Route EDU inquiries through the existing rate-limited contact delivery flow with explicit `EDU Student Interest` and `EDU School Pilot` subjects; no new lead database or automated entitlement was introduced.
+- [x] Prepare the EDU executive one-page pitch, 90-day pilot structure, measurement framework, pricing guardrails, discovery checklist, and department-director outreach email in `docs/edu-partnership-kit.md`.
+- [x] Verification: 10 focused EDU/contact/navigation tests pass, TypeScript passes, and the production build passes with existing chunk-size warnings.
+- [ ] Approve and implement the actual student eligibility/verification rules, discount percentage, eligible plans, billing interval, renewal behavior, graduation/ineligibility handling, institutional procurement path, and any required privacy/accessibility review before announcing an EDU offer publicly.
