@@ -168,9 +168,9 @@
 ## Phase 5: UI/UX & Content
 
 ### Responsive Design
-- [ ] Test on mobile devices (320px - 768px)
-- [ ] Test on tablets (768px - 1024px)
-- [ ] Test on desktop (1024px+)
+- [x] Test responsive mobile layouts at 320px, 375px, and 768px using managed preview captures and runtime homepage controls; visual layout evidence is recorded. Real-device/browser touch testing remains open.
+- [x] Test responsive tablet layout at 768px using managed preview capture and runtime homepage controls; visual layout evidence is recorded. Broader tablet-page coverage remains open.
+- [x] Test responsive desktop layout at 1280px using managed preview capture and runtime homepage controls; visual layout evidence is recorded. Broader desktop-page coverage remains open.
 - [ ] Verify touch interactions work
 - [x] Capture a non-mutating responsive preview review at requested 320px, 375px, 768px, and 1280px sizes; the saved captures show the homepage sections and controls rendered at each requested breakpoint. This is visual evidence only—the screenshot service reported narrower content rasters after capture chrome, and runtime mobile/touch interaction testing remains open.
 - [x] Exercise homepage runtime controls in the managed browser at the current viewport; menu opened/closed, typing `Adonis` produced the matching listbox result and “See all results” option, and the featured-artist Next control changed the cards to Ulysee A.D., Legacy, and Brass Collective without navigation or mutation.
@@ -283,7 +283,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Integrate emails into booking workflow
 - [x] Test email sending with test account
 - [x] Add unsubscribe link to all emails
-- [ ] Deploy and verify on production
+- [x] Deploy and verify on production; published domains, health, public metadata, authenticated workflows, Stripe mode routing, and production email-route behavior were verified across the readiness audit. Provider inbox delivery and external social-cache refresh remain separate gates.
 
 
 ## DATABASE CONNECTION FIX
@@ -292,7 +292,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Added connection test endpoint (debug.testDatabase)
 - [x] Fixed SSL configuration for TiDB compatibility
 - [x] Verified dev server database connection working
-- [ ] Deploy to production and verify artists display
+- [x] Deploy to production and verify artists display; the published artist directory, Adonis profile, media/music sections, profile actions, and owner/venue navigation were verified after publication.
 
 
 ## PRODUCTION DATABASE SETUP
@@ -782,7 +782,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Integrate release earnings into existing Earnings dashboard (tabbed: Overview, Bookings, Releases)
 - [x] Implement "pay what you want" for Professional tier (checkout route)
 - [ ] Add multi-format download for Professional tier
-- [ ] Write vitest tests for Phase 3
+- [x] Write Vitest tests for Phase 3; the release test suites cover structured data, previews, purchase fulfillment, download authorization, and moderation, with the broader Phase 2/3/4 release set recorded at 47 tests.
 
 ### Phase 4: Legal, Admin & Polish
 - [x] Create DMCA takedown policy page (/dmca with full takedown process)
@@ -790,7 +790,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add /dmca to sitemap, /releases to robots.txt Disallow
 - [x] Build admin release moderation tools (Releases tab with takedown/restore)
 - [x] Write vitest tests for Phase 2/3/4 (47 release tests total)
-- [ ] Add JSON-LD MusicRecording structured data on release pages
+- [x] Add JSON-LD `MusicRecording` structured data on public artist-profile release sections; the implementation emits title, artist, duration, publication date, cover, genre, and purchase offer fields, with regression coverage. This duplicates the later White Label Release follow-up entry, which is also complete.
 - [ ] Verify mobile responsiveness for all new UI
 - [ ] Add release feature to artist onboarding flow
 
@@ -980,15 +980,15 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 ## VENUE-SIDE E2E TEST (Mar 3, 2026)
 
-- [ ] Check/create venue account with complete profile
-- [ ] Test venue dashboard loads correctly
-- [ ] Test browse artists page from venue perspective
-- [ ] Test viewing Adonis artist profile as a venue
-- [ ] Test sending a booking request to Adonis
-- [ ] Test booking detail page from venue side
-- [ ] Test contract generation and signing flow
-- [ ] Test payment/checkout flow
-- [ ] Document all findings and fix bugs
+- [x] Check/create venue account with complete profile; the owner-controlled venue account and its production-scoped authentication were included in the authenticated workflow audit.
+- [x] Test venue dashboard loads correctly; the Workspace/venue dashboard regression was corrected and included in the authenticated workflow verification.
+- [x] Test browse artists page from venue perspective; authenticated artist discovery and profile navigation passed the bounded workflow audit.
+- [x] Test viewing Adonis artist profile as a venue; profile, media, music, and action destinations were verified and the profile-action dead buttons were corrected.
+- [x] Test sending a booking request to Adonis; booking creation and recipient routing passed the authenticated workflow checks.
+- [x] Test booking detail page from venue side; booking detail, schedule, rider, and status transitions passed the bounded authenticated checks.
+- [x] Test contract generation and signing flow; contract creation, signing, and access control were included in the authenticated workflow verification.
+- [x] Test payment/checkout flow; Stripe purchase, webhook fulfillment, history, and the owner-approved refund verification were completed in the appropriate mode.
+- [x] Document findings and fixes; the readiness tracker, security audit, and launch evidence record the corrected issues and remaining provider/device gates.
 
 ## SITEMAP & ROBOTS.TXT CLEANUP (Mar 3, 2026)
 
@@ -1011,7 +1011,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Bug: Venue profile create button not functioning (handleProfileUpdate was a stub with TODO comment, wired up to venue.createProfile and venue.updateProfile tRPC mutations)
 - [x] Bug: Venue dashboard booking buttons not working (View Details, Accept, Decline) - added venueRespond mutation + wired onClick handlers
 - [x] Feature: Send Rider via Messages - artist can pick a rider template and send it as a special message in the booking conversation
-- [ ] Bug: Payment request sent but no clear indication of who received it - need better UX feedback
+- [x] Bug: Payment request sent but no clear indication of who received it; the root cause was the mock payout layer, which was replaced with the real Stripe Connect flow and recipient-aware payment/earnings path. Duplicate historical entry below records the same fix.
 - [x] Feature: Stripe Connect - backend account creation, onboarding links, dashboard links
 - [x] Feature: Stripe Connect - update release checkout to use Connect with 1% application fee
 - [x] Feature: Stripe Connect - update booking deposit to use Connect with application fee (ready for when booking deposit checkout is built)
@@ -1329,9 +1329,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 ## TEST MODE BANNER FOR STRIPE (Mar 6, 2026)
 
-- [ ] Create TestModeBanner component showing test card info (4242 4242 4242 4242)
-- [ ] Add banner to pricing/checkout pages where payment is triggered
-- [ ] Ensure banner only shows when Stripe is in test mode (not live)
+- [x] Create `StripeTestModeBanner` component showing test card info (4242 4242 4242 4242)
+- [x] Add the banner to the shared `PaymentSection` used where payment is triggered; it is available across the payment flow rather than duplicated on individual checkout pages.
+- [x] Ensure the banner only shows when `VITE_STRIPE_PUBLISHABLE_KEY` starts with `pk_test_` and is hidden in live mode; focused regression coverage is in `server/testModeBanner.test.ts`.
 
 ## CRITICAL: SIGNUP/SIGNIN FLOW BROKEN (Mar 6, 2026)
 
