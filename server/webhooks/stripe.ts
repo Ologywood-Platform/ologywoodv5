@@ -16,6 +16,7 @@ import {
   handleOlogyLiveCheckoutTerminal,
 } from '../services/ologyLiveCheckoutService';
 import { syncFanClubMembershipFromSubscription } from '../services/fanClubMembershipService';
+import { escapeFanEmailHtml, safeFanEmailHref, sanitizeFanEmailSubject } from '../services/fanEmailFormatting';
 
 export async function handleStripeWebhook(req: Request, res: Response) {
   const sig = req.headers['stripe-signature'];
@@ -311,23 +312,27 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session, 
 
       console.log(`[Stripe Webhook] Release purchase recorded: release=${releaseId}, amount=$${(amountPaid / 100).toFixed(2)}, fee=$${(platformFeeCents / 100).toFixed(2)}`);
 
-      // Send purchase confirmation email to buyer
+      // Send purchase confirmation email to buyer and a separate sale notice to the artist.
+      const artistProfile = await db.getArtistProfileById(release.artistId);
       try {
         const buyerEmail = session.customer_details?.email || session.metadata?.buyerEmail;
-        const artistProfile = await db.getArtistProfileById(release.artistId);
         if (buyerEmail && artistProfile) {
           const baseUrl = process.env.BASE_URL || 'https://www.ologywood.com';
           const unsubscribeUrl = `${baseUrl}/unsubscribe?email=${encodeURIComponent(buyerEmail)}&type=purchase`;
+          const safeTitle = escapeFanEmailHtml(release.title);
+          const safeArtistName = escapeFanEmailHtml(artistProfile.artistName);
+          const safeBaseUrl = safeFanEmailHref(baseUrl);
+          const safeUnsubscribeUrl = safeFanEmailHref(unsubscribeUrl);
           await email.sendEmail({
             to: buyerEmail,
-            subject: `Purchase Confirmed — "${release.title}" by ${artistProfile.artistName}`,
+            subject: sanitizeFanEmailSubject(`Purchase Confirmed — "${release.title}" by ${artistProfile.artistName}`),
             html: `<div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
               <div style="background: linear-gradient(135deg, #6D28D9 0%, #00D9FF 100%); padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0;">
                 ${getEmailLogoImage({ size: 88, marginBottom: 12 })}
                 <h1 style="color: white; margin: 0; font-size: 24px;">Purchase Confirmed!</h1>
               </div>
               <div style="padding: 30px 24px;">
-                <p style="font-size: 16px; color: #374151; margin: 0 0 20px 0;">You purchased <strong>"${release.title}"</strong> by <strong>${artistProfile.artistName}</strong> for <strong>$${(amountPaid / 100).toFixed(2)}</strong>.</p>
+                <p style="font-size: 16px; color: #374151; margin: 0 0 20px 0;">You purchased <strong>"${safeTitle}"</strong> by <strong>${safeArtistName}</strong> for <strong>$${(amountPaid / 100).toFixed(2)}</strong>.</p>
                 
                 <div style="background: #f5f3ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #6D28D9;">
                   <p style="color: #374151; margin: 0 0 8px 0; font-size: 14px;"><strong>How to download your track:</strong></p>
@@ -339,17 +344,17 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session, 
                 </div>
                 
                 <div style="text-align: center; margin: 30px 0;">
-                  <a href="${baseUrl}/my-purchases" style="display: inline-block; background: linear-gradient(135deg, #6D28D9 0%, #7c3aed 100%); color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Download Your Track</a>
+                  <a href="${safeBaseUrl}/my-purchases" style="display: inline-block; background: linear-gradient(135deg, #6D28D9 0%, #7c3aed 100%); color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Download Your Track</a>
                 </div>
                 
-                <p style="font-size: 14px; color: #6b7280; margin: 20px 0 0 0;">You can also re-download anytime from <a href="${baseUrl}/my-purchases" style="color: #6D28D9; text-decoration: none;">My Purchases</a> (click "Purchases" in the navigation bar).</p>
+                <p style="font-size: 14px; color: #6b7280; margin: 20px 0 0 0;">You can also re-download anytime from <a href="${safeBaseUrl}/my-purchases" style="color: #6D28D9; text-decoration: none;">My Purchases</a> (click "Purchases" in the navigation bar).</p>
               </div>
               <div style="background: #f9fafb; padding: 20px; border-radius: 0 0 8px 8px; border-top: 1px solid #e5e7eb;">
                 <p style="font-size: 14px; color: #6b7280; text-align: center; margin: 0 0 10px 0;">Thank you for supporting independent artists on Ologywood!</p>
                 <p style="color: #6b7280; font-size: 12px; margin: 0; text-align: center;">
-                  <a href="${unsubscribeUrl}" style="color: #6D28D9; text-decoration: none;">Unsubscribe</a> | 
-                  <a href="${baseUrl}/settings" style="color: #6D28D9; text-decoration: none;">Manage preferences</a> | 
-                  <a href="${baseUrl}/privacy" style="color: #6D28D9; text-decoration: none;">Privacy Policy</a>
+                  <a href="${safeUnsubscribeUrl}" style="color: #6D28D9; text-decoration: none;">Unsubscribe</a> | 
+                  <a href="${safeFanEmailHref(`${baseUrl}/settings`)}" style="color: #6D28D9; text-decoration: none;">Manage preferences</a> | 
+                  <a href="${safeFanEmailHref(`${baseUrl}/privacy`)}" style="color: #6D28D9; text-decoration: none;">Privacy Policy</a>
                 </p>
                 <p style="color: #9ca3af; font-size: 11px; margin: 8px 0 0 0; text-align: center;">&copy; 2026 Ologywood. All rights reserved.</p>
               </div>
@@ -359,6 +364,35 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session, 
         }
       } catch (emailErr) {
         console.error('[Stripe Webhook] Error sending purchase confirmation email:', emailErr);
+      }
+
+      try {
+        const artistUser = artistProfile ? await db.getUserById(artistProfile.userId) : null;
+        const artistEmail = artistUser?.email;
+        const buyerEmail = session.customer_details?.email || session.metadata?.buyerEmail;
+        if (artistEmail && artistProfile && artistEmail.toLowerCase() !== buyerEmail?.toLowerCase()) {
+          const baseUrl = process.env.BASE_URL || 'https://www.ologywood.com';
+          const safeTitle = escapeFanEmailHtml(release.title);
+          const safeArtistName = escapeFanEmailHtml(artistProfile.artistName);
+          await email.sendEmail({
+            to: artistEmail,
+            subject: sanitizeFanEmailSubject(`New release sale — "${release.title}"`),
+            html: `<div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+              <div style="background: linear-gradient(135deg, #6D28D9 0%, #00D9FF 100%); padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0;">
+                ${getEmailLogoImage({ size: 88, marginBottom: 12 })}
+                <h1 style="color: white; margin: 0; font-size: 24px;">You made a sale!</h1>
+              </div>
+              <div style="padding: 30px 24px;">
+                <p style="font-size: 16px; color: #374151; margin: 0 0 20px 0;">Your release <strong>"${safeTitle}"</strong> just sold on Ologywood.</p>
+                <p style="font-size: 14px; color: #4b5563; margin: 0 0 20px 0;">Gross sale: <strong>$${(amountPaid / 100).toFixed(2)}</strong>. Your dashboard shows the current net amount after the platform fee.</p>
+                <div style="text-align: center; margin: 30px 0;"><a href="${safeFanEmailHref(`${baseUrl}/dashboard`)}" style="display: inline-block; background: linear-gradient(135deg, #6D28D9 0%, #7c3aed 100%); color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">View My Dashboard</a></div>
+                <p style="font-size: 13px; color: #6b7280; margin: 0;">Keep creating — your fans are listening to ${safeArtistName}.</p>
+              </div>
+            </div>`,
+          });
+        }
+      } catch (emailErr) {
+        console.error('[Stripe Webhook] Error sending artist sale notification:', emailErr);
       }
     } catch (error) {
       console.error('[Stripe Webhook] Error processing release purchase:', error);

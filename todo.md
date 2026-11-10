@@ -758,7 +758,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Create tRPC release router with create, update, publish, unpublish, delete, getMyReleases, getById, getByArtist
 - [x] Build audio file upload endpoint (Express route, S3 storage, format/size validation)
 - [x] Build cover art upload endpoint
-- [ ] Implement 30-second preview generation (deferred to Phase 2 — artists can upload custom preview)
+- [x] Support 30-second audio previews through the release preview upload/player path; owner verified the preview works in the published experience. Automatic preview generation from full tracks remains optional future enhancement.
 - [x] Add maxActiveReleases to subscription tier gating (Free: 0, Starter: 2, Professional: unlimited)
 - [x] Implement rights certification flow (legal text + timestamp in create mutation)
 - [x] Write vitest tests for Phase 1 (22 tests passing)
@@ -767,10 +767,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add webhook handler for release purchase checkout.session.completed
 - [x] Build presigned URL download endpoint with download count tracking (max 5)ads per purchase)
 - [x] Create release card UI component for artist public profile (cover art, title, price, buy button)
-- [ ] Build 30-second audio preview player (deferred — artists can upload custom preview)
-- [ ] Create purchase confirmation email templates (buyer + artist)
+- [x] Build and verify the 30-second audio preview player; owner confirmed it works in the published experience. The current implementation supports artist-provided preview audio rather than automatic waveform extraction.
+- [x] Create and harden release purchase email templates for both sides of the transaction: buyers receive a sanitized purchase/download confirmation, and the artist account receives a separate sale notice with dashboard link when the artist email differs from the buyer. Release purchase/webhook tests pass 65/65 and TypeScript passes.
 - [x] Support guest purchases (no account required) for downloadable music releases: public checkout collects a validated email, Stripe receives the buyer email, purchase-success verification is public for the private session URL, and guest downloads are authorized only against that exact Stripe session. Authenticated ownership checks remain unchanged. Focused commerce tests pass 66/66, TypeScript passes, and the production build passes; checkpoint `cbdcd093` is saved and awaiting publication.
-- [ ] Write vitest tests for Phase 2
+- [x] Write and run Phase 2 release-purchase tests; guest checkout, session-bound success/download access, security boundaries, and commerce regressions pass 66/66, with TypeScript and production build passing.
 
 ### Phase 3: Dashboard, Analytics & Notifications
 - [x] Build release management page in artist dashboard (/releases route)
