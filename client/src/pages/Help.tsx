@@ -95,6 +95,12 @@ const faqItems: FAQItem[] = [
     answer: 'Only the verified platform owner can grant account-specific Starter, Professional, or Enterprise access in Admin → Users → Manage complimentary access. The owner chooses a plan, optional expiry, and reason, reviews the billing notice, and confirms. Grants can be replaced or revoked with retained audit history. After each successful grant or replacement, the branded confirmation email is attempted automatically for that grant revision, using a verified email address and respecting unsubscribe preferences. Duplicate attempts are blocked. If email acceptance is uncertain, access still applies; the owner should review delivery logs before resending. Recipients see their granted plan at a $0 subscription fee and its expiry in subscription settings. No-expiry grants remain subject to owner revocation. Active, trialing, past-due, paused, period-end or unverified cancelled Stripe billing must be resolved separately before a grant; this tool does not cancel or refund Stripe billing. At expiry or revocation, access returns to the account’s underlying eligible subscription or Free plan, and no paid subscription is started automatically. Transaction fees, Stripe processing, fan purchases, normal plan limits, and role/ownership rules still apply. There is no public redemption code and grants do not make users admins or reveal other users’ private content.',
   },
   {
+    id: 'payment-edu',
+    category: 'Payments & Billing',
+    question: 'How will OlogyWood EDU student pricing work?',
+    answer: 'The approved EDU framework is 50% off Starter or Professional for verified students when the offer is activated for an approved cohort. Enterprise is handled separately for institutions. Verification lasts 12 months and can use a school email, an approved school code, or documented manual review. Students receive renewal reminders and a 30-day grace period; if eligibility ends, the account and creative work remain available and the account transitions to the applicable standard plan price after notice. A school pilot can begin with free entry-level access for a defined 90-day cohort and does not automatically convert students to paid billing. Visit OlogyWood EDU to review the current program and submit interest.',
+  },
+  {
     id: 'payment-1',
     category: 'Payments & Billing',
     question: 'How are payments handled?',

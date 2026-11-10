@@ -31,6 +31,13 @@ const studentBenefits = [
   "A transition path into standard OlogyWood membership after graduation",
 ];
 
+const eduPolicy = [
+  ["50% student discount", "When activated for an approved EDU cohort, verified students receive 50% off Starter or Professional. Enterprise remains institution-specific."],
+  ["12-month verification", "Eligibility lasts 12 months and is renewed through a school email, approved school code, or documented manual review."],
+  ["30-day renewal grace", "Students receive reminders before expiration and a 30-day grace period to re-verify. No account or creative work is deleted."],
+  ["Free pilot access", "A school pilot can begin with a defined 90-day cohort and no automatic paid conversion or institutional billing obligation."],
+];
+
 const pilotSteps = [
   ["01", "Choose a department", "Start with one focused program such as recording arts, film, music business, or entertainment production."],
   ["02", "Run a 90-day cohort", "Invite a small group of students, introduce the platform, and help them complete professional creator profiles."],
@@ -67,7 +74,7 @@ export default function Edu() {
                   Explore a school pilot <Handshake className="h-4 w-4" />
                 </Link>
               </div>
-              <p className="mt-5 text-sm text-slate-400">Free entry-level access is available. Education pricing is being finalized against OlogyWood&apos;s existing plans.</p>
+              <p className="mt-5 text-sm text-slate-400">Free entry-level access is available. Approved EDU pricing is designed around OlogyWood&apos;s existing plans and activates only after eligibility is verified.</p>
             </div>
             <div className="relative rounded-3xl border border-white/15 bg-white/[0.06] p-6 shadow-2xl shadow-purple-950/30 backdrop-blur sm:p-8">
               <div className="absolute -right-3 -top-3 rounded-full bg-fuchsia-500 px-3 py-1 text-xs font-bold uppercase tracking-widest text-white">Launchpad</div>
@@ -88,6 +95,25 @@ export default function Edu() {
                 <p className="text-sm leading-6 text-purple-100">Your first professional presence should not have to wait until after graduation.</p>
               </div>
             </div>
+          </div>
+        </section>
+
+        <section className="border-y border-white/10 bg-purple-950/20">
+          <div className="mx-auto max-w-7xl px-6 py-20 lg:px-10">
+            <div className="max-w-3xl">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-purple-300">The approved EDU framework</p>
+              <h2 className="mt-3 text-3xl font-bold sm:text-4xl">A meaningful benefit with clear guardrails.</h2>
+              <p className="mt-4 leading-7 text-slate-300">The EDU policy is designed to be attractive to students and responsible for schools. Student pricing is not automatic: OlogyWood will activate the discount only for an approved cohort or after eligibility verification.</p>
+            </div>
+            <div className="mt-10 grid gap-4 sm:grid-cols-2">
+              {eduPolicy.map(([title, copy]) => (
+                <article key={title} className="rounded-2xl border border-purple-300/15 bg-white/[0.05] p-6">
+                  <h3 className="text-xl font-semibold text-white">{title}</h3>
+                  <p className="mt-3 leading-7 text-slate-400">{copy}</p>
+                </article>
+              ))}
+            </div>
+            <p className="mt-6 text-sm leading-6 text-slate-400">Graduates may keep their account and creative work; if EDU eligibility ends, the account transitions to the applicable standard plan price after notice. Students are not automatically enrolled in a paid plan.</p>
           </div>
         </section>
 

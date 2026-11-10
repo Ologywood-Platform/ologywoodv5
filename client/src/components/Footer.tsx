@@ -62,6 +62,7 @@ const Footer = () => {
       links: [
         { label: 'Events', path: '/events' },
         { label: 'Blog', path: '/blog' },
+        { label: 'OlogyWood EDU', path: '/edu' },
         { label: 'Pricing', path: '/pricing' },
         { label: 'How It Works', path: '/how-it-works' },
         { label: 'Help Center', path: '/help' },

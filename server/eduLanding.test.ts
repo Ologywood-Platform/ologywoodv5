@@ -7,6 +7,8 @@ describe("OlogyWood EDU foundation", () => {
   const applyPage = readFileSync(resolve(process.cwd(), "client/src/pages/EduApply.tsx"), "utf8");
   const app = readFileSync(resolve(process.cwd(), "client/src/App.tsx"), "utf8");
   const home = readFileSync(resolve(process.cwd(), "client/src/pages/Home.tsx"), "utf8");
+  const footer = readFileSync(resolve(process.cwd(), "client/src/components/Footer.tsx"), "utf8");
+  const help = readFileSync(resolve(process.cwd(), "client/src/pages/Help.tsx"), "utf8");
   const contactRouter = readFileSync(resolve(process.cwd(), "server/routers/contact.ts"), "utf8");
 
   it("registers a public EDU route and homepage entry point", () => {
@@ -22,14 +24,23 @@ describe("OlogyWood EDU foundation", () => {
     expect(page).toContain("Explore a school pilot");
     expect(page).toContain("Request a partnership conversation");
     expect(page).toContain("Free entry-level access is available");
-    expect(page).toContain("Education pricing is being finalized");
+    expect(page).toContain("Approved EDU pricing");
     expect(page).toContain("without promising bookings, employment, income, or school endorsement");
   });
 
-  it("keeps the first release aligned with current platform plans", () => {
+  it("publishes the approved framework without activating unverified billing", () => {
     expect(page).toContain('href="/pricing"');
-    expect(page).not.toContain("50% off");
-    expect(page).toContain("existing plans");
+    expect(page).toContain("50% student discount");
+    expect(page).toContain("12-month verification");
+    expect(page).toContain("30-day renewal grace");
+    expect(page).toContain("approved cohort");
+    expect(page).toContain("not automatically enrolled in a paid plan");
+  });
+
+  it("makes EDU discoverable from the shared footer and Help Center", () => {
+    expect(footer).toContain("{ label: 'OlogyWood EDU', path: '/edu' }");
+    expect(help).toContain("How will OlogyWood EDU student pricing work?");
+    expect(help).toContain("50% off Starter or Professional");
   });
 
   it("routes student and school interest through validated contact subjects", () => {
