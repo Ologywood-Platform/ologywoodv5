@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   AI_RELEASE_DISCLOSURE_GUIDANCE,
+  CREATOR_SHOP_PURCHASE_GUIDANCE,
   getCanonicalNavigationAnswer,
   MY_OLOGY_GUIDANCE,
   NIL_AGENT_FEE_GUIDANCE,
@@ -68,6 +69,21 @@ describe('AI chat canonical navigation guidance', () => {
     expect(answer).toContain('talent keeps 90%');
     expect(answer).toContain('Ology Live 15%');
     expect(answer).toContain('Stripe processing charges are separate');
+  });
+
+  it('answers guest music purchase questions without incorrectly requiring an account', () => {
+    const answer = getCanonicalNavigationAnswer('Can I buy a song without creating an account?');
+
+    expect(answer).toContain('No account is required');
+    expect(answer).toContain('private payment-success link');
+  });
+
+  it('answers merch and eBook account questions with their distinct access rules', () => {
+    const answer = getCanonicalNavigationAnswer('Can I buy merch or an eBook without an account?');
+
+    expect(answer).toBe(CREATOR_SHOP_PURCHASE_GUIDANCE);
+    expect(answer).toContain('Physical merch and physical books in Creator Shop support guest checkout');
+    expect(answer).toContain('Native eBooks are different: sign in or create an account');
   });
 
   it('does not bypass the LLM for unrelated platform questions', () => {

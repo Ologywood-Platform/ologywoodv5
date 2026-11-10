@@ -134,6 +134,8 @@ KEY FEATURES:
 - Limits: Starter = 6 items, Professional = 15 items
 - Native checkout uses Stripe Connect and a 1% platform fee; external-store links remain optional
 - Image uploads for product photos via S3
+- Physical merch and physical books support guest checkout; no OlogyWood account is required. Buyers enter name/email and shipping or pickup details, then pay securely through Stripe.
+- Native eBooks require sign-in or account creation so verified access can be linked to the buyer, the five-download limit enforced, and access recovered through My Ology.
 
 9. PROJECT PREVIEWS:
 - Showcase upcoming albums/EPs/mixtapes with cover art and audio snippets
@@ -255,7 +257,9 @@ export const SINGLE_RELEASE_GUIDANCE = "For one song hosted on YouTube, Spotify,
 
 export const CONTENT_RELEASE_COVER_GUIDANCE = "To add cover art, open Content Releases from your creator dashboard or Workspace and choose New Release or Edit. In Cover Art, upload a JPG, PNG, or WebP image up to 10 MB. A square image is recommended; the artwork is not cropped. Preview it, then Create Release or Update Release to apply the cover. Use Replace cover art or Remove cover art to change an existing cover; uploading or removing does not change the release until you save. Failed uploads keep the previous cover and your other entries intact. Cover art is optional and appears on creator and public release cards.";
 
-export const MUSIC_PURCHASE_GUIDANCE = "Open the creator profile. Uploaded Music Releases show Buy with the price or Name Your Price and add a downloadable, playable track to My Ology > Music library. Externally hosted Content Releases show Buy access or Your price for Pay What You Want, with the minimum price shown. Sign in and continue to secure Stripe checkout; hosted access is granted only after payment confirmation. Find it in My Ology or My Purchases under Hosted content purchases and select Watch / Listen. Hosted access does not include an audio-file download. Creators see Creator preview on their own hosted releases. Professional and Enterprise allow unlimited releases; Starter allows two. A published song is not removed by the creation limit.";
+export const MUSIC_PURCHASE_GUIDANCE = "Open the creator profile. Uploaded Music Releases show Buy with the price or Name Your Price and add a downloadable, playable track to My Ology > Music library. No account is required to buy an uploaded track: enter your email and continue to secure Stripe checkout, then keep the private payment-success link for guest download access. If you are signed in, the purchase also appears in My Ology and My Purchases. Externally hosted Content Releases show Buy access or Your price for Pay What You Want, with the minimum price shown; hosted access is granted only after payment confirmation and does not include an audio-file download. Creators see Creator preview on their own hosted releases. Professional and Enterprise allow unlimited releases; Starter allows two. A published song is not removed by the creation limit.";
+
+export const CREATOR_SHOP_PURCHASE_GUIDANCE = "Physical merch and physical books in Creator Shop support guest checkout: no OlogyWood account is required. Select the item, choose shipping or local pickup when offered, enter your name and email, provide the shipping address if needed, and continue to secure Stripe payment. Your email is used for the receipt and order updates; the creator fulfills the order. Native eBooks are different: sign in or create an account so the verified purchase can be linked to you, the five-download limit can be enforced, and access can be recovered from My Ology. External-store items follow the external store's checkout and account rules.";
 
 export const MUSIC_UPLOAD_GUIDANCE = 'To add songs fans can download, open Artist Dashboard → Music Releases, or Workspace → Create → Music Release. Choose Upload a Song, upload the full audio file (MP3, WAV, FLAC, AAC or M4A, up to 50 MB) and cover art (JPG, PNG or WebP, up to 10 MB), add the title and price, and certify your distribution rights. Choose Create Draft, then Publish from the release list. Fans can preview up to 30 seconds, purchase the audio download and play it in My Ology. Content Releases are for externally hosted access, and Project Previews are promotional showcases. Professional and Enterprise allow unlimited Music Releases; Starter allows two.';
 
@@ -287,6 +291,7 @@ export function getCanonicalNavigationAnswer(message: string): string | null {
   if (/\bcomplimentary\b|\bgrant\b.*\b(free|access|plan)\b|\bfree access\b/.test(normalized)) return COMPLIMENTARY_ACCESS_GUIDANCE;
 
   if (/\b(buy|purchase|pay|unlimited|missing|disappeared)\b/.test(normalized) && /\b(music|single|song|release|content)\b/.test(normalized)) return MUSIC_PURCHASE_GUIDANCE;
+  if (/\b(buy|purchase|checkout|account|guest|no account|sign in|sign up)\b/.test(normalized) && /\b(merch|merchandise|book|ebook|e-book|creator shop|shop)\b/.test(normalized)) return CREATOR_SHOP_PURCHASE_GUIDANCE;
 
   if (/\b(cover art|cover artwork|album cover|single cover|release cover|release artwork)\b/.test(normalized)) {
     return CONTENT_RELEASE_COVER_GUIDANCE;
