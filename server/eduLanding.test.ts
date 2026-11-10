@@ -26,6 +26,12 @@ describe("OlogyWood EDU foundation", () => {
     expect(page).toContain("Free entry-level access is available");
     expect(page).toContain("The approved EDU framework");
     expect(page).toContain("without promising bookings, employment, income, or school endorsement");
+    expect(page).toContain("Your creativity deserves an audience");
+    expect(page).toContain("Music + audio");
+    expect(page).toContain("Become an OlogyWood Campus Ambassador");
+    expect(page).toContain("/edu/apply?path=student&interest=ambassador");
+    expect(page).toContain("OlogyWood HBCU Creator Initiative");
+    expect(page).toContain("not an announced institutional partnership");
   });
 
   it("publishes the approved framework without activating unverified billing", () => {
@@ -52,5 +58,8 @@ describe("OlogyWood EDU foundation", () => {
     expect(contactRouter).toContain("'EDU Student Interest'");
     expect(contactRouter).toContain("'EDU School Pilot'");
     expect(applyPage).toContain("No payment is required to submit interest.");
+    expect(applyPage).toContain("Estimated participating students");
+    expect(applyPage).toContain("requestedInterest === \"ambassador\"");
+    expect(footer).toContain("emerging talent, student showcases, creative opportunities");
   });
 });

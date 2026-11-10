@@ -5366,3 +5366,15 @@ Support follow-up validation: all 159 targeted EDU/help tests passed across 12 f
 The EDU article and cover are already saved in production Blog Management. The owner can publish the article using its Draft-row Publish control. A separate website checkpoint publication is needed to deploy the editor-code fixes; publishing a website checkpoint does not publish the blog article. No other posts, profiles, payments, roles, student verifications or subscriptions were changed.
 
 Blog recovery validation: all 122 focused blog regressions passed across 8 files, TypeScript passed, and production build passed with existing warnings. Metadata-only updates now preserve omitted tags rather than inheriting a create-time empty-list default. The approved EDU article remains one production draft with its verified cover; no publication was performed. Editor-code fixes are ready for a separate owner website-checkpoint publication.
+
+## EDU LANDING REFINEMENT — 2026-11-10
+
+Added a small, additive conversion and storytelling pass after the owner sent the existing page to Lynton Felix. The approved EDU eligibility, pricing, verification, renewal, pilot and billing rules remain unchanged.
+
+- [x] Added “Your creativity deserves an audience” showcase cards for music/audio, film/video, visual media, live production and entertainment business. Content is explicitly illustrative and makes no student-project or success claims.
+- [x] Added a future-facing OlogyWood HBCU Creator Initiative panel. It is labeled as proposed/in development and does not identify Clark Atlanta University or any other institution as a partner.
+- [x] Added a Campus Ambassador interest CTA routed through the existing EDU Student Interest contact workflow. No referral codes, rewards, credits or unverified-registration incentives were activated.
+- [x] Strengthened school-pilot conversion by adding an optional estimated participating-student field to the existing validated interest submission message; the existing institution, department, contact and pilot explanation remain in place.
+- [x] Updated shared footer newsletter messaging to include emerging talent, student showcases, creative opportunities and entertainment industry news.
+
+Validation: 21 focused EDU/help/share tests passed across 3 files; TypeScript passed; production build passed with existing pnpm/chunk-size warnings. No schema, pricing, payment, entitlement, role, subscription or external-provider changes were made.

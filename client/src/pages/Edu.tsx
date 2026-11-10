@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Link } from "wouter";
-import { ArrowRight, Award, BriefcaseBusiness, CheckCircle2, GraduationCap, Handshake, Layers3, Mail, Sparkles, Users } from "lucide-react";
+import { ArrowRight, Award, BriefcaseBusiness, Camera, CheckCircle2, GraduationCap, Handshake, Layers3, Mail, Mic2, Sparkles, Users, Video } from "lucide-react";
 import SiteHeader from "@/components/SiteHeader";
 import EduShareButtons from '@/components/EduShareButtons';
 import { setMetaTags } from "@/utils/seoMeta";
@@ -44,6 +44,14 @@ const pilotSteps = [
   ["01", "Choose a department", "Start with one focused program such as recording arts, film, music business, or entertainment production."],
   ["02", "Run a 90-day cohort", "Invite a small group of students, introduce the platform, and help them complete professional creator profiles."],
   ["03", "Measure real activity", "Track profile completion, published work, collaborations, ticketing, sales, and retention—not registrations alone."],
+];
+
+const showcaseDisciplines = [
+  { icon: Mic2, title: "Music + audio", copy: "Release work, build a portfolio, and grow direct connections with listeners." },
+  { icon: Video, title: "Film + video", copy: "Present projects, collaborators, and production experience in one place." },
+  { icon: Camera, title: "Visual media", copy: "Show photography, design, and visual storytelling with context." },
+  { icon: Users, title: "Live production", copy: "Connect performance, event, and behind-the-scenes experience." },
+  { icon: BriefcaseBusiness, title: "Entertainment business", copy: "Practice the professional habits that turn creative work into momentum." },
 ];
 
 export default function Edu() {
@@ -160,6 +168,41 @@ export default function Edu() {
           </div>
         </section>
 
+        <section className="border-y border-white/10 bg-[#0d1022]">
+          <div className="mx-auto max-w-7xl px-6 py-20 lg:px-10">
+            <div className="max-w-3xl">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-purple-300">Your creativity deserves an audience</p>
+              <h2 className="mt-3 text-3xl font-bold sm:text-4xl">Build a body of work people can understand.</h2>
+              <p className="mt-4 leading-7 text-slate-300">Start with the work you are making now. These are illustrative pathways—not claims about completed student projects—and each can grow into a professional creator presence on OlogyWood.</p>
+            </div>
+            <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+              {showcaseDisciplines.map(({ icon: Icon, title, copy }) => (
+                <article key={title} className="rounded-2xl border border-purple-300/15 bg-purple-500/[0.07] p-5 transition hover:-translate-y-1 hover:border-purple-300/40">
+                  <Icon className="h-7 w-7 text-purple-300" aria-hidden="true" />
+                  <h3 className="mt-5 font-semibold text-white">{title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-400">{copy}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="border-y border-white/10 bg-purple-950/20">
+          <div className="mx-auto grid max-w-7xl gap-10 px-6 py-20 lg:grid-cols-[1.1fr_0.9fr] lg:px-10 lg:items-center">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-purple-300">Campus community</p>
+              <h2 className="mt-3 text-3xl font-bold sm:text-4xl">Become an OlogyWood Campus Ambassador.</h2>
+              <p className="mt-4 max-w-2xl leading-7 text-slate-300">Help connect the next generation of artists, filmmakers, producers, and entertainment professionals. We are collecting early interest while the program structure is finalized.</p>
+              <Link href="/edu/apply?path=student&interest=ambassador" className="mt-7 inline-flex items-center gap-2 rounded-xl bg-purple-600 px-5 py-3 font-semibold text-white hover:bg-purple-500">Share ambassador interest <ArrowRight className="h-4 w-4" /></Link>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+              {["Peer leadership and campus connection", "Creator showcases and networking", "Recognition for verified participation"].map(item => (
+                <div key={item} className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.05] p-4 text-slate-200"><Award className="h-5 w-5 shrink-0 text-fuchsia-300" aria-hidden="true" /><span>{item}</span></div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         <section className="mx-auto max-w-7xl px-6 py-20 lg:px-10">
           <div className="grid gap-12 lg:grid-cols-[1fr_1.2fr] lg:items-start">
             <div>
@@ -175,6 +218,19 @@ export default function Edu() {
                   <div><h3 className="text-xl font-semibold">{title}</h3><p className="mt-2 leading-7 text-slate-400">{copy}</p></div>
                 </div>
               ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-7xl px-6 pb-20 lg:px-10">
+          <div className="rounded-3xl border border-fuchsia-300/20 bg-gradient-to-br from-fuchsia-500/15 via-purple-500/10 to-transparent p-8 sm:p-10">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-fuchsia-200">Future-facing initiative</p>
+            <div className="mt-3 grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
+              <div>
+                <h2 className="text-3xl font-bold sm:text-4xl">OlogyWood HBCU Creator Initiative</h2>
+                <p className="mt-4 max-w-3xl leading-7 text-slate-300">A proposed OlogyWood EDU program for cross-campus collaboration, creator showcases, and emerging-talent discovery across HBCU communities. This is an idea in development, not an announced institutional partnership.</p>
+              </div>
+              <Link href="/edu/apply?path=school" className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/25 bg-white/10 px-5 py-3 font-semibold text-white hover:bg-white/15">Discuss a pilot <Handshake className="h-4 w-4" /></Link>
             </div>
           </div>
         </section>

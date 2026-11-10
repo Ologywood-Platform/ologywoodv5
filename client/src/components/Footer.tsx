@@ -120,7 +120,7 @@ const Footer = () => {
         <div className="mb-12 pb-12 border-b border-gray-800">
           <div className="max-w-md">
             <h3 className="text-white text-lg font-semibold mb-2">Stay Updated</h3>
-            <p className="text-gray-400 text-sm mb-4">Get the latest news about talent, venues, and booking opportunities.</p>
+            <p className="text-gray-400 text-sm mb-4">Stay connected with emerging talent, student showcases, creative opportunities, and entertainment industry news.</p>
             <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-2">
               <input
                 type="email"

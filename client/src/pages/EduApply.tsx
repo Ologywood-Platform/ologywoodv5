@@ -13,6 +13,7 @@ export default function EduApply() {
   const [email, setEmail] = useState("");
   const [school, setSchool] = useState("");
   const [program, setProgram] = useState("");
+  const [cohortSize, setCohortSize] = useState("");
   const [message, setMessage] = useState("");
   const [website, setWebsite] = useState("");
   const [submitted, setSubmitted] = useState<{ path: Path; email: string } | null>(null);
@@ -30,7 +31,9 @@ export default function EduApply() {
       canonical: "/edu/apply",
     });
     const requestedPath = new URLSearchParams(window.location.search).get("path");
+    const requestedInterest = new URLSearchParams(window.location.search).get("interest");
     if (requestedPath === "school") setPath("school");
+    if (requestedInterest === "ambassador") setProgram("Campus ambassador interest");
   }, []);
 
   const subject = useMemo(() => path === "school" ? "EDU School Pilot" as const : "EDU Student Interest" as const, [path]);
@@ -66,6 +69,7 @@ export default function EduApply() {
         `EDU path: ${path}`,
         `School or institution: ${school.trim()}`,
         program.trim() ? `Program or department: ${program.trim()}` : "",
+        path === "school" && cohortSize.trim() ? `Estimated participating students: ${cohortSize.trim()}` : "",
         "",
         message.trim(),
       ].filter(Boolean).join("\n"),
@@ -135,6 +139,7 @@ export default function EduApply() {
                 <div><label htmlFor="edu-email" className="mb-1.5 block text-sm font-semibold">Email</label><input id="edu-email" type="email" value={email} onChange={event => setEmail(event.target.value)} maxLength={320} required className="w-full rounded-lg border border-slate-300 px-3 py-2.5 outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-100" /></div>
                 <div><label htmlFor="edu-school" className="mb-1.5 block text-sm font-semibold">{path === "school" ? "Institution or department" : "School or program"}</label><input id="edu-school" value={school} onChange={event => setSchool(event.target.value)} maxLength={200} required className="w-full rounded-lg border border-slate-300 px-3 py-2.5 outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-100" /></div>
                 <div><label htmlFor="edu-program" className="mb-1.5 block text-sm font-semibold">Program or department <span className="font-normal text-slate-500">(optional)</span></label><input id="edu-program" value={program} onChange={event => setProgram(event.target.value)} maxLength={200} className="w-full rounded-lg border border-slate-300 px-3 py-2.5 outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-100" /></div>
+                {path === "school" && <div><label htmlFor="edu-cohort-size" className="mb-1.5 block text-sm font-semibold">Estimated participating students <span className="font-normal text-slate-500">(optional)</span></label><input id="edu-cohort-size" inputMode="numeric" value={cohortSize} onChange={event => setCohortSize(event.target.value.replace(/[^0-9-+ ]/g, "").slice(0, 40))} maxLength={40} placeholder="For example, 25–40" className="w-full rounded-lg border border-slate-300 px-3 py-2.5 outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-100" /></div>}
                 <div><label htmlFor="edu-message" className="mb-1.5 block text-sm font-semibold">What are you hoping to do?</label><textarea id="edu-message" value={message} onChange={event => setMessage(event.target.value)} minLength={10} maxLength={4000} required rows={5} placeholder={path === "school" ? "Tell us about the department, cohort size, and what a pilot should help students practice." : "Tell us about your creative discipline and what you want to build on OlogyWood."} className="w-full resize-y rounded-lg border border-slate-300 px-3 py-2.5 outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-100" /></div>
                 {error && <p className="rounded-lg bg-red-50 px-3 py-2.5 text-sm text-red-700" role="alert">{error}</p>}
                 <button type="submit" disabled={submitMutation.isPending} className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-purple-700 px-4 py-3 font-semibold text-white transition hover:bg-purple-800 disabled:cursor-not-allowed disabled:opacity-60">{submitMutation.isPending ? <><Loader2 className="h-4 w-4 animate-spin" /> Sending...</> : <><Send className="h-4 w-4" /> Send EDU interest</>}</button>
