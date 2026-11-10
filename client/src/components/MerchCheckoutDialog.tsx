@@ -46,6 +46,12 @@ export function MerchCheckoutDialog({ item, open, onOpenChange }: MerchCheckoutD
     setBuyerEmail(user?.email || '');
     setBuyerPhone('');
     setFulfillmentMethod(isDigitalBook ? 'digital' : item.shippingAvailable ? 'shipping' : 'pickup');
+    setLine1('');
+    setLine2('');
+    setCity('');
+    setState('');
+    setPostalCode('');
+    setCountry('United States');
     setCustomerNote('');
   }, [open, item?.id, user?.name, user?.email]);
 
@@ -113,7 +119,7 @@ export function MerchCheckoutDialog({ item, open, onOpenChange }: MerchCheckoutD
           <DialogTitle>{isDigitalBook ? 'Buy' : 'Order'} {item.title}</DialogTitle>
           <p className="text-sm text-muted-foreground">
             {isDigitalBook
-              ? 'An account is required so secure eBook access can be saved to your library.'
+              ? 'An account is required so your verified purchase can be securely linked to you, your five-download limit can be enforced, and you can recover access from My Ology.'
               : 'No account required. Enter your email for your receipt and order updates.'}
           </p>
         </DialogHeader>
@@ -151,7 +157,7 @@ export function MerchCheckoutDialog({ item, open, onOpenChange }: MerchCheckoutD
           {isDigitalBook ? (
             <div className="rounded-lg border border-purple-200 bg-purple-50 p-4 flex gap-3">
               <Download className="h-5 w-5 text-purple-700 shrink-0" />
-              <div><p className="font-medium text-sm">Secure digital delivery</p><p className="text-xs text-muted-foreground mt-1">{user ? 'Your eBook access will appear in My Ology and Creator Shop Orders after verified payment. Five downloads are included.' : 'Sign in before checkout so the author-supplied eBook can be attached to your OlogyWood account. Five downloads are included.'}</p></div>
+              <div><p className="font-medium text-sm">Secure digital delivery</p><p className="text-xs text-muted-foreground mt-1">{user ? 'Your eBook access will appear in My Ology and Creator Shop Orders after verified payment. Your account protects the purchase and tracks five included downloads.' : 'Sign in before checkout so the author-supplied eBook can be linked to your account, protected by a five-download limit, and recovered later from My Ology.'}</p></div>
             </div>
           ) : (
             <div className="space-y-2">
