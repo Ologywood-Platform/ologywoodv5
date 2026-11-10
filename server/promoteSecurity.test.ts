@@ -40,7 +40,10 @@ describe('Promotion security boundaries', () => {
     expect(client).toContain('adResult.callToActionUrl');
     expect(client).toContain('www.facebook.com/sharer/sharer.php');
     expect(client).toContain('x.com/intent/post');
+    expect(client).toContain('www.linkedin.com/sharing/share-offsite');
     expect(client).toContain('data-testid="social-post-preview"');
+    expect(client).toContain('aria-label="Editable social post preview"');
+    expect(client).toContain('editablePostText');
     expect(client).toContain('Copy All');
   });
 

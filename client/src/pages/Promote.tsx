@@ -17,7 +17,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import {
   Sparkles, Megaphone, Copy, Download, Calculator, Send,
   Loader2, ArrowLeft, Instagram, Facebook, Clock, Target,
-  DollarSign, TrendingUp, CheckCircle, AlertCircle
+  DollarSign, TrendingUp, CheckCircle, AlertCircle, Linkedin
 } from "lucide-react";
 import { useToast } from "@/components/ErrorToast";
 import { trpc } from "@/lib/trpc";
@@ -57,6 +57,7 @@ export default function Promote() {
   const [adPlatform, setAdPlatform] = useState<"instagram" | "facebook" | "tiktok" | "youtube" | "twitter">("instagram");
   const [adTone, setAdTone] = useState<"hype" | "professional" | "casual" | "urgent">("hype");
   const [adResult, setAdResult] = useState<AdCopyResult | null>(null);
+  const [editablePostText, setEditablePostText] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
 
   // Budget Calculator state
@@ -103,7 +104,9 @@ export default function Promote() {
         platform: adPlatform,
         tone: adTone,
       });
-      setAdResult(result as AdCopyResult);
+      const typedResult = result as AdCopyResult;
+      setAdResult(typedResult);
+      setEditablePostText(getAdPostText(typedResult));
       toast.addSuccess("Generated!", "Your ad copy is ready. Copy and use it!");
     } catch (error: any) {
       toast.addError("Generation Failed", error.message || "Please try again.");
@@ -163,12 +166,21 @@ export default function Promote() {
       toast.addError("Choose an Event", "Select a published event first so Facebook can share the ticket link.");
       return;
     }
-    const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(result.callToActionUrl)}&quote=${encodeURIComponent(getAdPostText(result, false))}`;
+    const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(result.callToActionUrl)}&quote=${encodeURIComponent(editablePostText || getAdPostText(result, false))}`;
     window.open(shareUrl, "_blank", "noopener,noreferrer");
   };
 
   const shareToX = (result: AdCopyResult) => {
-    const shareUrl = `https://x.com/intent/post?text=${encodeURIComponent(getAdPostText(result, false))}${result.callToActionUrl ? `&url=${encodeURIComponent(result.callToActionUrl)}` : ""}`;
+    const shareUrl = `https://x.com/intent/post?text=${encodeURIComponent(editablePostText || getAdPostText(result, false))}${result.callToActionUrl ? `&url=${encodeURIComponent(result.callToActionUrl)}` : ""}`;
+    window.open(shareUrl, "_blank", "noopener,noreferrer");
+  };
+
+  const shareToLinkedIn = (result: AdCopyResult) => {
+    if (!result.callToActionUrl) {
+      toast.addError("Choose an Event", "Select a published event first so LinkedIn can share the ticket link.");
+      return;
+    }
+    const shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(result.callToActionUrl)}`;
     window.open(shareUrl, "_blank", "noopener,noreferrer");
   };
 
@@ -357,7 +369,7 @@ export default function Promote() {
                             {platformIcons[adPlatform]} Generated Copy
                           </CardTitle>
                           <div className="flex flex-wrap items-center justify-end gap-2">
-                            <Button size="sm" variant="outline" onClick={() => copyToClipboard(getAdPostText(adResult))}>
+                            <Button size="sm" variant="outline" onClick={() => copyToClipboard(editablePostText || getAdPostText(adResult))}>
                             <Copy className="h-3 w-3 mr-1" /> Copy All
                             </Button>
                             <Button size="sm" variant="outline" onClick={() => shareToFacebook(adResult)} disabled={!adResult.callToActionUrl} title={!adResult.callToActionUrl ? "Choose a published event first" : "Open Facebook share composer"}>
@@ -365,6 +377,9 @@ export default function Promote() {
                             </Button>
                             <Button size="sm" variant="outline" onClick={() => shareToX(adResult)}>
                               <span className="font-bold mr-1">X</span> Share to X
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => shareToLinkedIn(adResult)} disabled={!adResult.callToActionUrl} title={!adResult.callToActionUrl ? "Choose a published event first" : "Open LinkedIn share composer"}>
+                              <Linkedin className="h-3 w-3 mr-1" /> Share to LinkedIn
                             </Button>
                           </div>
                         </div>
@@ -402,7 +417,12 @@ export default function Promote() {
                             <Label className="text-xs text-gray-500">SOCIAL POST PREVIEW</Label>
                             <span className="text-xs text-gray-400">Copy/share text</span>
                           </div>
-                          <p className="whitespace-pre-wrap text-sm leading-6">{getAdPostText(adResult)}</p>
+                          <Textarea
+                            aria-label="Editable social post preview"
+                            value={editablePostText || getAdPostText(adResult)}
+                            onChange={(event) => setEditablePostText(event.target.value)}
+                            className="min-h-36 text-sm leading-6 bg-white dark:bg-gray-950"
+                          />
                         </div>
                       </CardContent>
                     </Card>

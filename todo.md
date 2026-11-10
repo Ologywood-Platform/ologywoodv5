@@ -244,6 +244,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
   - FIX: Added `Allow: /api/og-page/` and `Allow: /api/og-image/` BEFORE the Disallow rule
   - In robots.txt, more specific rules take precedence over general ones
 - [ ] Test and verify artist sharing preview works on Facebook/Messenger after deployment
+- [x] Add direct Share to Facebook and Share to X composer buttons beside Copy All in the AI promotion generator; Facebook receives the public event URL plus quote text, X receives the generated text plus URL parameter, and neither action auto-publishes
+- [x] Add a visual Social Post Preview that mirrors the exact headline, body, hashtags, CTA, and ticket URL used by Copy All and the share composers
+- [x] Add Share to LinkedIn beside the Facebook/X composer buttons; LinkedIn receives the selected public event URL through its official share-offsite composer
+- [x] Make the Social Post Preview editable; Copy All, Facebook, and X use the creator’s edited text, while the selected ticket URL remains attached to the share destination
 - [x] Verify preview OG responses with a Facebook crawler user-agent; clean artist slug `/api/og-page/artist/adonis`, clean venue slug `/api/og-page/venue/the-velvet-room-jazz-lounge`, and a real public event slug each returned HTTP 200 with entity-specific titles and clean canonical/`og:url` values. Unknown artist/venue slugs returned safe JSON 404s; production custom-domain verification and Facebook/Messenger cache refresh remain open until publication.
 
 ## URGENT ISSUES
