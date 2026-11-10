@@ -60,10 +60,10 @@ export default function Edu() {
               <h1 className="max-w-3xl text-5xl font-bold tracking-tight sm:text-6xl lg:text-7xl">The next generation of entertainment starts here.</h1>
               <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300 sm:text-xl">A launchpad for emerging artists, filmmakers, producers, performers, and entertainment professionals to build, collaborate, showcase, and monetize their creativity.</p>
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-                <Link href="/get-started" className="inline-flex items-center justify-center gap-2 rounded-xl bg-purple-600 px-6 py-3.5 font-semibold transition hover:bg-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-300">
+                <Link href="/edu/apply?path=student" className="inline-flex items-center justify-center gap-2 rounded-xl bg-purple-600 px-6 py-3.5 font-semibold transition hover:bg-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-300">
                   Start as a student <ArrowRight className="h-4 w-4" />
                 </Link>
-                <Link href="/contact" className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 px-6 py-3.5 font-semibold text-white transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-purple-300">
+                <Link href="/edu/apply?path=school" className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 px-6 py-3.5 font-semibold text-white transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-purple-300">
                   Explore a school pilot <Handshake className="h-4 w-4" />
                 </Link>
               </div>
@@ -133,7 +133,7 @@ export default function Edu() {
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-purple-300">For schools and departments</p>
               <h2 className="mt-3 text-3xl font-bold sm:text-4xl">Pilot a professional creator ecosystem.</h2>
               <p className="mt-4 leading-7 text-slate-300">Start small with one department and a 90-day cohort. OlogyWood can support a measurable pilot before any broader institutional commitment.</p>
-              <Link href="/contact" className="mt-7 inline-flex items-center gap-2 rounded-xl border border-purple-300/40 bg-purple-500/10 px-5 py-3 font-semibold text-purple-100 hover:bg-purple-500/20">Request a partnership conversation <Mail className="h-4 w-4" /></Link>
+              <Link href="/edu/apply?path=school" className="mt-7 inline-flex items-center gap-2 rounded-xl border border-purple-300/40 bg-purple-500/10 px-5 py-3 font-semibold text-purple-100 hover:bg-purple-500/20">Request a partnership conversation <Mail className="h-4 w-4" /></Link>
             </div>
             <div className="space-y-4">
               {pilotSteps.map(([number, title, copy]) => (
@@ -149,7 +149,7 @@ export default function Edu() {
         <section className="bg-gradient-to-r from-purple-700 to-fuchsia-700">
           <div className="mx-auto flex max-w-7xl flex-col gap-6 px-6 py-16 sm:flex-row sm:items-center sm:justify-between lg:px-10">
             <div><h2 className="text-3xl font-bold">Build your next opportunity early.</h2><p className="mt-2 text-purple-100">Join the platform where creative education meets real-world momentum.</p></div>
-            <div className="flex flex-col gap-3 sm:flex-row"><Link href="/get-started" className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 font-semibold text-purple-800 hover:bg-purple-50">Create a free profile <ArrowRight className="h-4 w-4" /></Link><Link href="/contact" className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/40 px-5 py-3 font-semibold text-white hover:bg-white/10">Talk to OlogyWood <BriefcaseBusiness className="h-4 w-4" /></Link></div>
+             <div className="flex flex-col gap-3 sm:flex-row"><Link href="/get-started" className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 font-semibold text-purple-800 hover:bg-purple-50">Create a free profile <ArrowRight className="h-4 w-4" /></Link><Link href="/edu/apply?path=school" className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/40 px-5 py-3 font-semibold text-white hover:bg-white/10">Talk to OlogyWood <BriefcaseBusiness className="h-4 w-4" /></Link></div>
           </div>
         </section>
       </main>

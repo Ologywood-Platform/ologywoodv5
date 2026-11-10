@@ -11,6 +11,8 @@ const SUBJECTS = [
   'Venue Inquiry',
   'Technical Issue',
   'Partnership',
+  'EDU Student Interest',
+  'EDU School Pilot',
   'Other',
 ] as const;
 

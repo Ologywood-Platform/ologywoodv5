@@ -59,6 +59,7 @@ const Contact = lazy(() => import("./pages/Contact"));
 const FAQ = lazy(() => import("./pages/FAQ"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const Edu = lazy(() => import("./pages/Edu"));
+const EduApply = lazy(() => import("./pages/EduApply"));
 const SponsorAnalytics = lazy(() => import("./pages/SponsorAnalytics"));
 const SponsorOpportunities = lazy(() => import("./pages/SponsorOpportunities"));
 const SponsorDashboard = lazy(() => import("./pages/SponsorDashboard"));
@@ -288,6 +289,7 @@ function Router() {
           <Route path="/how-it-works" component={HowItWorks} />
           <Route path="/pricing" component={Pricing} />
           <Route path="/edu" component={Edu} />
+          <Route path="/edu/apply" component={EduApply} />
           <Route path="/sponsor-opportunities" component={SponsorOpportunities} />
           <Route path="/sponsor-dashboard" component={SponsorDashboard} />
           <Route path="/sponsor-analytics" component={SponsorAnalytics} />
