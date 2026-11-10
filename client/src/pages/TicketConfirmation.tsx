@@ -1,18 +1,30 @@
+import { useState } from 'react';
 import { toSlug } from '@/lib/slugify';
 import { useParams, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, Calendar, MapPin, Ticket, ArrowLeft, Loader2 } from 'lucide-react';
+import { CheckCircle2, Calendar, MapPin, Ticket, ArrowLeft, Loader2, FileDown } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { TicketQRCode } from '@/components/TicketQRCode';
 import { TicketTransfer } from '@/components/TicketTransfer';
 import SiteHeader from '@/components/SiteHeader';
+import { toast } from 'sonner';
+
+function escapeHtml(value: unknown): string {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
 
 export default function TicketConfirmation() {
   const { orderNumber } = useParams();
   const [, navigate] = useLocation();
   const sessionId = new URLSearchParams(window.location.search).get('session_id') || undefined;
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
 
   const { data: order, isLoading, error } = trpc.ticketing.getOrderByNumber.useQuery(
     { orderNumber: orderNumber || '', sessionId },
@@ -49,10 +61,71 @@ export default function TicketConfirmation() {
     return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
   };
 
+  const downloadPdf = async () => {
+    if (isExportingPdf) return;
+    setIsExportingPdf(true);
+    const filename = `ologywood-ticket-${order.orderNumber}.pdf`;
+    const qrImages = Array.from(document.querySelectorAll<HTMLCanvasElement>('#ticket-confirmation-content canvas'))
+      .map((canvas) => canvas.toDataURL('image/png'));
+    const eventTitle = escapeHtml(order.event?.title || 'Ologywood Event');
+    const eventDate = escapeHtml(formatDate(order.event?.date || null));
+    const eventTime = escapeHtml(order.event?.time || '');
+    const eventLocation = escapeHtml(order.event?.location || '');
+    const ticketRows = order.items.map((item: any, index: number) => `
+      <section style="border:1px solid #d1d5db;border-radius:10px;padding:18px;margin:14px 0;page-break-inside:avoid;">
+        <div style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start;">
+          <div><h2 style="font-size:18px;margin:0 0 6px;">${escapeHtml(item.tierName)}</h2><p style="margin:0;color:#4b5563;">Status: ${escapeHtml(item.status)}</p></div>
+          ${qrImages[index] ? `<img src="${qrImages[index]}" alt="Ticket QR code" style="width:170px;height:170px;" />` : ''}
+        </div>
+        <p style="font-family:monospace;font-size:12px;margin:12px 0 0;">Ticket code: ${escapeHtml(item.ticketCode)}</p>
+      </section>`).join('');
+    const element = document.createElement('div');
+    element.style.cssText = 'font-family:Arial,sans-serif;color:#111827;background:#fff;padding:28px;width:760px;';
+    element.innerHTML = `
+      <h1 style="font-size:28px;margin:0 0 6px;">Ologywood Ticket Confirmation</h1>
+      <p style="margin:0 0 18px;color:#4b5563;">Order ${escapeHtml(order.orderNumber)}</p>
+      <div style="background:#f3f4f6;border-radius:10px;padding:16px;">
+        <h2 style="font-size:20px;margin:0 0 8px;">${eventTitle}</h2>
+        <p style="margin:4px 0;">${eventDate}${eventTime ? ` at ${eventTime}` : ''}</p>
+        ${eventLocation ? `<p style="margin:4px 0;">${eventLocation}</p>` : ''}
+      </div>
+      ${ticketRows}
+      <p style="font-size:12px;color:#4b5563;margin-top:20px;">Present a valid QR code at the venue entrance. Each ticket can be checked in once. Keep this PDF available offline.</p>`;
+    try {
+      const module = await import('html2pdf.js');
+      const html2pdf = module.default ?? module;
+      if (typeof html2pdf !== 'function') throw new Error('PDF generator unavailable');
+      document.body.appendChild(element);
+      const pdfBlob = await html2pdf().set({
+        margin: 10,
+        filename,
+        image: { type: 'jpeg', quality: 0.95 },
+        html2canvas: { scale: 2, onclone: (clonedDocument: Document) => clonedDocument.querySelectorAll('style, link[rel="stylesheet"]').forEach((node) => node.remove()) },
+        jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' },
+      }).from(element).outputPdf('blob');
+      const url = URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      link.rel = 'noopener';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast.success('Ticket PDF downloaded');
+    } catch (error) {
+      console.error('[Ticket PDF] Export failed:', error instanceof Error ? error.name : 'UnknownError');
+      toast.error('Could not download the ticket PDF. Please try again.');
+    } finally {
+      element.remove();
+      setIsExportingPdf(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <SiteHeader />
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
+      <div id="ticket-confirmation-content" className="container mx-auto px-4 py-8 max-w-2xl">
         {/* Success Header */}
         <div className="text-center mb-8">
           <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto mb-4" />
@@ -156,7 +229,11 @@ export default function TicketConfirmation() {
         </Card>
 
         {/* Actions */}
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
+          <Button variant="outline" onClick={downloadPdf} disabled={isExportingPdf} className="flex-1 min-w-[170px]">
+            {isExportingPdf ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FileDown className="h-4 w-4 mr-2" />}
+            {isExportingPdf ? 'Preparing PDF…' : 'Download PDF'}
+          </Button>
           <Button variant="outline" onClick={() => navigate('/')} className="flex-1">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Home

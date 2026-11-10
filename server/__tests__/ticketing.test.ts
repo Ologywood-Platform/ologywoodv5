@@ -153,6 +153,18 @@ describe('Ticketing Module', () => {
       expect(app).toContain('MyTickets');
       expect(app).toContain('EventTickets');
     });
+
+    it('provides offline confirmation actions and a dynamic event sold-out state', () => {
+      const confirmation = fs.readFileSync(path.resolve(__dirname, '../../client/src/pages/TicketConfirmation.tsx'), 'utf-8');
+      const purchase = fs.readFileSync(path.resolve(__dirname, '../../client/src/components/TicketPurchase.tsx'), 'utf-8');
+
+      expect(confirmation).toContain('Download PDF');
+      expect(confirmation).toContain('ticket-confirmation-content');
+      expect(confirmation).toContain('outputPdf');
+      expect(purchase).toContain('isEventSoldOut');
+      expect(purchase).toContain('Sold Out');
+      expect(purchase).toContain('disabled={isEventSoldOut || totalTickets === 0 || isCheckingOut}');
+    });
   });
 
   describe('Order Number Generation', () => {

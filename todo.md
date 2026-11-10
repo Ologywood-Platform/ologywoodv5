@@ -2229,7 +2229,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 - [x] Generate QR codes on ticket confirmation page using ticket codes
 - [x] Build mobile-friendly QR scanner page for venue staff (/events/:id/check-in)
-- [x] Add check-in API integration (validateTicket, getCheckInStats)
+- [x] Add check-in API integration (validateTicket, getCheckInStats); the event venue account is authorized alongside the artist organizer, and the ticket claim is atomic so concurrent scanners cannot admit the same ticket twice
 - [x] Build ticket sales analytics dashboard with revenue charts
 - [x] Add sell-through percentages and conversion metrics
 - [x] Write tests for QR check-in and analytics features (19 tests passing)
@@ -2242,6 +2242,14 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Update homepage hero section to highlight ticketing feature
 - [x] Update help section with 8 ticketing FAQs
 - [x] Write tests for all new ticketing enhancements (38 new tests, 71 total ticketing tests)
+
+### Ticketing launch hardening — 2026-11-09
+
+- [x] Enable account-free ticket checkout with a required guest email field and same-tab Stripe redirect; the receipt email delivers a session-bound confirmation/QR link
+- [x] Handle full ticket refunds in the Stripe webhook by marking the order and ticket items refunded and reopening sold inventory; processing is idempotent
+- [x] Update the AI assistant with deterministic guidance for ticket setup, guest checkout, venue Door Check-In, single-use QR validation, refunds, and sold-out events
+- [x] Add a browser-safe Download PDF action to Ticket Confirmation; the generated offline PDF includes event details, ticket codes, and rendered QR codes
+- [x] Add a dynamic event-level Sold Out badge and disable checkout when every active ticket tier has no remaining inventory; individual sold-out tiers remain distinguishable when another tier is available
 
 ## OG IMAGE FIX FOR MESSENGER/SOCIAL SHARING (May 2026)
 

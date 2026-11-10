@@ -100,12 +100,15 @@ export function TicketPurchase({ eventId, eventTitle }: TicketPurchaseProps) {
     return null;
   }
 
+  const isEventSoldOut = tiers.every((tier: any) => tier.isSoldOut);
+
   return (
     <Card className="border-primary/20">
       <CardHeader className="pb-3">
         <CardTitle className="text-lg flex items-center gap-2">
           <Ticket className="h-5 w-5 text-primary" />
           Get Tickets
+          {isEventSoldOut && <Badge variant="destructive" className="ml-auto">Sold Out</Badge>}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -216,11 +219,13 @@ export function TicketPurchase({ eventId, eventTitle }: TicketPurchaseProps) {
 
         <Button
           onClick={handleCheckout}
-          disabled={totalTickets === 0 || isCheckingOut}
+          disabled={isEventSoldOut || totalTickets === 0 || isCheckingOut}
           className="w-full mt-3"
           size="lg"
         >
-          {isCheckingOut ? (
+          {isEventSoldOut ? (
+            'Sold Out'
+          ) : isCheckingOut ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin mr-2" />
               Processing...

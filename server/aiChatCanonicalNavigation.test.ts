@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   AI_RELEASE_DISCLOSURE_GUIDANCE,
   CREATOR_SHOP_PURCHASE_GUIDANCE,
+  EVENT_TICKETING_GUIDANCE,
   getCanonicalNavigationAnswer,
   MY_OLOGY_GUIDANCE,
   NIL_AGENT_FEE_GUIDANCE,
@@ -86,7 +87,14 @@ describe('AI chat canonical navigation guidance', () => {
     expect(answer).toContain('Native eBooks are different: sign in or create an account');
   });
 
-  it('does not bypass the LLM for unrelated platform questions', () => {
-    expect(getCanonicalNavigationAnswer('How do I sell tickets?')).toBeNull();
+  it('answers ticket-selling and venue check-in questions with current guest and door-flow guidance', () => {
+    const answer = getCanonicalNavigationAnswer('How do I sell tickets and check guests in at the venue?');
+
+    expect(answer).toBe(EVENT_TICKETING_GUIDANCE);
+    expect(answer).toContain('No account is required');
+    expect(answer).toContain('venue account');
+    expect(answer).toContain('Door Check-In');
+    expect(answer).toContain('Sold Out');
+    expect(answer).toContain('reopen inventory');
   });
 });

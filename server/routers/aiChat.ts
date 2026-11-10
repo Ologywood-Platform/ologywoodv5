@@ -14,6 +14,8 @@ export const PROFILE_GALLERY_GUIDANCE = 'On a public talent profile, click or ta
 
 export const VIDEO_PORTFOLIO_MANAGEMENT_GUIDANCE = 'Open Artist Dashboard → Video Portfolio. Choose Edit Title beside a saved clip, correct the spelling, and Save Title; no re-upload is needed. Choose Reorder Videos, drag the handle on desktop or use Move Up and Move Down on a phone or keyboard, then Save Order. Cancel discards unsaved changes. How this works opens the quick guide. Only the actual talent profile owner can edit or arrange clips; admin or team-member status alone is not permission. If the title or list changed elsewhere, your draft stays available; reload the current version and confirm before discarding it. Preparing clips can be arranged but follow existing processing before playback. Only titles and display order change: video files, thumbnails, categories, existing share links, playback and moderation status stay unchanged. Active clips remain visible; no new pre-screening is added. Viewer reports and review against platform guidelines remain the moderation workflow.';
 
+export const EVENT_TICKETING_GUIDANCE = 'To sell tickets, create or publish a public event, open its Ticket Management area, add ticket tiers with prices, quantities and per-order limits, and optionally add promo codes. No account is required to buy tickets: fans select tickets, enter an email for delivery, complete secure Stripe checkout, and receive a confirmation link with QR codes. On the event page, each tier shows availability and the purchase control becomes Sold Out when every active tier has no inventory. At the door, the event artist organizer or the event venue account opens Event Tickets → Door Check-In and scans the QR code or enters the full ticket code. A valid ticket is claimed once; used, refunded, cancelled, or invalid tickets cannot be admitted. Full refunds invalidate the tickets and reopen inventory. If a guest loses the page, use the private confirmation link from the ticket email.';
+
 const SYSTEM_PROMPT = `You are Ologywood's AI support assistant. You help users navigate the Ologywood platform — an artist booking and entertainment platform for artists, athletes, creators, venues, and fans.
 
 IMPORTANT RULES:
@@ -90,6 +92,9 @@ KEY FEATURES:
 - Promo codes (percentage or fixed discount)
 - QR code check-in at the door
 - Ticket transfers to other people
+- Guest checkout with email-delivered session-bound confirmation and QR codes; no account is required
+- The event venue account can operate Door Check-In for its event, alongside the artist organizer
+- Used, refunded, cancelled, or invalid tickets are rejected, and a sold-out event disables purchase
 - Service fee: $0.99 per ticket + Stripe processing (2.9% + $0.30)
 
 5. MUSIC RELEASES:
@@ -216,6 +221,9 @@ COMMON USER QUESTIONS:
 - "How do I book an artist?" → Browse directory, click booking button, fill in details, artist reviews and accepts
 - "How do I book an athlete?" → Same as artist: browse, select booking type (appearance, signing, camp, etc.), pick available date, set budget, submit
 - "How do I sell tickets?" → Create event, go to Ticket Management, add ticket tiers
+- "How do fans buy tickets?" → Open the public event page, select an available tier, enter an email if not signed in, and complete Stripe checkout. No account is required; the email receipt contains the private confirmation link and QR codes.
+- "How do I check people in?" → The event artist organizer or linked venue opens Event Tickets → Door Check-In, scans the QR code, or enters the full ticket code. Each valid ticket can be used once; refunded, cancelled, and already-used tickets are rejected.
+- "Why can't I buy tickets?" → If every active ticket tier has no remaining inventory, the event shows Sold Out and checkout is disabled. If only one tier is sold out, choose another available tier.
 - "How do I join a fan club?" → Visit talent profile, click Fan Club tab, choose a tier, subscribe
 - "How do I promote my event?" → Go to /promote from dashboard, use AI Generator or submit Boost request
 - "How do I get paid?" → Connect Stripe from Dashboard > Earnings & Payouts
@@ -281,6 +289,7 @@ export function getCanonicalNavigationAnswer(message: string): string | null {
   if ((/\b(photo|photos|image|images|gallery)\b/.test(normalized) && /\b(portfolio|profile)\b/.test(normalized)) || (/\b(show all|show less|scroll|collapse|expand)\b/.test(normalized) && /\b(music|videos?|songs?|profile)\b/.test(normalized))) return PROFILE_GALLERY_GUIDANCE;
   if (/\bvideo\s+portfolio\b|\bportfolio\s+videos?\b/.test(normalized) && /\b(edit|title|spelling|rename|reorder|arrange|order|move|guide|help)\b/.test(normalized)) return VIDEO_PORTFOLIO_MANAGEMENT_GUIDANCE;
   if (/\b(riders?|ryders?)\b/.test(normalized) && /\b(upload|pdf|manager|team|replace|document|private|default|permission|guide|help)\b/.test(normalized)) return RIDER_UPLOAD_GUIDANCE;
+  if (/\b(ticket|tickets|ticketing|event ticket|qr code|check[- ]?in|door check|sold out|venue staff)\b/.test(normalized) && /\b(buy|purchase|sell|create|manage|check|scan|admit|venue|organizer|available|inventory|refund|ticket|how|why|guest|account|email)\b/.test(normalized)) return EVENT_TICKETING_GUIDANCE;
   if (/\b(singles?|songs?|music|releases?)\b/.test(normalized) && (/\b(shar(?:e|ing))\b/.test(normalized) || /\b(edit|update|change|add|clear)\b.*\bdescription\b/.test(normalized))) return MUSIC_SINGLE_MANAGEMENT_GUIDANCE;
   if ((/\b(reorder|reposition|arrange|sort)\b/.test(normalized) || /\b(change|move|set)\b.*\b(order|position|first|up|down)\b/.test(normalized)) && /\b(singles?|songs?|music|releases?)\b/.test(normalized)) return SINGLE_ORDER_GUIDANCE;
   if (/\b(fan emails?|email list|creator updates?|send update|unsubscribe)\b|\bfollow\w*\b.*\bemail\b/.test(normalized)) return FAN_EMAIL_CONSENT_GUIDANCE;
