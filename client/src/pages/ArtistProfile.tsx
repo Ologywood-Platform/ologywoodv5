@@ -1585,7 +1585,7 @@ export default function ArtistProfile() {
             {/* Events and Portfolio in a two-column grid on tablet+ */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Events Section */}
-              <Card>
+              <Card id="profile-events" className="scroll-mt-24">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Calendar className="h-5 w-5" />

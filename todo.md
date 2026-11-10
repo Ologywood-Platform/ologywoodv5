@@ -249,6 +249,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add Share to LinkedIn beside the Facebook/X composer buttons; LinkedIn receives the selected public event URL through its official share-offsite composer
 - [x] Make the Social Post Preview editable; Copy All, Facebook, and X use the creator’s edited text, while the selected ticket URL remains attached to the share destination
 - [x] Add a Regenerate action beside the editable Social Post Preview; it reuses the current promotion inputs, requests a fresh AI variation on every subscription tier, resets the editable preview to the new copy, and shows a loading state while generating
+- [x] Wire artist-profile journey actions to real destinations: Book opens the booking request flow; Attend scrolls to upcoming events; Buy scrolls to merch/books or music/content; Watch / Listen scrolls to music/content; Join scrolls to Fan Club. Added helpful tooltips and informational fallback messages when a destination has no available content.
 - [x] Verify preview OG responses with a Facebook crawler user-agent; clean artist slug `/api/og-page/artist/adonis`, clean venue slug `/api/og-page/venue/the-velvet-room-jazz-lounge`, and a real public event slug each returned HTTP 200 with entity-specific titles and clean canonical/`og:url` values. Unknown artist/venue slugs returned safe JSON 404s; production custom-domain verification and Facebook/Messenger cache refresh remain open until publication.
 
 ## URGENT ISSUES
