@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Ticket, Minus, Plus, Loader2, ShieldCheck } from 'lucide-react';
+import { Ticket, Minus, Plus, Loader2, ShieldCheck, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/_core/hooks/useAuth';
@@ -22,7 +22,7 @@ export function TicketPurchase({ eventId, eventTitle }: TicketPurchaseProps) {
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [appliedPromo, setAppliedPromo] = useState<{ code: string; discountType: string; discountValue: number } | null>(null);
 
-  const { data: tiers, isLoading } = trpc.ticketing.getTiers.useQuery({ eventId });
+  const { data: tiers, isLoading } = trpc.ticketing.getTiers.useQuery({ eventId }, { refetchInterval: 30000, staleTime: 10000 });
   const checkoutMutation = trpc.ticketing.createCheckout.useMutation();
 
   const updateQuantity = (tierId: number, delta: number, max: number) => {
@@ -101,6 +101,10 @@ export function TicketPurchase({ eventId, eventTitle }: TicketPurchaseProps) {
   }
 
   const isEventSoldOut = tiers.every((tier: any) => tier.isSoldOut);
+  const lowStockTiers = tiers.filter((tier: any) => {
+    const lowStockThreshold = Math.max(3, Math.ceil(tier.quantity * 0.1));
+    return !tier.isSoldOut && tier.available > 0 && tier.available <= lowStockThreshold;
+  });
 
   return (
     <Card className="border-primary/20">
@@ -112,11 +116,18 @@ export function TicketPurchase({ eventId, eventTitle }: TicketPurchaseProps) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
+        {!isEventSoldOut && lowStockTiers.length > 0 && (
+          <div className="flex items-start gap-2 rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-sm text-orange-900" role="status" aria-live="polite">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+            <span><strong>Low stock:</strong> {lowStockTiers.length === 1 ? `only ${lowStockTiers[0].available} ticket${lowStockTiers[0].available === 1 ? '' : 's'} left for ${lowStockTiers[0].name}.` : `${lowStockTiers.length} ticket tiers are almost sold out.`}</span>
+          </div>
+        )}
         {tiers.map((tier: any) => {
           const qty = quantities[tier.id] || 0;
           const maxAvailable = Math.min(tier.available, tier.maxPerOrder);
           const isSoldOut = tier.isSoldOut;
           const isNotOnSale = !tier.isOnSale;
+          const isLowStock = !isSoldOut && tier.available > 0 && tier.available <= Math.max(3, Math.ceil(tier.quantity * 0.1));
 
           return (
             <div
@@ -136,8 +147,8 @@ export function TicketPurchase({ eventId, eventTitle }: TicketPurchaseProps) {
                   <p className="font-bold mt-1">
                     {tier.price === 0 ? 'Free' : `$${(tier.price / 100).toFixed(2)}`}
                   </p>
-                  {!isSoldOut && tier.available <= 10 && tier.available > 0 && (
-                    <p className="text-xs text-orange-600 mt-0.5">Only {tier.available} left!</p>
+                  {isLowStock && (
+                    <p className="text-xs font-medium text-orange-600 mt-0.5">Low stock — only {tier.available} left</p>
                   )}
                 </div>
                 {!isSoldOut && !isNotOnSale && (

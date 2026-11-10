@@ -102,13 +102,16 @@ export default function MyTickets() {
                           {/* Ticket codes */}
                           <div className="mt-3 flex flex-wrap gap-2">
                             {order.items.slice(0, 3).map((item: any) => (
-                              <span
+                              <div
                                 key={item.id}
-                                className="inline-flex items-center gap-1 text-xs bg-muted px-2 py-1 rounded"
+                                className="inline-flex items-center gap-2 rounded bg-muted px-2 py-1 text-xs"
                               >
                                 <QrCode className="h-3 w-3" />
-                                {item.tierName}
-                              </span>
+                                <span>{item.tierName}</span>
+                                <Badge variant={item.status === 'valid' ? 'default' : item.status === 'used' ? 'secondary' : 'destructive'} className="px-1.5 py-0 text-[10px]">
+                                  {item.status === 'valid' ? 'Active' : item.status === 'used' ? 'Used' : item.status}
+                                </Badge>
+                              </div>
                             ))}
                             {order.items.length > 3 && (
                               <span className="text-xs text-muted-foreground">

@@ -157,13 +157,22 @@ describe('Ticketing Module', () => {
     it('provides offline confirmation actions and a dynamic event sold-out state', () => {
       const confirmation = fs.readFileSync(path.resolve(__dirname, '../../client/src/pages/TicketConfirmation.tsx'), 'utf-8');
       const purchase = fs.readFileSync(path.resolve(__dirname, '../../client/src/components/TicketPurchase.tsx'), 'utf-8');
+      const myTickets = fs.readFileSync(path.resolve(__dirname, '../../client/src/pages/MyTickets.tsx'), 'utf-8');
 
       expect(confirmation).toContain('Download PDF');
       expect(confirmation).toContain('ticket-confirmation-content');
       expect(confirmation).toContain('outputPdf');
+      expect(confirmation).toContain('facebook.com/sharer/sharer.php');
+      expect(confirmation).toContain('linkedin.com/sharing/share-offsite');
+      expect(confirmation).toContain('Only the public event link is shared');
       expect(purchase).toContain('isEventSoldOut');
       expect(purchase).toContain('Sold Out');
+      expect(purchase).toContain('lowStockTiers');
+      expect(purchase).toContain('Low stock');
+      expect(purchase).toContain('refetchInterval: 30000');
       expect(purchase).toContain('disabled={isEventSoldOut || totalTickets === 0 || isCheckingOut}');
+      expect(myTickets).toContain("item.status === 'valid' ? 'Active'");
+      expect(myTickets).toContain("item.status === 'used' ? 'Used'");
     });
   });
 

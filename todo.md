@@ -2250,6 +2250,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Update the AI assistant with deterministic guidance for ticket setup, guest checkout, venue Door Check-In, single-use QR validation, refunds, and sold-out events
 - [x] Add a browser-safe Download PDF action to Ticket Confirmation; the generated offline PDF includes event details, ticket codes, and rendered QR codes
 - [x] Add a dynamic event-level Sold Out badge and disable checkout when every active ticket tier has no remaining inventory; individual sold-out tiers remain distinguishable when another tier is available
+- [x] Add privacy-safe social sharing to Ticket Confirmation with device Share, Facebook, LinkedIn, and Copy Link actions; only the public event URL is shared, never order, email, or QR data
+- [x] Add dynamic low-stock warnings based on current tier inventory, with a 30-second refresh so the warning stays current during active sales
+- [x] Add per-ticket Active/Used indicators in My Tickets; non-valid states remain visibly distinct for refunded, cancelled, or other unavailable tickets
 
 ## OG IMAGE FIX FOR MESSENGER/SOCIAL SHARING (May 2026)
 

@@ -4,7 +4,7 @@ import { useParams, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, Calendar, MapPin, Ticket, ArrowLeft, Loader2, FileDown } from 'lucide-react';
+import { CheckCircle2, Calendar, MapPin, Ticket, ArrowLeft, Loader2, FileDown, Share2, Copy, Check, Facebook, Linkedin } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { TicketQRCode } from '@/components/TicketQRCode';
 import { TicketTransfer } from '@/components/TicketTransfer';
@@ -25,6 +25,7 @@ export default function TicketConfirmation() {
   const [, navigate] = useLocation();
   const sessionId = new URLSearchParams(window.location.search).get('session_id') || undefined;
   const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [copiedShareLink, setCopiedShareLink] = useState(false);
 
   const { data: order, isLoading, error } = trpc.ticketing.getOrderByNumber.useQuery(
     { orderNumber: orderNumber || '', sessionId },
@@ -120,6 +121,38 @@ export default function TicketConfirmation() {
       element.remove();
       setIsExportingPdf(false);
     }
+  };
+
+  const eventShareUrl = order.event
+    ? `${window.location.origin}/events/${toSlug(order.event.title || '')}`
+    : window.location.origin;
+  const eventShareText = order.event
+    ? `I'm attending ${order.event.title} — see you there!`
+    : "I'm attending an event on Ologywood!";
+
+  const copyShareLink = async () => {
+    try {
+      await navigator.clipboard.writeText(eventShareUrl);
+      setCopiedShareLink(true);
+      toast.success('Event link copied');
+      window.setTimeout(() => setCopiedShareLink(false), 1800);
+    } catch {
+      toast.error('Could not copy the event link');
+    }
+  };
+
+  const shareEvent = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: order.event?.title || 'Ologywood event', text: eventShareText, url: eventShareUrl });
+      } catch (error) {
+        if (!(error && typeof error === 'object' && 'name' in error && error.name === 'AbortError')) {
+          toast.error('Could not open device sharing. Try Copy Link.');
+        }
+      }
+      return;
+    }
+    await copyShareLink();
   };
 
   return (
@@ -244,6 +277,19 @@ export default function TicketConfirmation() {
             </Button>
           )}
         </div>
+
+        {order.event && (
+          <div className="mt-4 rounded-lg border bg-white/70 p-3">
+            <p className="mb-2 flex items-center gap-2 text-sm font-medium"><Share2 className="h-4 w-4" /> Let friends know you’re attending</p>
+            <div className="flex flex-wrap gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={shareEvent} className="gap-2"><Share2 className="h-4 w-4" /> Share</Button>
+              <Button type="button" variant="outline" size="sm" onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(eventShareUrl)}`, '_blank', 'noopener,noreferrer')} className="gap-2"><Facebook className="h-4 w-4" /> Facebook</Button>
+              <Button type="button" variant="outline" size="sm" onClick={() => window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(eventShareUrl)}`, '_blank', 'noopener,noreferrer')} className="gap-2"><Linkedin className="h-4 w-4" /> LinkedIn</Button>
+              <Button type="button" variant="outline" size="sm" onClick={copyShareLink} className="gap-2">{copiedShareLink ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}{copiedShareLink ? 'Copied' : 'Copy Link'}</Button>
+            </div>
+            <p className="mt-2 text-xs text-muted-foreground">Only the public event link is shared—never your order number, email, or QR code.</p>
+          </div>
+        )}
 
         {/* Info */}
         <p className="text-xs text-center text-muted-foreground mt-6">
