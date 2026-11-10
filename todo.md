@@ -760,7 +760,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Create release card UI component for artist public profile (cover art, title, price, buy button)
 - [ ] Build 30-second audio preview player (deferred — artists can upload custom preview)
 - [ ] Create purchase confirmation email templates (buyer + artist)
-- [ ] Support guest purchases (no account required)
+- [x] Support guest purchases (no account required) for downloadable music releases: public checkout collects a validated email, Stripe receives the buyer email, purchase-success verification is public for the private session URL, and guest downloads are authorized only against that exact Stripe session. Authenticated ownership checks remain unchanged. Focused commerce tests pass 66/66, TypeScript passes, and the production build passes; checkpoint `cbdcd093` is saved and awaiting publication.
 - [ ] Write vitest tests for Phase 2
 
 ### Phase 3: Dashboard, Analytics & Notifications
