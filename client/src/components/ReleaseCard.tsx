@@ -334,6 +334,7 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId, 
             {release.allowPayWhatYouWant && (
               <span className="text-[10px] text-muted-foreground ml-1">or more</span>
             )}
+            {!user && <p className="mt-1 text-[10px] text-muted-foreground">No account required to buy this track.</p>}
           </div>
 
           {/* Meta info */}

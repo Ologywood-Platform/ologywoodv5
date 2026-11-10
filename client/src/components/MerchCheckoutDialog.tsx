@@ -111,6 +111,11 @@ export function MerchCheckoutDialog({ item, open, onOpenChange }: MerchCheckoutD
       <DialogContent className="sm:max-w-2xl max-h-[92vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isDigitalBook ? 'Buy' : 'Order'} {item.title}</DialogTitle>
+          <p className="text-sm text-muted-foreground">
+            {isDigitalBook
+              ? 'An account is required so secure eBook access can be saved to your library.'
+              : 'No account required. Enter your email for your receipt and order updates.'}
+          </p>
         </DialogHeader>
 
         <div className="space-y-5 py-2">
