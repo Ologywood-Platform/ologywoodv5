@@ -42,7 +42,8 @@ import SiteHeader from "@/components/SiteHeader";
 import { TALENT_TYPE_OPTIONS } from "@shared/talentTypes";
 import "./Home.css";
 
-const heroImage = "/manus-storage/ologywood-cinematic-hero_4ee30676.webp";
+const heroImage = "/images/ologywood-cinematic-hero-1280.webp";
+const heroImageSrcSet = "/images/ologywood-cinematic-hero-768.webp 768w, /images/ologywood-cinematic-hero-1280.webp 1280w";
 const categories = [
   {
     type: "artist",
@@ -251,11 +252,12 @@ export default function Home() {
         <section className="home-hero" aria-labelledby="home-headline">
           <img
             src={heroImage}
+            srcSet={heroImageSrcSet}
             alt=""
             aria-hidden="true"
             className="home-hero-image"
-            width="2200"
-            height="943"
+            width="1280"
+            height="549"
             sizes="100vw"
             decoding="async"
             fetchPriority="high"
