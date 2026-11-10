@@ -632,10 +632,15 @@ export const ticketingRouter = router({
       const [event] = await (await getDatabase()).select().from(events).where(eq(events.id, ticket.eventId)).limit(1);
       if (!event) throw new TRPCError({ code: 'NOT_FOUND', message: 'Event not found' });
 
-      const { getArtistProfileByUserId } = await import('../db');
+      const { getArtistProfileByUserId, getVenueProfileByUserId } = await import('../db');
       const artistProfile = await getArtistProfileByUserId(ctx.user.id);
-      if (!artistProfile || artistProfile.id !== event.artistId) {
-        throw new TRPCError({ code: 'FORBIDDEN', message: 'Only the event organizer can validate tickets' });
+      const venueProfile = event.venueId ? await getVenueProfileByUserId(ctx.user.id) : null;
+      const canCheckIn = Boolean(
+        (artistProfile && artistProfile.id === event.artistId)
+        || (venueProfile && venueProfile.userId === event.venueId),
+      );
+      if (!canCheckIn) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Only the event organizer or venue can validate tickets' });
       }
 
       if (ticket.status === 'used') {
@@ -654,12 +659,21 @@ export const ticketingRouter = router({
         };
       }
 
-      // Mark as used
-      await (await getDatabase()).update(ticketItems).set({
+      // Claim the ticket atomically so concurrent scanners cannot admit it twice.
+      const checkedInAt = new Date();
+      const updateResult = await (await getDatabase()).update(ticketItems).set({
         status: 'used',
-        checkedInAt: new Date(),
+        checkedInAt,
         checkedInBy: ctx.user.id,
-      }).where(eq(ticketItems.id, ticket.id));
+      }).where(and(eq(ticketItems.id, ticket.id), eq(ticketItems.status, 'valid')));
+      const affectedRows = Number((updateResult as any)?.[0]?.affectedRows ?? 0);
+      if (affectedRows === 0) {
+        return {
+          valid: false,
+          message: 'Ticket was just checked in by another scanner.',
+          ticket: { ...ticket, status: 'used' as const },
+        };
+      }
 
       // Get tier name
       const [tier] = await (await getDatabase()).select().from(ticketTiers).where(eq(ticketTiers.id, ticket.tierId)).limit(1);
@@ -669,6 +683,9 @@ export const ticketingRouter = router({
         message: 'Ticket validated successfully!',
         ticket: {
           ...ticket,
+          status: 'used' as const,
+          checkedInAt,
+          checkedInBy: ctx.user.id,
           tierName: tier?.name || 'Unknown',
           attendeeName: ticket.attendeeName,
         },
@@ -682,9 +699,14 @@ export const ticketingRouter = router({
       const [event] = await (await getDatabase()).select().from(events).where(eq(events.id, input.eventId)).limit(1);
       if (!event) throw new TRPCError({ code: 'NOT_FOUND', message: 'Event not found' });
 
-      const { getArtistProfileByUserId } = await import('../db');
+      const { getArtistProfileByUserId, getVenueProfileByUserId } = await import('../db');
       const artistProfile = await getArtistProfileByUserId(ctx.user.id);
-      if (!artistProfile || artistProfile.id !== event.artistId) {
+      const venueProfile = event.venueId ? await getVenueProfileByUserId(ctx.user.id) : null;
+      const canCheckIn = Boolean(
+        (artistProfile && artistProfile.id === event.artistId)
+        || (venueProfile && venueProfile.userId === event.venueId),
+      );
+      if (!canCheckIn) {
         throw new TRPCError({ code: 'FORBIDDEN', message: 'Access denied' });
       }
 

@@ -769,8 +769,37 @@ async function handleChargeRefunded(charge: Stripe.Charge) {
   const database = await db.getDb();
   if (!database) return;
 
-  const { bookDownloadAccess, merchItems, merchOrderItems, merchOrders } = await import('../../drizzle/schema');
-  const { and, eq, sql } = await import('drizzle-orm');
+  const { bookDownloadAccess, merchItems, merchOrderItems, merchOrders, ticketOrders, ticketItems, ticketTiers } = await import('../../drizzle/schema');
+  const { and, eq, inArray, sql } = await import('drizzle-orm');
+  const [ticketOrder] = await database.select().from(ticketOrders)
+    .where(eq(ticketOrders.stripePaymentIntentId, paymentIntentId)).limit(1);
+  if (ticketOrder) {
+    await database.transaction(async (tx) => {
+      const updateResult = await tx.update(ticketOrders).set({ status: 'refunded' }).where(and(
+        eq(ticketOrders.id, ticketOrder.id),
+        eq(ticketOrders.status, 'completed'),
+      ));
+      const affectedRows = Number((updateResult as any)?.[0]?.affectedRows ?? 0);
+      if (affectedRows === 0) return;
+
+      const items = await tx.select().from(ticketItems).where(eq(ticketItems.orderId, ticketOrder.id));
+      await tx.update(ticketItems).set({ status: 'refunded' }).where(and(
+        eq(ticketItems.orderId, ticketOrder.id),
+        inArray(ticketItems.status, ['valid', 'used']),
+      ));
+
+      const countsByTier = new Map<number, number>();
+      for (const item of items) countsByTier.set(item.tierId, (countsByTier.get(item.tierId) || 0) + 1);
+      for (const [tierId, count] of countsByTier) {
+        await tx.update(ticketTiers).set({
+          quantitySold: sql`GREATEST(0, ${ticketTiers.quantitySold} - ${count})`,
+        }).where(eq(ticketTiers.id, tierId));
+      }
+    });
+    console.log(`[Stripe Webhook] Ticket order ${ticketOrder.orderNumber} fully refunded; tickets invalidated`);
+    return;
+  }
+
   const [merchOrder] = await database.select().from(merchOrders)
     .where(eq(merchOrders.stripePaymentIntentId, paymentIntentId)).limit(1);
   if (merchOrder) {
@@ -1170,6 +1199,7 @@ async function handleTicketPurchaseCompleted(session: Stripe.Checkout.Session) {
     try {
       await sendTicketConfirmationEmail({
         orderNumber: orderNumber || '',
+        checkoutSessionId: session.id,
         buyerEmail: session.customer_details?.email || session.metadata?.customer_email || '',
         buyerName: session.metadata?.customer_name || session.customer_details?.name || 'Guest',
         eventId: parseInt(eventId),
@@ -1191,6 +1221,7 @@ async function handleTicketPurchaseCompleted(session: Stripe.Checkout.Session) {
  */
 async function sendTicketConfirmationEmail(params: {
   orderNumber: string;
+  checkoutSessionId: string;
   buyerEmail: string;
   buyerName: string;
   eventId: number;
@@ -1251,7 +1282,7 @@ async function sendTicketConfirmationEmail(params: {
   }
 
   const eventDate = formatDateOnly(event.eventDate, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
-  const confirmationUrl = `${ENV.baseUrl}/tickets/confirmation/${params.orderNumber}`;
+  const confirmationUrl = `${ENV.baseUrl}/tickets/confirmation/${params.orderNumber}?session_id=${encodeURIComponent(params.checkoutSessionId)}`;
 
   const ticketRows = tickets.map(t => `
     <tr>

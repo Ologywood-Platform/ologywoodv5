@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Ticket, Minus, Plus, Loader2, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { trpc } from '@/lib/trpc';
@@ -16,6 +18,7 @@ interface TicketPurchaseProps {
 export function TicketPurchase({ eventId, eventTitle }: TicketPurchaseProps) {
   const { user, isAuthenticated } = useAuth();
   const [quantities, setQuantities] = useState<Record<number, number>>({});
+  const [guestEmail, setGuestEmail] = useState('');
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [appliedPromo, setAppliedPromo] = useState<{ code: string; discountType: string; discountValue: number } | null>(null);
 
@@ -53,6 +56,10 @@ export function TicketPurchase({ eventId, eventTitle }: TicketPurchaseProps) {
       toast.error('Please select at least one ticket');
       return;
     }
+    if (!isAuthenticated && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail.trim())) {
+      toast.error('Enter an email address to receive your tickets.');
+      return;
+    }
 
     setIsCheckingOut(true);
     try {
@@ -63,14 +70,14 @@ export function TicketPurchase({ eventId, eventTitle }: TicketPurchaseProps) {
       const result = await checkoutMutation.mutateAsync({
         eventId,
         items,
-        buyerEmail: user?.email || undefined,
+        buyerEmail: user?.email || guestEmail.trim() || undefined,
         buyerName: user?.name || undefined,
         promoCode: appliedPromo?.code,
       });
 
       if (result.checkoutUrl) {
         toast.success('Redirecting to secure checkout...');
-        window.open(result.checkoutUrl, '_blank');
+        window.location.assign(result.checkoutUrl);
       }
     } catch (err: any) {
       toast.error(err.message || 'Failed to start checkout');
@@ -164,6 +171,24 @@ export function TicketPurchase({ eventId, eventTitle }: TicketPurchaseProps) {
           ticketCount={totalTickets}
           onPromoApplied={setAppliedPromo}
         />
+
+        {!isAuthenticated && (
+          <div className="space-y-1.5 border-t pt-3">
+            <Label htmlFor={`ticket-guest-email-${eventId}`}>Email for your tickets</Label>
+            <Input
+              id={`ticket-guest-email-${eventId}`}
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              placeholder="you@example.com"
+              value={guestEmail}
+              onChange={(event) => setGuestEmail(event.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              No account is required. We’ll email your receipt and QR codes after payment.
+            </p>
+          </div>
+        )}
 
         {/* Order Summary */}
         {totalTickets > 0 && (
