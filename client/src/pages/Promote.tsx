@@ -29,6 +29,7 @@ type AdCopyResult = {
   primaryCopy: string;
   hashtags: string[];
   callToAction: string;
+  callToActionUrl?: string;
   targetingTips: {
     age: string;
     interests: string[];
@@ -52,6 +53,7 @@ export default function Promote() {
   const [adGenre, setAdGenre] = useState("");
   const [adLocation, setAdLocation] = useState("");
   const [adDate, setAdDate] = useState("");
+  const [adEventId, setAdEventId] = useState("none");
   const [adPlatform, setAdPlatform] = useState<"instagram" | "facebook" | "tiktok" | "youtube" | "twitter">("instagram");
   const [adTone, setAdTone] = useState<"hype" | "professional" | "casual" | "urgent">("hype");
   const [adResult, setAdResult] = useState<AdCopyResult | null>(null);
@@ -75,6 +77,7 @@ export default function Promote() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const generateAdCopy = trpc.promote.generateAdCopy.useMutation();
+  const myEvents = trpc.events.getMyEvents.useQuery({}, { enabled: adType === "event" });
   const budgetCalc = trpc.promote.calculateBudget.useQuery(
     { dailyBudget: calcBudget, days: calcDays, platform: calcPlatform, location: calcLocation || undefined },
     { enabled: calcBudget >= 5 && calcDays >= 1 }
@@ -96,10 +99,11 @@ export default function Promote() {
         genre: adGenre || undefined,
         location: adLocation || undefined,
         date: adDate || undefined,
+        eventId: adType === "event" && adEventId !== "none" ? Number(adEventId) : undefined,
         platform: adPlatform,
         tone: adTone,
       });
-      setAdResult(result);
+      setAdResult(result as AdCopyResult);
       toast.addSuccess("Generated!", "Your ad copy is ready. Copy and use it!");
     } catch (error: any) {
       toast.addError("Generation Failed", error.message || "Please try again.");
@@ -261,6 +265,24 @@ export default function Promote() {
                     </div>
                   )}
 
+                  {adType === "event" && (
+                    <div>
+                      <Label>Ticket Purchase Link (optional)</Label>
+                      <Select value={adEventId} onValueChange={setAdEventId}>
+                        <SelectTrigger><SelectValue placeholder="Choose a published event" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">No link — use text-only CTA</SelectItem>
+                          {(myEvents.data || []).filter((event: any) => event.isPublic && event.status !== "cancelled").map((event: any) => (
+                            <SelectItem key={event.id} value={String(event.id)}>
+                              {event.eventTitle} · {event.eventDate ? new Date(event.eventDate).toLocaleDateString() : "Date pending"}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-gray-500 mt-1">Choose the published event so Copy All includes a clickable Get Tickets URL.</p>
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <Label>Platform</Label>
@@ -313,7 +335,7 @@ export default function Promote() {
                           <CardTitle className="text-lg">
                             {platformIcons[adPlatform]} Generated Copy
                           </CardTitle>
-                          <Button size="sm" variant="outline" onClick={() => copyToClipboard(`${adResult.headline}\n\n${adResult.primaryCopy}\n\n${adResult.hashtags.map(h => `#${h}`).join(" ")}`)}>
+                          <Button size="sm" variant="outline" onClick={() => copyToClipboard(`${adResult.headline}\n\n${adResult.primaryCopy}\n\n${adResult.hashtags.map(h => `#${h}`).join(" ")}\n\n${adResult.callToAction}${adResult.callToActionUrl ? `: ${adResult.callToActionUrl}` : ""}`)}>
                             <Copy className="h-3 w-3 mr-1" /> Copy All
                           </Button>
                         </div>
@@ -340,6 +362,11 @@ export default function Promote() {
                         <div>
                           <Label className="text-xs text-gray-500">CALL TO ACTION</Label>
                           <p className="font-medium text-purple-700 dark:text-purple-300">{adResult.callToAction}</p>
+                          {adResult.callToActionUrl && (
+                            <a href={adResult.callToActionUrl} target="_blank" rel="noopener noreferrer" className="block mt-1 text-sm text-purple-700 dark:text-purple-300 underline break-all">
+                              {adResult.callToActionUrl}
+                            </a>
+                          )}
                         </div>
                       </CardContent>
                     </Card>

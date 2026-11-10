@@ -38,11 +38,29 @@ export const promoteRouter = router({
       genre: z.string().trim().max(100).optional(),
       location: z.string().trim().max(255).optional(),
       date: z.string().trim().max(100).optional(),
+      eventId: z.number().int().safe().positive().optional(),
       platform: z.enum(["instagram", "facebook", "tiktok", "youtube", "twitter"]),
       tone: z.enum(["hype", "professional", "casual", "urgent"]).default("hype"),
     }).strict())
-    .mutation(async ({ input }) => {
-      const { type, name, description, genre, location, date, platform, tone } = input;
+    .mutation(async ({ input, ctx }) => {
+      const { type, name, description, genre, location, date, eventId, platform, tone } = input;
+
+      let callToActionUrl: string | undefined;
+      if (eventId !== undefined) {
+        if (type !== 'event') {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'An event link can only be used for event promotions.' });
+        }
+        const event = await db.getEventById(eventId);
+        const artistProfile = event ? await db.getArtistProfileById(event.artistId) : null;
+        if (!event || !artistProfile || artistProfile.userId !== ctx.user.id) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'You can only link to your own event.' });
+        }
+        if (!event.isPublic || event.status === 'cancelled') {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Publish the event before adding it to a promotion.' });
+        }
+        const baseUrl = process.env.BASE_URL || 'https://www.ologywood.com';
+        callToActionUrl = `${baseUrl.replace(/\/$/, '')}/events/${event.id}`;
+      }
 
       const platformGuides: Record<string, string> = {
         instagram: "Instagram: Keep captions under 2200 chars. Use 5-10 relevant hashtags. Include a call-to-action. Suggest Story format (vertical 9:16) and Feed post (square 1:1).",
@@ -139,7 +157,12 @@ Generate compelling, ready-to-use ad copy.`;
         if (!content || typeof content !== 'string') {
           throw new Error("No content returned from LLM");
         }
-        return JSON.parse(content);
+        const adCopy = JSON.parse(content) as Record<string, unknown>;
+        if (callToActionUrl) {
+          adCopy.callToAction = 'Get Tickets';
+          adCopy.callToActionUrl = callToActionUrl;
+        }
+        return adCopy;
       } catch (error: any) {
         console.error("[Promote] AI generation error", { kind: error instanceof Error ? error.name : "UnknownError" });
         throw new TRPCError({

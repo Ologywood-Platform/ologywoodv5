@@ -8,6 +8,7 @@ describe('Promotion security boundaries', () => {
   it('bounds AI and budget calculator inputs', () => {
     const source = read('./routers/promote.ts');
     expect(source).toContain('name: z.string().trim().min(1).max(255)');
+    expect(source).toContain('eventId: z.number().int().safe().positive().optional()');
     expect(source).toContain('dailyBudget: z.number().min(5).max(1000)');
     expect(source).toContain('days: z.number().int().min(1).max(90)');
     expect(source).toContain('}).strict())');
@@ -27,6 +28,16 @@ describe('Promotion security boundaries', () => {
     expect(source).toContain('You can only promote your own content.');
     expect(source).toContain('targetProfile.userId !== ctx.user.id');
     expect(source).toContain('artistUserId: ctx.user.id.toString()');
+  });
+
+  it('only exposes public owned event URLs and returns them as an actionable CTA', () => {
+    const source = read('./routers/promote.ts');
+    expect(source).toContain('You can only link to your own event.');
+    expect(source).toContain('Publish the event before adding it to a promotion.');
+    expect(source).toContain('adCopy.callToActionUrl = callToActionUrl');
+    const client = read('../client/src/pages/Promote.tsx');
+    expect(client).toContain('eventId: adType === "event" && adEventId !== "none" ? Number(adEventId) : undefined');
+    expect(client).toContain('adResult.callToActionUrl');
   });
 
   it('keeps the client platform state typed to the validated server enum', () => {
