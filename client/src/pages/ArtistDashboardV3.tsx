@@ -173,7 +173,7 @@ export function ArtistDashboardV3() {
               <img src={artistProfile.profilePhotoUrl} alt="" className="h-10 w-10 rounded-full object-cover shrink-0" />
             ) : null}
             <div>
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-gray-100">Artist Dashboard</h1>
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-gray-100">My Dashboard</h1>
               <p className="text-sm text-slate-600 dark:text-gray-400">{artistProfile?.artistName || (artistProfile as any)?.stageName || 'Welcome'}</p>
             </div>
           </div>

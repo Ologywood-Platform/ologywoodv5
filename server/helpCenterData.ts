@@ -53,7 +53,7 @@ Contracts in Ologywood are digital agreements between artists and venues for per
 ## Getting Started
 
 1. Log in to your Ologywood account
-2. Navigate to your dashboard (Artist Dashboard or Venue Dashboard)
+2. Navigate to your dashboard (My Dashboard or Venue Dashboard)
 3. Click the "Contracts" tab to view your contracts
 4. Review pending contracts or create new ones
 5. Sign or send contracts as needed
@@ -84,7 +84,7 @@ Contracts in Ologywood are digital agreements between artists and venues for per
 ## Step 1: Access the Contract
 
 1. Log in to your Ologywood account
-2. Go to your Artist Dashboard
+2. Go to your My Dashboard
 3. Click the "Contracts" tab
 4. Find the contract you need to sign
 5. Click "View Contract" to open it

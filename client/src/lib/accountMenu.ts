@@ -39,7 +39,7 @@ export function getAccountMenuItems({
   if (isCollaborator) {
     items.push({ id: 'team-workspace', label: 'Team Workspace', href: '/workspace' });
   } else if (isCreatorOwner) {
-    items.push({ id: 'artist-dashboard', label: 'Artist Dashboard', href: '/dashboard' });
+    items.push({ id: 'artist-dashboard', label: 'My Dashboard', href: '/dashboard' });
   }
 
   items.push({ id: 'my-ology', label: 'My Ology', href: '/my-ology' });

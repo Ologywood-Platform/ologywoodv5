@@ -264,7 +264,7 @@ export default function NilComplianceCenter() {
       <main className="container mx-auto max-w-6xl px-4 py-8 space-y-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <Button variant="ghost" size="sm" className="-ml-3 mb-2" onClick={() => navigate("/dashboard")}><ArrowLeft className="mr-2 h-4 w-4" />Artist Dashboard</Button>
+            <Button variant="ghost" size="sm" className="-ml-3 mb-2" onClick={() => navigate("/dashboard")}><ArrowLeft className="mr-2 h-4 w-4" />My Dashboard</Button>
             <h1 className="text-3xl font-bold flex items-center gap-2"><Scale className="h-7 w-7 text-violet-600" />NIL Compliance Center</h1>
             <p className="mt-2 text-muted-foreground">Private readiness tools for {data.artistProfile.artistName}. Nothing here is displayed on your public profile.</p>
           </div>

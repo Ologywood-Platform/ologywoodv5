@@ -52,7 +52,7 @@ describe('Downloadable music upload navigation', () => {
     'Where do I sell downloadable music?',
   ])('answers creator upload intent before hosted-single or buying guidance: %s', (question) => {
     expect(getCanonicalNavigationAnswer(question)).toBe(MUSIC_UPLOAD_GUIDANCE);
-    expect(MUSIC_UPLOAD_GUIDANCE).toContain('Artist Dashboard → Music Releases');
+    expect(MUSIC_UPLOAD_GUIDANCE).toContain('My Dashboard → Music Releases');
     expect(MUSIC_UPLOAD_GUIDANCE).toContain('Workspace → Create → Music Release');
     expect(MUSIC_UPLOAD_GUIDANCE).toContain('Create Draft, then Publish');
   });

@@ -46,7 +46,7 @@ const faqItems: FAQItem[] = [
     id: 'video-portfolio-manage-guide',
     category: 'Getting Started',
     question: 'How do I correct a saved video title or rearrange my Video Portfolio?',
-    answer: 'Open Artist Dashboard → Video Portfolio. Choose Edit Title beside a saved clip, correct the text, and choose Save Title; no re-upload is needed. Choose Reorder Videos to arrange clips with the desktop drag handle or Move Up and Move Down on a phone or keyboard, then Save Order. Cancel discards unsaved changes. How this works opens the quick guide. Only the actual talent profile owner can edit or reorder; an admin role or team membership alone does not grant access. If the saved title or list changed elsewhere, your draft is retained: reload the current version before retrying and confirm before discarding your draft. Preparing videos can be arranged, but are not publicly playable until existing processing finishes. Editing a title or order never changes the video file, thumbnail, category, share link, or moderation status. Existing active videos stay visible; this feature does not add pre-screening. Viewer reports and review against the platform guidelines remain the moderation process.',
+    answer: 'Open My Dashboard → Video Portfolio. Choose Edit Title beside a saved clip, correct the text, and choose Save Title; no re-upload is needed. Choose Reorder Videos to arrange clips with the desktop drag handle or Move Up and Move Down on a phone or keyboard, then Save Order. Cancel discards unsaved changes. How this works opens the quick guide. Only the actual talent profile owner can edit or reorder; an admin role or team membership alone does not grant access. If the saved title or list changed elsewhere, your draft is retained: reload the current version before retrying and confirm before discarding your draft. Preparing videos can be arranged, but are not publicly playable until existing processing finishes. Editing a title or order never changes the video file, thumbnail, category, share link, or moderation status. Existing active videos stay visible; this feature does not add pre-screening. Viewer reports and review against the platform guidelines remain the moderation process.',
   },
 
   // Booking & Contracts
@@ -180,7 +180,7 @@ const faqItems: FAQItem[] = [
     id: 'project-3',
     category: 'Project Previews',
     question: 'How do I manage my Project Previews?',
-    answer: 'Go to your Artist Dashboard and click the "Projects" quick action (or navigate to /projects). Create a new project by entering a title, release type (album, EP, mixtape, etc.), and optional release date. Upload cover art (JPEG, PNG, or WebP, max 2MB). Add tracks one by one, then upload audio snippets for each track (MP3, WAV, or M4A, max 5MB). Snippets are automatically limited to your tier\'s maximum duration. You can also add an external link to Spotify, Apple Music, or Bandcamp so fans can find the full release when it drops.',
+    answer: 'Go to your My Dashboard and click the "Projects" quick action (or navigate to /projects). Create a new project by entering a title, release type (album, EP, mixtape, etc.), and optional release date. Upload cover art (JPEG, PNG, or WebP, max 2MB). Add tracks one by one, then upload audio snippets for each track (MP3, WAV, or M4A, max 5MB). Snippets are automatically limited to your tier\'s maximum duration. You can also add an external link to Spotify, Apple Music, or Bandcamp so fans can find the full release when it drops.',
   },
 
   // Music & Releases
@@ -188,7 +188,7 @@ const faqItems: FAQItem[] = [
     id: 'music-1',
     category: 'Music & Releases',
     question: 'How do I sell my music on Ologywood?',
-    answer: 'Go to your Artist Dashboard and navigate to the Releases section. Upload your track, add cover art, set your price, and publish. Fans can purchase and download your music directly from your artist profile. You keep 99% of each sale (1% platform fee).',
+    answer: 'Go to your My Dashboard and navigate to the Releases section. Upload your track, add cover art, set your price, and publish. Fans can purchase and download your music directly from your artist profile. You keep 99% of each sale (1% platform fee).',
   },
   {
     id: 'music-2',
@@ -275,7 +275,7 @@ const faqItems: FAQItem[] = [
     id: 'upload-downloadable-song',
     category: 'Content Releases',
     question: 'Where do I upload songs fans can download?',
-    answer: 'Open Artist Dashboard → Music Releases, or Workspace → Create → Music Release. Choose Upload a Song, upload your full audio file (MP3, WAV, FLAC, AAC or M4A, up to 50 MB) and cover art (JPG, PNG or WebP, up to 10 MB), add the title and price, and certify your distribution rights. Choose Create Draft, then Publish from the release list. Fans can sample up to 30 seconds, purchase the song and download it; it also appears in their My Ology music library. Content Releases are for externally hosted access, and Project Previews are promotional showcases, not download listings. Professional and Enterprise allow unlimited Music Releases; Starter allows two.',
+    answer: 'Open My Dashboard → Music Releases, or Workspace → Create → Music Release. Choose Upload a Song, upload your full audio file (MP3, WAV, FLAC, AAC or M4A, up to 50 MB) and cover art (JPG, PNG or WebP, up to 10 MB), add the title and price, and certify your distribution rights. Choose Create Draft, then Publish from the release list. Fans can sample up to 30 seconds, purchase the song and download it; it also appears in their My Ology music library. Content Releases are for externally hosted access, and Project Previews are promotional showcases, not download listings. Professional and Enterprise allow unlimited Music Releases; Starter allows two.',
   },
   {
     id: 'content-release-cover-art',
@@ -725,7 +725,7 @@ const faqItems: FAQItem[] = [
     id: 'athlete-10',
     category: 'Athletes & NIL',
     question: 'Where is the NIL Compliance Center?',
-    answer: 'Sign in with an Athlete profile, open Artist Dashboard, and select NIL Compliance Center, or go to /nil-compliance. The private center stores your athletic status, institution and eligibility details, representative information, NIL deal log, proposed reporting reminders, submission attestations, evidence, and audit history. These private records do not appear on your public profile.',
+    answer: 'Sign in with an Athlete profile, open My Dashboard, and select NIL Compliance Center, or go to /nil-compliance. The private center stores your athletic status, institution and eligibility details, representative information, NIL deal log, proposed reporting reminders, submission attestations, evidence, and audit history. These private records do not appear on your public profile.',
   },
   {
     id: 'athlete-11',

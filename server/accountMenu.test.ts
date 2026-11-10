@@ -11,7 +11,7 @@ describe('role-aware account menu', () => {
       artistName: 'Adonis',
     })).toEqual([
       { id: 'profile', label: 'My Profile', href: '/artist/adonis' },
-      { id: 'artist-dashboard', label: 'Artist Dashboard', href: '/dashboard' },
+      { id: 'artist-dashboard', label: 'My Dashboard', href: '/dashboard' },
       { id: 'my-ology', label: 'My Ology', href: '/my-ology' },
       { id: 'workspace', label: 'Workspace', href: '/workspace' },
       { id: 'settings', label: 'Account Settings', href: '/settings' },
@@ -35,7 +35,7 @@ describe('role-aware account menu', () => {
     expect(items.filter((item) => item.href === '/workspace')).toHaveLength(1);
   });
 
-  it('does not expose Artist Dashboard to venue, fan, or ordinary accounts', () => {
+  it('does not expose the creator My Dashboard to venue, fan, or ordinary accounts', () => {
     for (const userRole of ['venue', 'fan', 'user']) {
       const items = getAccountMenuItems({ userRole, isCreatorOwner: false });
       expect(items.some((item) => item.id === 'artist-dashboard')).toBe(false);
