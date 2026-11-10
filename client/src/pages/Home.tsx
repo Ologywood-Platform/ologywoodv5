@@ -759,6 +759,7 @@ export default function Home() {
           <div>
             <Link href="/about">About</Link>
             <Link href="/pricing">Pricing</Link>
+            <Link href="/edu">OlogyWood EDU</Link>
             <Link href="/terms-of-service">Terms</Link>
             <Link href="/privacy-policy">Privacy</Link>
             <Link href="/help">Help</Link>
