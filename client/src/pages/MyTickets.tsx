@@ -8,6 +8,7 @@ import { Calendar, MapPin, Ticket, QrCode, ArrowLeft, Loader2 } from 'lucide-rea
 import { trpc } from '@/lib/trpc';
 import SiteHeader from '@/components/SiteHeader';
 import { formatDateOnly } from '@shared/dateOnly';
+import { TicketQRCode } from '@/components/TicketQRCode';
 
 export default function MyTickets() {
   const [, navigate] = useLocation();
@@ -119,6 +120,21 @@ export default function MyTickets() {
                               </span>
                             )}
                           </div>
+                          {order.items.some((item: any) => item.status === 'valid') && (
+                            <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50/60 p-3">
+                              <p className="mb-2 flex items-center gap-2 text-xs font-semibold text-emerald-900">
+                                <QrCode className="h-3.5 w-3.5" /> Active ticket QR codes
+                              </p>
+                              <div className="flex flex-wrap gap-3">
+                                {order.items.filter((item: any) => item.status === 'valid').map((item: any) => (
+                                  <div key={`qr-${item.id}`} className="rounded-md bg-white p-2 text-center shadow-sm">
+                                    <TicketQRCode ticketCode={item.ticketCode} tierName={item.tierName} size={132} />
+                                    <p className="mt-1 text-[10px] font-medium text-emerald-800">Active — scan at the door</p>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                           {/* View button */}
                           <div className="mt-3">
                             <Button

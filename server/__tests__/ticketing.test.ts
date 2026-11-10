@@ -165,6 +165,9 @@ describe('Ticketing Module', () => {
       expect(confirmation).toContain('facebook.com/sharer/sharer.php');
       expect(confirmation).toContain('linkedin.com/sharing/share-offsite');
       expect(confirmation).toContain('Only the public event link is shared');
+      expect(confirmation).toContain('Add to Google Calendar');
+      expect(confirmation).toContain('Add to Apple Calendar');
+      expect(confirmation).toContain('text/calendar');
       expect(purchase).toContain('isEventSoldOut');
       expect(purchase).toContain('Sold Out');
       expect(purchase).toContain('lowStockTiers');
@@ -173,6 +176,9 @@ describe('Ticketing Module', () => {
       expect(purchase).toContain('disabled={isEventSoldOut || totalTickets === 0 || isCheckingOut}');
       expect(myTickets).toContain("item.status === 'valid' ? 'Active'");
       expect(myTickets).toContain("item.status === 'used' ? 'Used'");
+      expect(myTickets).toContain('Active ticket QR codes');
+      expect(myTickets).toContain("item.status === 'valid'");
+      expect(myTickets).toContain('TicketQRCode');
     });
   });
 

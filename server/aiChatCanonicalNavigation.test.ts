@@ -97,4 +97,15 @@ describe('AI chat canonical navigation guidance', () => {
     expect(answer).toContain('Sold Out');
     expect(answer).toContain('reopen inventory');
   });
+
+  it('answers ticket status and sharing questions with safe dashboard guidance', () => {
+    const answer = getCanonicalNavigationAnswer('What does Active or Used mean, and how can I share my ticket?');
+
+    expect(answer).toBe(EVENT_TICKETING_GUIDANCE);
+    expect(answer).toContain('Active means');
+    expect(answer).toContain('Used means');
+    expect(answer).toContain('Add to Google Calendar');
+    expect(answer).toContain('Add to Apple Calendar');
+    expect(answer).toContain('only the public event link');
+  });
 });

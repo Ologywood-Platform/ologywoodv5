@@ -2253,6 +2253,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add privacy-safe social sharing to Ticket Confirmation with device Share, Facebook, LinkedIn, and Copy Link actions; only the public event URL is shared, never order, email, or QR data
 - [x] Add dynamic low-stock warnings based on current tier inventory, with a 30-second refresh so the warning stays current during active sales
 - [x] Add per-ticket Active/Used indicators in My Tickets; non-valid states remain visibly distinct for refunded, cancelled, or other unavailable tickets
+- [x] Show scannable QR codes directly for Active tickets in My Tickets; Used and unavailable tickets remain status-only and cannot be presented as active at the door
+- [x] Add Add to Google Calendar and Add to Apple Calendar actions to Ticket Confirmation; Apple uses a downloaded `.ics` event and both actions handle missing event dates safely
+- [x] Extend deterministic AI ticket guidance for Active/Used status meanings, safe public-link sharing, calendar reminders, QR sources, and venue Door Check-In
 
 ## OG IMAGE FIX FOR MESSENGER/SOCIAL SHARING (May 2026)
 

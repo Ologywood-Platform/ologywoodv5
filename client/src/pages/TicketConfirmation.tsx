@@ -4,7 +4,7 @@ import { useParams, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, Calendar, MapPin, Ticket, ArrowLeft, Loader2, FileDown, Share2, Copy, Check, Facebook, Linkedin } from 'lucide-react';
+import { CheckCircle2, Calendar, MapPin, Ticket, ArrowLeft, Loader2, FileDown, Share2, Copy, Check, Facebook, Linkedin, CalendarPlus } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { TicketQRCode } from '@/components/TicketQRCode';
 import { TicketTransfer } from '@/components/TicketTransfer';
@@ -18,6 +18,26 @@ function escapeHtml(value: unknown): string {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#039;');
+}
+
+function calendarDateParts(value: Date | string | null, time?: string | null): Date | null {
+  if (!value) return null;
+  const raw = typeof value === 'string' ? value.slice(0, 10) : value.toISOString().slice(0, 10);
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw);
+  if (!match) return null;
+  const result = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  const timeMatch = /^(\d{1,2}):(\d{2})/.exec(time || '');
+  if (timeMatch) result.setHours(Number(timeMatch[1]), Number(timeMatch[2]), 0, 0);
+  return result;
+}
+
+function calendarStamp(value: Date): string {
+  const pad = (part: number) => String(part).padStart(2, '0');
+  return `${value.getFullYear()}${pad(value.getMonth() + 1)}${pad(value.getDate())}T${pad(value.getHours())}${pad(value.getMinutes())}00`;
+}
+
+function icsEscape(value: string): string {
+  return value.replaceAll('\\', '\\\\').replaceAll(';', '\\;').replaceAll(',', '\\,').replaceAll('\n', '\\n');
 }
 
 export default function TicketConfirmation() {
@@ -155,6 +175,57 @@ export default function TicketConfirmation() {
     await copyShareLink();
   };
 
+  const calendarStart = calendarDateParts(order.event?.date || null, order.event?.time);
+  const calendarEnd = calendarStart ? new Date(calendarStart.getTime() + (order.event?.time ? 2 : 24) * 60 * 60 * 1000) : null;
+  const calendarTitle = order.event?.title || 'Ologywood event';
+  const calendarDetails = `Ticket confirmation for ${calendarTitle}. View your ticket and QR code in Ologywood.`;
+  const calendarLocation = order.event?.location || '';
+
+  const addToGoogleCalendar = () => {
+    if (!calendarStart || !calendarEnd) {
+      toast.error('This event does not have a usable date yet.');
+      return;
+    }
+    const params = new URLSearchParams({
+      action: 'TEMPLATE',
+      text: calendarTitle,
+      dates: `${calendarStamp(calendarStart)}/${calendarStamp(calendarEnd)}`,
+      details: calendarDetails,
+      location: calendarLocation,
+    });
+    window.open(`https://calendar.google.com/calendar/render?${params.toString()}`, '_blank', 'noopener,noreferrer');
+  };
+
+  const addToAppleCalendar = () => {
+    if (!calendarStart || !calendarEnd) {
+      toast.error('This event does not have a usable date yet.');
+      return;
+    }
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+    const ics = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Ologywood//Ticket Confirmation//EN',
+      'BEGIN:VEVENT',
+      `UID:ologywood-ticket-${order.orderNumber}@ologywood.com`,
+      `DTSTAMP:${calendarStamp(new Date())}Z`,
+      `DTSTART;TZID=${timezone}:${calendarStamp(calendarStart)}`,
+      `DTEND;TZID=${timezone}:${calendarStamp(calendarEnd)}`,
+      `SUMMARY:${icsEscape(calendarTitle)}`,
+      `DESCRIPTION:${icsEscape(calendarDetails)}`,
+      `LOCATION:${icsEscape(calendarLocation)}`,
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\r\n');
+    const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `ologywood-${toSlug(calendarTitle)}.ics`;
+    link.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    toast.success('Apple Calendar file downloaded');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <SiteHeader />
@@ -288,6 +359,13 @@ export default function TicketConfirmation() {
               <Button type="button" variant="outline" size="sm" onClick={copyShareLink} className="gap-2">{copiedShareLink ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}{copiedShareLink ? 'Copied' : 'Copy Link'}</Button>
             </div>
             <p className="mt-2 text-xs text-muted-foreground">Only the public event link is shared—never your order number, email, or QR code.</p>
+          </div>
+        )}
+
+        {order.event && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button type="button" variant="outline" size="sm" onClick={addToGoogleCalendar} className="gap-2"><CalendarPlus className="h-4 w-4" /> Add to Google Calendar</Button>
+            <Button type="button" variant="outline" size="sm" onClick={addToAppleCalendar} className="gap-2"><CalendarPlus className="h-4 w-4" /> Add to Apple Calendar</Button>
           </div>
         )}
 
