@@ -30,6 +30,15 @@ describe('EDU verification and entitlement safeguards', () => {
     expect(source).toContain("plan: z.enum(['starter', 'professional', 'enterprise'])");
   });
 
+  it('carries the approved verification ID into Stripe session and subscription metadata', () => {
+    const router = read('./routers.ts');
+    const stripe = read('./stripe.ts');
+    expect(router).toContain('eduVerificationId = eduVerification.id.toString()');
+    expect(router).toContain('eduVerificationId,');
+    expect(stripe).toContain('eduVerificationId?: string;');
+    expect(stripe).toContain('eduVerificationId: params.eduVerificationId');
+  });
+
   it('creates no migration with destructive operations', () => {
     const migration = read('../drizzle/0121_misty_squadron_supreme.sql');
     expect(migration).toContain('CREATE TABLE `edu_verifications`');

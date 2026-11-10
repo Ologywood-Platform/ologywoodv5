@@ -2999,6 +2999,7 @@ export const appRouter = router({
         // Only an admin-approved verification inside its 12-month + 30-day grace
         // window can receive the discount. Enterprise is intentionally excluded.
         let eduDiscountApplied = false;
+        let eduVerificationId: string | undefined;
         if ((input.plan === 'starter' || input.plan === 'professional') && stripeClient) {
           const [eduVerification] = await db.getDb().then(async database => database
             ? database.select().from(schema.eduVerifications).where(eq(schema.eduVerifications.userId, ctx.user.id)).limit(1)
@@ -3018,6 +3019,7 @@ export const appRouter = router({
             });
             couponId = eduCoupon.id;
             eduDiscountApplied = true;
+            eduVerificationId = eduVerification.id.toString();
           }
         }
 
@@ -3082,6 +3084,7 @@ export const appRouter = router({
           userEmail: ctx.user.email || '',
           userName: ctx.user.name || undefined,
           userId: ctx.user.id.toString(),
+          eduVerificationId,
           successUrl: input.successUrl,
           cancelUrl: input.cancelUrl,
           plan: input.plan,

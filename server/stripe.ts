@@ -103,6 +103,7 @@ export async function createSubscriptionCheckoutSession(params: {
   userEmail: string;
   userName?: string;
   userId: string;
+  eduVerificationId?: string;
   successUrl: string;
   cancelUrl: string;
   plan?: string;
@@ -132,6 +133,7 @@ export async function createSubscriptionCheckoutSession(params: {
         userId: params.userId,
         plan: productKey,
         interval,
+        ...(params.eduVerificationId ? { eduVerificationId: params.eduVerificationId } : {}),
       },
     },
     metadata: {
@@ -140,6 +142,7 @@ export async function createSubscriptionCheckoutSession(params: {
       customer_name: params.userName || '',
       plan: productKey,
       interval,
+      ...(params.eduVerificationId ? { eduVerificationId: params.eduVerificationId } : {}),
     },
     success_url: params.successUrl,
     cancel_url: params.cancelUrl,
