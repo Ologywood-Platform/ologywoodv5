@@ -5,7 +5,7 @@ import { getDb } from "../db";
 import { blogPosts } from "../../drizzle/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
 import { storagePut } from "../storage";
-import { canManageBlog, normalizeBlogStatusCounts } from "../services/blogAdminService";
+import { canManageBlog, normalizeBlogInsertId, normalizeBlogStatusCounts } from "../services/blogAdminService";
 
 // Admin, Blogger, or site-owner middleware
 const blogAccess = protectedProcedure.use(async (opts) => {
@@ -194,8 +194,8 @@ export const blogRouter = router({
         publishedAt,
       });
 
-      const postId = Number((result as any).insertId);
-      if (!Number.isSafeInteger(postId) || postId < 1) {
+      const postId = normalizeBlogInsertId(result);
+      if (postId === undefined) {
         throw new Error("Blog post was created but its identifier could not be confirmed.");
       }
       return { success: true, postId };
@@ -214,14 +214,24 @@ export const blogRouter = router({
         content: blogText.max(200_000).optional(),
         coverImageUrl: blogImageUrl.nullable().optional(),
         category: z.enum(["announcement", "guide", "news", "update", "tutorial"]).optional(),
-        tags: blogTags.optional(),
+        tags: blogTags.removeDefault().optional(),
+        status: z.enum(["draft", "published"]).optional(),
       }).strict()
     )
     .mutation(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new Error("Database not available");
 
-      const { id, ...updates } = input;
+      const { id, ...fields } = input;
+      const updates: typeof fields & { publishedAt?: Date } = { ...fields };
+      if (input.status === "published") {
+        const [existing] = await db
+          .select({ publishedAt: blogPosts.publishedAt })
+          .from(blogPosts)
+          .where(eq(blogPosts.id, id));
+        if (!existing) throw new TRPCError({ code: "NOT_FOUND", message: "Post not found" });
+        if (!existing.publishedAt) updates.publishedAt = new Date();
+      }
       await db.update(blogPosts).set(updates).where(eq(blogPosts.id, id));
 
       return { success: true };

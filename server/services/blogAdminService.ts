@@ -27,6 +27,19 @@ export function canManageBlog(
     || isPlatformOwner(user, configuration);
 }
 
+export function normalizeBlogInsertId(result: unknown): number | undefined {
+  const candidate = Array.isArray(result)
+    ? (result[0] as { insertId?: unknown } | undefined)?.insertId
+    : (result as { insertId?: unknown } | null | undefined)?.insertId;
+
+  if (typeof candidate !== 'number' && typeof candidate !== 'string' && typeof candidate !== 'bigint') {
+    return undefined;
+  }
+
+  const postId = Number(candidate);
+  return Number.isSafeInteger(postId) && postId > 0 ? postId : undefined;
+}
+
 function toCount(value: unknown): number {
   if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
   if (typeof value === 'bigint') return Number(value);

@@ -5355,3 +5355,14 @@ Owner publication of 3e3d1c23 confirmed. Public GET checks on https://www.ologyw
 This is a support-content/link-only follow-up to the already published functional update. No backend, authentication, fee, price, entitlement, subscription, or database changes. The support additions will require owner publication after final checks; genuine student approval/payment and revised production scheduled-run verification remain separate open gates.
 
 Support follow-up validation: all 159 targeted EDU/help tests passed across 12 files, TypeScript passed, and production build passed with existing warnings. New article deep-link rendering was verified in preview. Functional EDU publication remains verified; the new support content is ready for its own owner publication.
+
+## EDU BLOG DRAFT AND NATIVE EDITOR RECOVERY — 2026-11-10
+
+- [x] Save the owner-approved EDU article through the authenticated production blog editor as draft id 10, category announcement, with title/excerpt/tags and exactly matching approved content. No public publication performed; publishedAt remains null.
+- [x] Recover the existing draft after blog.create reported an unconfirmed inserted ID; do not retry creation or create a duplicate. Attach the same approved cover through the native authenticated uploader as a lighter 2560×1440 JPEG. Verify durable cover URL, HTTP 200 image/jpeg, one EDU draft row and loaded thumbnail in production Blog Management → Draft.
+- [x] Normalize mysql2/Drizzle tuple and legacy flat insert results in blog.create; accept safe positive IDs and preserve truthful failure for unsupported IDs. Existing authorization, author assignment and single-insert behavior unchanged.
+- [x] Align blog.update with the native editor's existing optional draft/published status field under strict validation. Set the initial publication timestamp only on explicit publication of an existing post; preserve historical timestamps, reject unsupported/client-author fields, and keep metadata-only updates from changing status.
+
+The EDU article and cover are already saved in production Blog Management. The owner can publish the article using its Draft-row Publish control. A separate website checkpoint publication is needed to deploy the editor-code fixes; publishing a website checkpoint does not publish the blog article. No other posts, profiles, payments, roles, student verifications or subscriptions were changed.
+
+Blog recovery validation: all 122 focused blog regressions passed across 8 files, TypeScript passed, and production build passed with existing warnings. Metadata-only updates now preserve omitted tags rather than inheriting a create-time empty-list default. The approved EDU article remains one production draft with its verified cover; no publication was performed. Editor-code fixes are ready for a separate owner website-checkpoint publication.
