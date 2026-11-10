@@ -426,6 +426,11 @@ export function getStaticAssetCacheControl(filePath: string): string | null {
   return null;
 }
 
+// The SPA shell contains no user-specific data; auth and API state load after
+// boot. A short edge cache reduces repeat-navigation TTFB without allowing a
+// published asset shell to remain stale for long.
+export const SPA_SHELL_CACHE_CONTROL = 'public, max-age=60, stale-while-revalidate=300';
+
 export function serveStatic(app: Express) {
   // When running from dist/index.js, __dirname is the dist directory
   // We need to serve files from dist/public
@@ -506,7 +511,10 @@ export function serveStatic(app: Express) {
       }
     }
     
-    // Default: serve index.html as-is for regular users
+    // Default: serve the public shell with a short edge cache. User-specific
+    // state is loaded after boot, while direct index.html remains revalidated
+    // through the static-file policy above.
+    res.setHeader('Cache-Control', SPA_SHELL_CACHE_CONTROL);
     res.sendFile(indexPath);
   });
 }

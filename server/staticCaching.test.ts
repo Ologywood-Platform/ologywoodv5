@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getStaticAssetCacheControl } from './_core/vite';
+import { getStaticAssetCacheControl, SPA_SHELL_CACHE_CONTROL } from './_core/vite';
 
 describe('production static cache policy', () => {
   it('caches Vite content-hashed assets for one year', () => {
@@ -21,5 +21,9 @@ describe('production static cache policy', () => {
   it('does not long-cache unhashed or unrelated files', () => {
     expect(getStaticAssetCacheControl('/dist/public/assets/logo.png')).toBeNull();
     expect(getStaticAssetCacheControl('/dist/public/robots.txt')).toBeNull();
+  });
+
+  it('uses only a short cache for SPA fallback HTML', () => {
+    expect(SPA_SHELL_CACHE_CONTROL).toBe('public, max-age=60, stale-while-revalidate=300');
   });
 });
