@@ -10,6 +10,8 @@ import viteConfig from "../../vite.config";
 import { getDb } from "../db";
 import { artistProfiles, venueProfiles, events, blogPosts } from "../../drizzle/schema";
 import { eq } from "drizzle-orm";
+import { isEduLandingPath } from '../../shared/eduShare';
+import { injectEduShareMeta } from '../services/eduShareMetadata';
 import {
   generateArtistJsonLd,
   generateVenueJsonLd,
@@ -402,6 +404,9 @@ export async function setupVite(app: Express, server: Server) {
 
       // always reload the index.html file from disk incase it changes
       let template = await fs.promises.readFile(clientTemplate, "utf-8");
+      if (isEduLandingPath(new URL(url, 'http://localhost').pathname)) {
+        template = injectEduShareMeta(template);
+      }
       template = template.replace(
         `src="/src/main.tsx"`,
         `src="/src/main.tsx?v=${nanoid()}"`
@@ -445,6 +450,16 @@ export function serveStatic(app: Express) {
     console.error(`[ERROR] Make sure to run 'pnpm build' before starting the server`);
   }
   
+  // Use the same fully functional SPA shell, with public EDU metadata for all
+  // user agents. This must precede static directory handling to avoid /edu
+  // redirecting to /edu/ when a deployment normalizes the trailing slash.
+  app.get(['/edu', '/edu/'], async (_req, res, next) => {
+    try {
+      const html = injectEduShareMeta(await fs.promises.readFile(path.resolve(distPath, 'index.html'), 'utf8'));
+      return res.status(200).set({ 'Content-Type': 'text/html', 'Cache-Control': 'no-cache, no-store, must-revalidate' }).send(html);
+    } catch (error) { next(error); }
+  });
+
   // Serve static files with proper MIME types
   app.use(express.static(distPath, {
     // Vite filenames under /assets include a content hash, so they are safe to

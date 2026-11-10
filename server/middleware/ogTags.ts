@@ -7,6 +7,7 @@ import { sandboxPostDescription, sandboxPostPath } from '../../shared/sandboxPos
 import { MUSIC_RELEASE_PUBLIC_ORIGIN, musicReleasePath, musicReleasePrice, parseMusicReleaseId } from '../../shared/musicReleaseShare';
 import { ensureSandboxPostSchema } from '../services/sandboxPostSchemaService';
 import { getPublicMusicSingle, PublicMusicReleaseUnavailableError } from '../services/musicReleasePublicService';
+import { EDU_SHARE_TITLE, EDU_SHARE_DESCRIPTION, EDU_SHARE_URL, EDU_SHARE_IMAGE, EDU_SHARE_IMAGE_ALT, isEduLandingPath } from '../../shared/eduShare';
 import {
   generateArtistJsonLd,
   generateVenueJsonLd,
@@ -181,6 +182,16 @@ export function ogTagMiddleware() {
     baseUrl = baseUrl.replace(/\/$/, '');
 
     try {
+      // Public static metadata only. Enrollment, application and admin pages
+      // must never inherit this branch or expose private student records.
+      if (isEduLandingPath(pathname)) {
+        const html = generateOgHtml({
+          title: EDU_SHARE_TITLE, description: EDU_SHARE_DESCRIPTION,
+          image: EDU_SHARE_IMAGE, imageAlt: EDU_SHARE_IMAGE_ALT,
+          url: EDU_SHARE_URL, type: 'website',
+        });
+        return res.status(200).set({ 'Content-Type': 'text/html', 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Vary': 'User-Agent' }).send(html);
+      }
       // Match a public music single before generic SPA handling. The numeric
       // ID is authoritative, so old/incorrect slugs safely canonicalize to
       // the current title. Never use Host or BASE_URL for this share URL.

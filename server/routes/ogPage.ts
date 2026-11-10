@@ -14,6 +14,8 @@ import {
 } from '../utils/jsonLd';
 import { positiveRouteId } from './routeInput';
 import { trustedCheckoutOrigin } from '../services/trustedOrigin';
+import { EDU_SHARE_TITLE, EDU_SHARE_DESCRIPTION, EDU_SHARE_URL, EDU_SHARE_IMAGE } from '../../shared/eduShare';
+import { injectEduShareMeta } from '../services/eduShareMetadata';
 
 const router = Router();
 
@@ -445,6 +447,15 @@ router.get('/blog/:slug', async (req: Request, res: Response) => {
 });
 
 // Static pages
+router.get('/edu', (_req: Request, res: Response) => {
+  const html = generateOgHtml({
+    title: EDU_SHARE_TITLE, description: EDU_SHARE_DESCRIPTION,
+    image: EDU_SHARE_IMAGE, url: EDU_SHARE_URL,
+    canonicalUrl: EDU_SHARE_URL, type: 'website',
+  });
+  return res.status(200).set({ 'Content-Type': 'text/html', 'Cache-Control': 'no-cache, no-store, must-revalidate' }).send(injectEduShareMeta(html));
+});
+
 router.get('/home', async (req: Request, res: Response) => {
   const baseUrl = getPublicBaseUrl(req);
 

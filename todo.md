@@ -5321,7 +5321,16 @@ Although `socketMetricsRoutes.ts` and `paymentTestingRoutes.ts` are not mounted 
 - [x] Generate/review/apply additive EDU migrations 0122–0124 and verify four EDU tables plus both notice indexes. No business records inserted or deleted.
 - [x] Repair missing canonical Stripe mappings with two live lookup-key attachments and three missing approved-price entries (two test, one live). Starter/Professional monthly/yearly mappings verified in both modes; existing amounts, subscriptions, customers, charges, fees, and secrets unchanged.
 - [x] Full isolated suite: 4,320 passed, 26 skipped (23 existing plus three operator-only SendGrid configuration checks); TypeScript passed. Public EDU rendering and protected-query rejection verified without submitting forms.
-- [ ] Publish the final correction checkpoint and verify revised production EDU/Heartbeat behavior; this task has not deployed the changes.
+- [ ] Verify revised production EDU/Heartbeat execution. Owner confirmed publishing checkpoint cb1500ec, deployment success was reported, and the public EDU landing page was reviewed on www.ologywood.com. Actual revised scheduled processing remains unverified.
 - [ ] Review a genuine EDU applicant and run an explicitly authorized controlled Stripe checkout/paid-entitlement verification. The queried EDU database has no applicant; no enrollment verification or transaction was fabricated.
 
 Final closeout validation after the bounded Heartbeat adjustment: 4,320 passed and 26 skipped across 358 test files, TypeScript passed, and production build passed with existing chunk-size/pnpm warnings. The two real-world publication/student-transaction gates above remain open. Earlier two-day checkpoint ancestry verified; no rollback or bulk historical tracker completion was performed.
+
+## EDU SOCIAL SHARING FIX — 2026-11-10
+
+- [x] Diagnose published `/edu` returning homepage title/image and root `og:url` to Facebook/LinkedIn despite loading the correct EDU page. This was missing per-route social metadata, not a redirect to the homepage.
+- [x] Add one shared EDU title/description, trusted absolute `/edu` canonical URL, dedicated 1200×630 PNG and alt text. Apply to browser metadata, public crawler middleware, an API-backed share fallback, and the actual dev/production SPA shell. Preserve existing page design, application scripts, navigation, student verification and billing behavior.
+- [x] Generate a current-asset EDU static shell during every production build for CDN directory-index deployments; keep the main homepage shell and its OG image unchanged. Prevent server static-directory trailing-slash loops on `/edu`.
+- [x] Verify preview raw HTML for Facebook, LinkedIn, normal browsers, and `/api/og-page/edu`; no DB queries or form submissions. Homepage OG unchanged. Dedicated image returns public HTTP 200 PNG at 1200×630 on both custom-domain and preview asset routes.
+- [x] Full isolated suite: 4,349 passed, 26 skipped across 360 files; TypeScript passed. Production build and current-asset/static-shell preservation checks passed. No records, prices, subscriptions, secrets, fees, or school eligibility were changed by this sharing fix.
+- [ ] Publish this new EDU sharing checkpoint, verify metadata on the deployed `/edu`, and refresh any cached Facebook/LinkedIn previews. The owner's previous EDU correction publication is already complete; this is a subsequent metadata-only update.

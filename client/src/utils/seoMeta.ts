@@ -15,6 +15,7 @@ export interface MetaTagsConfig {
   ogTitle?: string;
   ogDescription?: string;
   ogImage?: string;
+  ogImageAlt?: string;
   ogUrl?: string;
   ogType?: string;
   twitterCard?: 'summary' | 'summary_large_image' | 'app' | 'player';
@@ -79,12 +80,15 @@ export function setMetaTags(config: MetaTagsConfig) {
   updateMetaTag('og:site_name', SITE_NAME);
   updateMetaTag('og:url', ogUrl);
   updateMetaTag('og:image', config.ogImage || DEFAULT_OG_IMAGE);
+  updateMetaTag('og:image:secure_url', config.ogImage || DEFAULT_OG_IMAGE);
+  updateMetaTag('og:image:alt', config.ogImageAlt || config.ogTitle || config.title);
   updateMetaTag('og:image:width', '1200');
   updateMetaTag('og:image:height', '630');
 
   // Twitter Card
   updateMetaTag('twitter:card', config.twitterCard || 'summary_large_image');
   updateMetaTag('twitter:image', config.twitterImage || config.ogImage || DEFAULT_OG_IMAGE);
+  updateMetaTag('twitter:image:alt', config.ogImageAlt || config.twitterTitle || config.title);
   updateMetaTag('twitter:url', ogUrl);
 
   // Canonical URL - ALWAYS set to prevent duplicate content issues

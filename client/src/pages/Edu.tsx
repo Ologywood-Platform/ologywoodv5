@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { ArrowRight, Award, BriefcaseBusiness, CheckCircle2, GraduationCap, Handshake, Layers3, Mail, Sparkles, Users } from "lucide-react";
 import SiteHeader from "@/components/SiteHeader";
 import { setMetaTags } from "@/utils/seoMeta";
+import { EDU_SHARE_TITLE, EDU_SHARE_DESCRIPTION, EDU_SHARE_URL, EDU_SHARE_IMAGE, EDU_SHARE_IMAGE_ALT } from '@shared/eduShare';
 
 const programPillars = [
   {
@@ -47,9 +48,12 @@ const pilotSteps = [
 export default function Edu() {
   useEffect(() => {
     setMetaTags({
-      title: "OlogyWood EDU — The Next Generation of Entertainment Starts Here",
-      description: "OlogyWood EDU helps emerging artists, filmmakers, producers, performers, and entertainment professionals build, collaborate, showcase, and monetize their creativity.",
-      canonical: "/edu",
+      title: EDU_SHARE_TITLE,
+      description: EDU_SHARE_DESCRIPTION,
+      canonical: EDU_SHARE_URL,
+      ogUrl: EDU_SHARE_URL,
+      ogImage: EDU_SHARE_IMAGE,
+      ogImageAlt: EDU_SHARE_IMAGE_ALT,
     });
   }, []);
 
