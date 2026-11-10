@@ -113,6 +113,7 @@ export default function EduVerification() {
           <button disabled={!acknowledged || submit.isPending || statusQuery.isLoading || statusQuery.isError} className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-purple-700 px-4 py-3 font-semibold text-white hover:bg-purple-800 disabled:opacity-60">{submit.isPending ? <><Loader2 className="h-4 w-4 animate-spin" />Submitting...</> : renewal ? 'Submit renewal evidence for manual review' : 'Submit evidence for manual review'}</button>
           <p className="text-xs leading-5 text-slate-500">Renewal submissions do not clear current eligibility or grace. Approval alone never activates a discount on an existing paid subscription.</p>
         </form>
+        <Link href="/help?article=edu-enrollment-guide" target="_blank" rel="noopener noreferrer" className="mt-4 inline-block text-sm font-semibold text-purple-700 underline">EDU enrollment and renewal help (opens a new tab)</Link>
       </section>
     </div>
   </main></div>;

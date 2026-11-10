@@ -5333,7 +5333,8 @@ Final closeout validation after the bounded Heartbeat adjustment: 4,320 passed a
 - [x] Generate a current-asset EDU static shell during every production build for CDN directory-index deployments; keep the main homepage shell and its OG image unchanged. Prevent server static-directory trailing-slash loops on `/edu`.
 - [x] Verify preview raw HTML for Facebook, LinkedIn, normal browsers, and `/api/og-page/edu`; no DB queries or form submissions. Homepage OG unchanged. Dedicated image returns public HTTP 200 PNG at 1200×630 on both custom-domain and preview asset routes.
 - [x] Full isolated suite: 4,349 passed, 26 skipped across 360 files; TypeScript passed. Production build and current-asset/static-shell preservation checks passed. No records, prices, subscriptions, secrets, fees, or school eligibility were changed by this sharing fix.
-- [ ] Publish this new EDU sharing checkpoint, verify metadata on the deployed `/edu`, and refresh any cached Facebook/LinkedIn previews. The owner's previous EDU correction publication is already complete; this is a subsequent metadata-only update.
+- [x] Owner published latest checkpoint 3e3d1c23; deployment success confirmed. Both domains return HTTP 200 for `/edu` with the EDU title, canonical `/edu` URL, and dedicated image. Published landing-page sharing controls and student interest form verified without submitting records.
+- [ ] Refresh Facebook/LinkedIn cached previews if an old card persists; this task verified origin metadata but did not refresh social-network caches.
 
 ## EDU SHARING CONTROLS AND SUBMISSION FEEDBACK — 2026-11-10
 
@@ -5342,4 +5343,15 @@ Final closeout validation after the bounded Heartbeat adjustment: 4,320 passed a
 - [x] Add prominent, focused student/school-specific success regions after actual interest mutation success. Preserve submitted request path/email provenance, disable pending tab changes, retain error input, and explain tailored next steps. Interest submission does not create an account, approve eligibility, activate a pilot, or charge a payment.
 - [x] Add initial/renewal verification success panels with manual-review next steps, status refresh, workspace actions, revision-aware pending feedback, and updated review outcomes. Preserve eligibility/grace and paid-plan separation; never display the full school code or promise an email was sent.
 - [x] Verify new sharing and mocked submission event-handler regressions, plus existing EDU UI/metadata regressions. Real-browser student form remains unsent with header/back navigation and no premature success message. No user/student records, emails, payments, eligibility decisions, or subscriptions were created by QA.
-- [x] Final combined validation: 4,372 passed and 26 skipped across 362 test files; TypeScript and production build passed with existing chunk-size/pnpm warnings. Prior EDU sharing metadata and static route-shell build remain intact. This UI checkpoint still requires owner publication; real student enrollment/approval/payment and production scheduled-run verification remain separate gates.
+- [x] Final combined validation: 4,372 passed and 26 skipped across 362 test files; TypeScript and production build passed with existing chunk-size/pnpm warnings. Prior EDU sharing metadata and static route-shell build remain intact. Owner publication completed and live public pages verified; real student enrollment/approval/payment and production scheduled-run verification remain separate gates.
+
+## EDU PUBLICATION VERIFICATION AND SUPPORT GUIDES — 2026-11-10
+
+Owner publication of 3e3d1c23 confirmed. Public GET checks on https://www.ologywood.com/edu and https://ologywood-mp6flm6c.manus.space/edu returned HTTP 200 with the EDU-specific title, canonical https://www.ologywood.com/edu URL, and dedicated image. The published sharing controls point to the production EDU page. The published student interest form retains header/back navigation; no form was submitted and no enrollment or payment verification was fabricated.
+
+- [x] Add searchable Help Center articles for EDU enrollment/renewal next steps, public social sharing and copy/device fallbacks, and professor/department school-pilot inquiry. Correct outdated pricing guidance to explain manual review, separate paid activation, preserved renewal dates, and status-page deadlines rather than guaranteed email delivery.
+- [x] Add direct guide links beside EDU sharing, interest and verification controls; form help opens in a separate tab so draft data is not discarded. Preview deep-link verification opens and expands the intended article.
+
+This is a support-content/link-only follow-up to the already published functional update. No backend, authentication, fee, price, entitlement, subscription, or database changes. The support additions will require owner publication after final checks; genuine student approval/payment and revised production scheduled-run verification remain separate open gates.
+
+Support follow-up validation: all 159 targeted EDU/help tests passed across 12 files, TypeScript passed, and production build passed with existing warnings. New article deep-link rendering was verified in preview. Functional EDU publication remains verified; the new support content is ready for its own owner publication.

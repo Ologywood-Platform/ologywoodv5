@@ -1,6 +1,7 @@
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { Router } from 'wouter';
 import EduShareButtons, { copyEduShareLink } from '../client/src/components/EduShareButtons';
 import { EDU_SHARE_URL, EDU_SHARE_TEXT, EDU_SOCIAL_LINKS } from '../shared/eduShare';
 
@@ -24,9 +25,10 @@ describe('EDU social share controls', () => {
     expect(x.hostname).toBe('x.com');
   });
   it('renders a compact labeled Facebook, X, LinkedIn and copy row, without SDKs or automatic sharing', () => {
-    const html = renderToStaticMarkup(React.createElement(EduShareButtons));
+    const html = renderToStaticMarkup(React.createElement(Router, { ssrPath: '/edu' }, React.createElement(EduShareButtons)));
     expect(html).toContain('Share with your classmates'); expect(html).toContain('Facebook'); expect(html).toContain('LinkedIn'); expect(html).toContain('Copy link');
     expect(html.match(/target="_blank"/g)).toHaveLength(3); expect(html.match(/rel="noopener noreferrer"/g)).toHaveLength(3);
+    expect(html).toContain('/help?article=edu-sharing-guide');
     expect(html).toContain('aria-label="Share OlogyWood EDU"'); expect(html).toContain('role="status"'); expect(html).toContain('aria-live="polite"');
     expect(html).toContain('type="button"'); expect(html).toContain('min-h-11');
     expect(html).not.toContain('EDU link copied.'); expect(html).not.toContain('<script');

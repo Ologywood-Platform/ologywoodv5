@@ -89,6 +89,7 @@ export default function EduApply() {
               <div className="flex gap-3"><CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600" />A free OlogyWood account remains available separately.</div>
             </div>
             {path === "student" && <Link href="/edu/verify" className="mt-5 inline-flex text-sm font-semibold text-purple-700 underline">Already have an account? Submit evidence for manual eligibility review.</Link>}
+            <Link href={path === "school" ? "/help?article=edu-school-pilot-guide" : "/help?article=edu-enrollment-guide"} target="_blank" rel="noopener noreferrer" className="mt-4 block text-sm font-semibold text-purple-700 underline">{path === "school" ? "School pilot help (opens a new tab)" : "EDU enrollment help (opens a new tab)"}</Link>
           </div>
 
           <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8" aria-labelledby="edu-apply-title">

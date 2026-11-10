@@ -49,6 +49,25 @@ const faqItems: FAQItem[] = [
     answer: 'Open My Dashboard → Video Portfolio. Choose Edit Title beside a saved clip, correct the text, and choose Save Title; no re-upload is needed. Choose Reorder Videos to arrange clips with the desktop drag handle or Move Up and Move Down on a phone or keyboard, then Save Order. Cancel discards unsaved changes. How this works opens the quick guide. Only the actual talent profile owner can edit or reorder; an admin role or team membership alone does not grant access. If the saved title or list changed elsewhere, your draft is retained: reload the current version before retrying and confirm before discarding your draft. Preparing videos can be arranged, but are not publicly playable until existing processing finishes. Editing a title or order never changes the video file, thumbnail, category, share link, or moderation status. Existing active videos stay visible; this feature does not add pre-screening. Viewer reports and review against the platform guidelines remain the moderation process.',
   },
 
+  {
+    id: 'edu-enrollment-guide',
+    category: 'Getting Started',
+    question: 'How do I get started with EDU and what happens after student submission?',
+    answer: 'Start as a student on the OlogyWood EDU page sends an interest form, not an account registration or eligibility approval. After a successful submission, the confirmation shows your submitted contact email and next steps: use Sign Up or Log In in the header (on a phone, open the menu), create or sign in to a free profile, then choose Submit evidence / check status. Existing users can choose Already have an account? Submit student verification on the EDU landing page. Submit accurate enrollment evidence and acknowledge manual review. A school email or code alone is not verification. The evidence confirmation means your request was saved for manual review, not approved; use Refresh status for the latest decision and Continue in your workspace to build your profile. For renewal, existing eligibility and grace dates stay unchanged while evidence is reviewed. Submission does not charge a payment, change a paid plan, or automatically apply a discount. If an interest submission fails, your inputs remain available: correct the error and retry. Check deadlines on the status page rather than assuming an email was delivered.',
+  },
+  {
+    id: 'edu-sharing-guide',
+    category: 'Getting Started',
+    question: 'How do I share OlogyWood EDU with classmates or colleagues?',
+    answer: 'Use Share with your classmates beneath the EDU landing-page enrollment links. Facebook, X, and LinkedIn open their own share composers; review and post there yourself. Copy link copies the public EDU page, and Copied appears only after copying succeeds. If copying is unavailable, select the displayed link and copy it manually. More opens your device sharing options when supported; you can cancel without posting. For Instagram, paste the copied EDU link into a Story link sticker or your bio. All these controls share the public EDU landing page, not your private enrollment evidence, student account, or checkout. Nothing is posted or emailed automatically. EDU links use a dedicated preview image; a social network may keep an older cached preview after an update.',
+  },
+  {
+    id: 'edu-school-pilot-guide',
+    category: 'Getting Started',
+    question: 'How should a professor or department explore an EDU school pilot?',
+    answer: 'On OlogyWood EDU choose Explore a school pilot and select I represent a school. Submit your institution or department, contact email, and what you want a cohort to practice. The school-specific confirmation shows the submitted email and next steps: prepare cohort goals and approximate size, then discuss the possible pilot with the OlogyWood team. Sending interest does not create an account, activate a pilot, or start billing. Faculty do not need to submit student enrollment evidence to request a partnership conversation. Student eligibility review is a separate path for genuinely eligible students; a professor should not claim student enrollment just to test it. A proposed pilot is a defined 90-day cohort with no automatic paid conversion. Scope and any institution-specific pricing require a separate discussion.',
+  },
+
   // Booking & Contracts
   {
     id: 'booking-1',
@@ -98,7 +117,7 @@ const faqItems: FAQItem[] = [
     id: 'payment-edu',
     category: 'Payments & Billing',
     question: 'How will OlogyWood EDU student pricing work?',
-    answer: 'The approved EDU framework is 50% off Starter or Professional for verified students when the offer is activated for an approved cohort. Enterprise is handled separately for institutions. Verification lasts 12 months and can use a school email, an approved school code, or documented manual review. Students receive renewal reminders and a 30-day grace period; if eligibility ends, the account and creative work remain available and the account transitions to the applicable standard plan price after notice. A school pilot can begin with free entry-level access for a defined 90-day cohort and does not automatically convert students to paid billing. Visit OlogyWood EDU to review the current program and submit interest.',
+    answer: 'Eligible students can request 50% off Starter or Professional after documented enrollment evidence is manually approved and a separate successful checkout completes. Enterprise is handled separately for institutions. A school email or code is evidence for manual review, not automatic ownership or enrollment verification. Eligibility lasts 12 months with a 30-day renewal grace period; pending renewal review does not clear existing eligibility or grace dates. Check deadlines and decisions on your EDU status page rather than relying on email reminders. Approval alone does not activate a paid plan or apply a discount to an existing subscription. If eligibility ends, creative work remains retained; any applicable standard-price transition requires notice and billing reconciliation. A defined 90-day school pilot does not automatically convert participants to paid billing.',
   },
   {
     id: 'payment-1',

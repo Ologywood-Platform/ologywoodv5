@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Check, Copy, Facebook, Linkedin, Share2 } from 'lucide-react';
+import { Link } from 'wouter';
 import { EDU_SHARE_URL, EDU_SHARE_TEXT, EDU_SOCIAL_LINKS } from '@shared/eduShare';
 
 /** Copy only the public EDU URL. A failed copy must never look successful. */
@@ -65,5 +66,6 @@ export default function EduShareButtons() {
     </div>
     <p role="status" aria-live="polite" className={notice && !copied ? 'mt-2 text-sm text-purple-200' : 'sr-only'}>{notice}</p>
     {manualCopy && <input aria-label="EDU link to copy manually" readOnly value={EDU_SHARE_URL} onFocus={event => event.currentTarget.select()} className="mt-2 block w-full min-w-0 rounded-lg border border-white/20 bg-slate-950/50 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-300" />}
+    <Link href="/help?article=edu-sharing-guide" className="mt-2 inline-block text-xs text-purple-300 underline underline-offset-4 hover:text-purple-200">Sharing help</Link>
   </div>;
 }
