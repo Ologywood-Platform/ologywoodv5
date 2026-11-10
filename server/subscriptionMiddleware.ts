@@ -1,20 +1,13 @@
 import { TRPCError } from "@trpc/server";
 import * as db from "./db";
+import { hasPaidSubscriptionAccess } from '../shared/subscriptionEntitlements';
 
 /**
  * Check if an artist has an active subscription
  */
 export async function checkArtistSubscription(userId: number): Promise<boolean> {
   const subscription = await db.getSubscriptionByUserId(userId);
-  
-  if (!subscription) {
-    return false;
-  }
-
-  // Allow access if subscription is active or trial is still valid
-  if (subscription.status === 'active') return true;
-  // trialEndsAt field not available in current schema
-  return false;
+  return hasPaidSubscriptionAccess(subscription);
 }
 
 /**

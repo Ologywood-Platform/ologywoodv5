@@ -359,10 +359,11 @@ export const adminRouter = router({
       if (user.emailVerified) throw new Error("User is already verified");
       
       // Manually mark as verified
-      await db.update(users).set({
+      const { updateUserEmailIdentity } = await import('../services/userEmailIdentityService');
+      await updateUserEmailIdentity(input.userId, {
         emailVerified: true,
         emailVerificationToken: null,
-      }).where(eq(users.id, input.userId));
+      });
       
       return { success: true, message: `${user.name || user.email} has been manually verified` };
     }),

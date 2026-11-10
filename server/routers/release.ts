@@ -28,7 +28,9 @@ import {
 import { getPublicMusicSingle, PublicMusicReleaseUnavailableError } from "../services/musicReleasePublicService";
 import { escapeFanEmailHtml, safeFanEmailHref, sanitizeFanEmailSubject } from "../services/fanEmailFormatting";
 import { trustedCheckoutOrigin } from "../services/trustedOrigin";
-import { capturePurchaseFanEmailOptIn } from "../services/purchaseFanEmailService";
+import { captureCheckoutFanEmailBestEffort } from "../services/purchaseFulfillmentSafety";
+import { commitReleasePurchase } from "../services/releasePurchaseFulfillmentService";
+import { getStripeClientForWebhookMode } from "../services/stripeWebhookMode";
 
 const stripe = new Stripe(getDefaultStripeApiKey(), {
   apiVersion: "2025-12-15.clover",
@@ -699,7 +701,8 @@ export const releaseRouter = router({
 
       // Query Stripe for the session
       try {
-        const session = await stripe.checkout.sessions.retrieve(input.sessionId);
+        const checkoutStripe = getStripeClientForWebhookMode(input.sessionId.startsWith('cs_test_') ? 'test' : 'live');
+        const session = await checkoutStripe.checkout.sessions.retrieve(input.sessionId);
         
         if (session.payment_status !== 'paid' || session.mode !== 'payment' || !session.payment_intent) {
           return { status: 'not_paid' as const, purchaseId: null };
@@ -714,10 +717,8 @@ export const releaseRouter = router({
         if (metadataBuyerId && (!ctx.user || metadataBuyerId !== ctx.user.id)) {
           return { status: 'not_found' as const, purchaseId: null };
         }
-        const metadataBuyerEmail = session.metadata?.buyerEmail?.trim().toLowerCase();
-        if (!metadataBuyerId && ctx.user && metadataBuyerEmail && metadataBuyerEmail !== ctx.user.email?.toLowerCase()) {
-          return { status: 'not_found' as const, purchaseId: null };
-        }
+        // A real guest checkout remains a guest purchase even when its private
+        // success link is opened while an unrelated account is logged in.
 
         // Double-check idempotency
         const doubleCheck = await db.getPurchaseBySessionId(session.id);
@@ -746,44 +747,45 @@ export const releaseRouter = router({
         }
         const platformFeeCents = Math.max(1, Math.round(amountPaid * 0.01));
 
-        // Create the purchase record
-        const purchase = await db.createReleasePurchase({
+        // Receipt and sales counters are one transaction across both fallback
+        // and webhook paths; current login never replaces checkout identity.
+        const { purchase, created } = await commitReleasePurchase({
           releaseId,
-          buyerEmail: session.customer_details?.email || session.metadata?.buyerEmail || ctx.user?.email || 'unknown',
-          buyerName: session.customer_details?.name || session.metadata?.buyerName || ctx.user?.name || null,
-          buyerUserId: ctx.user?.id || metadataBuyerId || null,
+          buyerEmail: session.customer_details?.email || session.metadata?.buyerEmail || 'unknown',
+          buyerName: session.customer_details?.name || session.metadata?.buyerName || null,
+          buyerUserId: metadataBuyerId,
           stripeCheckoutSessionId: session.id,
+          stripePaymentIntentId: typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent.id,
           amountPaidCents: amountPaid,
           platformFeeCents,
           artistNetCents: amountPaid - platformFeeCents,
         });
-
-        // Increment sales counters
-        await db.incrementReleaseSales(releaseId, amountPaid);
-
-        const artistProfile = await db.getArtistProfileById(release.artistId);
-        await capturePurchaseFanEmailOptIn({
-          creatorUserId: artistProfile?.userId ?? null,
-          buyerUserId: ctx.user?.id || metadataBuyerId || null,
-          optIn: session.metadata?.fanEmailOptIn === 'true',
+        if (!created) return { status: 'already_exists' as const, purchaseId: purchase.id };
+        await captureCheckoutFanEmailBestEffort(session, {
+          buyerUserId: metadataBuyerId,
+          purchaseId: `release:${session.id}`,
+          resolveCreatorUserId: async () => (await db.getArtistProfileById(release.artistId))?.userId ?? null,
         });
 
         console.log('[Release VerifyPurchase] Fallback purchase created');
 
         // Send purchase confirmation email
         try {
-          const buyerEmail = session.customer_details?.email || session.metadata?.buyerEmail || ctx.user?.email;
-          const artistProfile = await db.getArtistProfileById(release.artistId);
-          if (buyerEmail && artistProfile) {
+          const buyerEmail = session.customer_details?.email || session.metadata?.buyerEmail;
+          let artistProfile: Awaited<ReturnType<typeof db.getArtistProfileById>> = null;
+          try { artistProfile = await db.getArtistProfileById(release.artistId); } catch {}
+          if (buyerEmail) {
             const baseUrl = trustedCheckoutOrigin(process.env.BASE_URL, undefined);
             const unsubscribeUrl = `${baseUrl}/unsubscribe?email=${encodeURIComponent(buyerEmail)}&type=purchase`;
             const safeTitle = escapeFanEmailHtml(release.title);
-            const safeArtistName = escapeFanEmailHtml(artistProfile.artistName);
+            const artistName = artistProfile?.artistName || 'the creator';
+            const safeArtistName = escapeFanEmailHtml(artistName);
             const safeUnsubscribeUrl = safeFanEmailHref(unsubscribeUrl);
             const safeBaseUrl = safeFanEmailHref(baseUrl);
+            const deliveryUrl = safeFanEmailHref(`${baseUrl}/purchase-success?session_id=${encodeURIComponent(session.id)}`);
             await email.sendEmail({
               to: buyerEmail,
-              subject: sanitizeFanEmailSubject(`Purchase Confirmed — "${release.title}" by ${artistProfile.artistName}`),
+              subject: sanitizeFanEmailSubject(`Purchase Confirmed — "${release.title}" by ${artistName}`),
               html: `<div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
                 <div style="background: linear-gradient(135deg, #6D28D9 0%, #00D9FF 100%); padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0;">
                   ${getEmailLogoImage({ size: 88, marginBottom: 12 })}
@@ -800,7 +802,7 @@ export const releaseRouter = router({
                     </ol>
                   </div>
                   <div style="text-align: center; margin: 30px 0;">
-                    <a href="${safeBaseUrl}/my-purchases" style="display: inline-block; background: linear-gradient(135deg, #6D28D9 0%, #7c3aed 100%); color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Download Your Track</a>
+                    <a href="${deliveryUrl}" style="display: inline-block; background: linear-gradient(135deg, #6D28D9 0%, #7c3aed 100%); color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Download Your Track</a>
                   </div>
                   <p style="font-size: 14px; color: #6b7280; margin: 20px 0 0 0;">You can also re-download anytime from <a href="${baseUrl}/my-purchases" style="color: #6D28D9; text-decoration: none;">My Purchases</a>.</p>
                 </div>
@@ -853,6 +855,7 @@ export const releaseRouter = router({
         downloadCount: purchase.downloadCount,
         maxDownloads: purchase.maxDownloads,
         purchasedAt: purchase.purchasedAt,
+        isGuestPurchase,
         release: purchase.release ? {
           title: purchase.release.title,
           artistId: purchase.release.artistId,

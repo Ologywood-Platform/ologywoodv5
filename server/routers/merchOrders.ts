@@ -21,6 +21,7 @@ import {
 } from '../../drizzle/schema';
 import { isEbook } from '../../shared/bookCommerce';
 import { ensureMerchItemsSchema } from '../services/merchSchemaService';
+import { createPurchaseFanEmailOptInMetadata } from '../services/purchaseFanEmailService';
 
 const stripe = new Stripe(getDefaultStripeApiKey(), {
   apiVersion: '2025-12-15.clover',
@@ -244,6 +245,12 @@ export const merchOrdersRouter = router({
         });
       }
 
+      const fanEmailMetadata = await createPurchaseFanEmailOptInMetadata({
+        creatorUserId: item.userType === 'artist' ? item.userId : null,
+        buyerUserId: ctx.user?.id,
+        optIn: item.userType === 'artist' && input.fanEmailOptIn === true,
+        purchaseId: `merch:${orderId}`,
+      });
       try {
         const session = await stripe.checkout.sessions.create({
           mode: 'payment',
@@ -260,7 +267,7 @@ export const merchOrdersRouter = router({
             sellerUserId: String(item.userId),
             merchItemId: String(item.id),
             buyerUserId: String(ctx.user?.id || ''),
-            fanEmailOptIn: ctx.user && input.fanEmailOptIn ? 'true' : 'false',
+            ...fanEmailMetadata,
           },
           payment_intent_data: {
             application_fee_amount: platformFeeCents,
@@ -270,7 +277,7 @@ export const merchOrdersRouter = router({
               orderId: String(orderId),
               orderNumber,
               buyerUserId: String(ctx.user?.id || ''),
-              fanEmailOptIn: ctx.user && input.fanEmailOptIn ? 'true' : 'false',
+              ...fanEmailMetadata,
             },
           },
         }, { idempotencyKey: `merch_checkout_${orderNumber}` });

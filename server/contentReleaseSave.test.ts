@@ -31,7 +31,7 @@ const input = {
 };
 
 describe('Content Release Single save workflow', () => {
-  beforeEach(() => { vi.clearAllMocks(); resetContentReleaseSchemaForTests(); mocks.subscription.mockResolvedValue({tier:'professional'}); });
+  beforeEach(() => { vi.clearAllMocks(); resetContentReleaseSchemaForTests(); mocks.subscription.mockResolvedValue({tier:'professional',status:'active'}); });
 
   it('exposes Single through the same catalog used for public labels', async () => {
     const options = await releasesRouter.createCaller(ctx).getOptions();
@@ -80,7 +80,7 @@ describe('Content Release Single save workflow', () => {
     mocks.getDb.mockResolvedValue(freeDb);
     await expect(releasesRouter.createCaller(ctx).create(input)).rejects.toMatchObject({code:'FORBIDDEN'});
     expect(freeDb.insert).not.toHaveBeenCalled();
-    mocks.subscription.mockResolvedValue({tier:'starter'});
+    mocks.subscription.mockResolvedValue({tier:'starter',status:'active'});
     const starterDb = database([[{id:11}], [{id:1}, {id:2}]]);
     mocks.getDb.mockResolvedValue(starterDb);
     await expect(releasesRouter.createCaller(ctx).create(input)).rejects.toThrow('limited to 2 releases');

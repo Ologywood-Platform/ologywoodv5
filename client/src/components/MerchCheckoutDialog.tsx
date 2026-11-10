@@ -35,6 +35,8 @@ export function MerchCheckoutDialog({ item, open, onOpenChange }: MerchCheckoutD
 
   const variants = (item?.variants || []) as Array<{ name: string; options: string[] }>;
   const isDigitalBook = item?.productCategory === 'book' && item?.bookFormat === 'ebook';
+  const isArtistSeller = item?.userType === 'artist';
+  const canRequestCreatorUpdates = isArtistSeller && Boolean(user?.emailVerified) && user?.id !== item?.userId;
   const maxQuantity = isDigitalBook ? 1 : item?.trackInventory ? Math.min(10, Math.max(1, item.inventoryQuantity || 1)) : 10;
   const subtotal = (item?.priceInCents || 0) * quantity;
   const shipping = fulfillmentMethod === 'shipping' ? item?.shippingAmountCents || 0 : 0;
@@ -110,7 +112,7 @@ export function MerchCheckoutDialog({ item, open, onOpenChange }: MerchCheckoutD
         country: country.trim(),
       } : undefined,
       customerNote: customerNote.trim() || undefined,
-      fanEmailOptIn: Boolean(user?.emailVerified && creatorUpdatesOptIn),
+      fanEmailOptIn: canRequestCreatorUpdates && creatorUpdatesOptIn,
     });
   }
 
@@ -203,7 +205,7 @@ export function MerchCheckoutDialog({ item, open, onOpenChange }: MerchCheckoutD
 
           <div className="space-y-2"><Label htmlFor="customer-note">Note for the creator (optional)</Label><Textarea id="customer-note" value={customerNote} onChange={(event) => setCustomerNote(event.target.value)} maxLength={500} placeholder="Special instructions or a question about the order..." /></div>
 
-          {user?.emailVerified ? <label className="flex items-start gap-2 text-sm text-muted-foreground">
+          {canRequestCreatorUpdates ? <label className="flex items-start gap-2 text-sm text-muted-foreground">
             <input
               type="checkbox"
               checked={creatorUpdatesOptIn}
@@ -211,7 +213,7 @@ export function MerchCheckoutDialog({ item, open, onOpenChange }: MerchCheckoutD
               className="mt-0.5 h-4 w-4 rounded border-input accent-primary"
             />
             <span>Follow this creator and receive occasional updates by email. You can unsubscribe anytime.</span>
-          </label> : user ? <p className="text-xs text-muted-foreground">Verify your email in Settings if you want to receive updates from this creator.</p> : null}
+          </label> : isArtistSeller && user && !user.emailVerified ? <p className="text-xs text-muted-foreground">Verify your email in Settings if you want to receive updates from this creator.</p> : null}
 
           <div className="rounded-lg bg-muted p-4 space-y-2 text-sm">
             <div className="flex justify-between"><span>{item.productCategory === 'book' ? 'Book' : 'Merch'}</span><span>${(subtotal / 100).toFixed(2)}</span></div>

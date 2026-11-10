@@ -1,61 +1,33 @@
-import { describe, it, expect } from 'vitest';
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
-
-const fetchMock = vi.fn();
-vi.stubGlobal('fetch', fetchMock);
-
+const mocks = vi.hoisted(() => ({ fetch: vi.fn() }));
+vi.mock('./_core/env', () => ({ ENV: {
+  sendgridApiKey: 'SG.offline-unit-fixture', sendgridFromEmail: 'support@ologywood.com', baseUrl: 'https://www.ologywood.com',
+} }));
 import { sendEmail } from './email';
 
-describe('SendGrid Email Service', () => {
-  beforeEach(() => {
-    fetchMock.mockReset();
+describe('SendGrid Email Service (mocked provider)', () => {
+  beforeEach(() => { mocks.fetch.mockReset(); vi.stubGlobal('fetch', mocks.fetch); });
+  afterAll(() => vi.unstubAllGlobals());
+  it('accepts SendGrid HTTP 202 without sending a real email', async () => {
+    mocks.fetch.mockResolvedValue({ ok: true, status: 202, text: vi.fn() });
+    expect(await sendEmail({ to: 'buyer@example.test', subject: 'Unit confirmation', html: '<p>Fixture</p>' })).toBe(true);
+    expect(mocks.fetch).toHaveBeenCalledOnce();
+    expect(mocks.fetch.mock.calls[0][0]).toBe('https://api.sendgrid.com/v3/mail/send');
   });
-
-  afterAll(() => {
-    vi.unstubAllGlobals();
+  it('handles provider rejection without reporting fake success', async () => {
+    mocks.fetch.mockResolvedValue({ ok: false, status: 400, text: vi.fn().mockResolvedValue('invalid email') });
+    expect(await sendEmail({ to: 'invalid-email', subject: 'Fixture', html: '<p>Fixture</p>' })).toBe(false);
   });
-
-  it('should successfully send a test email via SendGrid', async () => {
-    fetchMock.mockResolvedValue({ ok: true, status: 202, text: vi.fn() });
-    const result = await sendEmail({
-      to: 'test@mailinator.com',
-      subject: 'Ologywood SendGrid Test',
-      html: '<h1>SendGrid Email Test</h1><p>This is a test email from Ologywood to verify SendGrid integration is working correctly.</p>',
-    });
-
-    expect(result).toBe(true);
-    expect(fetchMock).toHaveBeenCalledOnce();
-    expect(fetchMock.mock.calls[0][0]).toBe('https://api.sendgrid.com/v3/mail/send');
+  it('constructs the correct newsletter recipient and subject', async () => {
+    mocks.fetch.mockResolvedValue({ ok: true, status: 202, text: vi.fn() });
+    expect(await sendEmail({ to: 'newsletter@example.test', subject: 'Welcome to OlogyWood Newsletter!', html: '<p>Fixture welcome</p>' })).toBe(true);
+    const body = JSON.parse(mocks.fetch.mock.calls[0][1].body);
+    expect(body.personalizations[0].to[0].email).toBe('newsletter@example.test');
+    expect(body.subject).toBe('Welcome to OlogyWood Newsletter!');
+    expect(body.from.email).toBe('support@ologywood.com');
   });
-
-  it('should handle invalid email addresses gracefully', async () => {
-    fetchMock.mockResolvedValue({ ok: false, status: 400, text: vi.fn().mockResolvedValue('invalid email') });
-    const result = await sendEmail({
-      to: 'invalid-email',
-      subject: 'Test',
-      html: '<p>Test</p>',
-    });
-
-    expect(result).toBe(false);
-  });
-
-  it('should send newsletter subscription confirmation email', async () => {
-    fetchMock.mockResolvedValue({ ok: true, status: 202, text: vi.fn() });
-    const result = await sendEmail({
-      to: 'newsletter-test@mailinator.com',
-      subject: 'Welcome to Ologywood Newsletter!',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1>Welcome to Ologywood!</h1>
-          <p>Thank you for subscribing to our newsletter.</p>
-        </div>
-      `,
-    });
-
-    expect(result).toBe(true);
-    const request = fetchMock.mock.calls[0][1] as RequestInit;
-    const body = JSON.parse(String(request.body));
-    expect(body.personalizations[0].to[0].email).toBe('newsletter-test@mailinator.com');
-    expect(body.subject).toBe('Welcome to Ologywood Newsletter!');
+  it('returns false on an uncertain network failure rather than inventing delivery', async () => {
+    mocks.fetch.mockRejectedValue(new Error('offline fixture failure'));
+    expect(await sendEmail({ to: 'buyer@example.test', subject: 'Fixture', html: '<p>Fixture</p>' })).toBe(false);
   });
 });

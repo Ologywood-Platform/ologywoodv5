@@ -1,6 +1,7 @@
 import { getDefaultStripeApiKey } from './services/stripeWebhookMode';
 import Stripe from 'stripe';
 import { SUBSCRIPTION_PRODUCTS, PLAN_SLUG_MAP, type SubscriptionProductKey, type BillingInterval } from '../shared/products';
+import { createHash } from 'node:crypto';
 
 // Initialize Stripe only if API key is provided
 let stripe: Stripe | null = null;
@@ -92,6 +93,28 @@ async function resolvePrice(
   return stripePrice.id;
 }
 
+/** Reuse only this account's standard-plan checkout, never an EDU session. */
+export async function findReusableSubscriptionCheckout(params: {
+  customerId: string; userId: string; plan: string; interval: BillingInterval;
+  successUrl: string; cancelUrl: string; useCredits: boolean;
+}): Promise<string | null> {
+  if (!stripe) throw new Error('Stripe is not configured.');
+  const sessions = await stripe.checkout.sessions.list({ customer: params.customerId, limit: 100 });
+  const plan = PLAN_SLUG_MAP[params.plan] || 'ARTIST_PROFESSIONAL';
+  const open = sessions.data.filter(session => session.mode === 'subscription' && session.status === 'open'
+    && session.metadata?.userId === params.userId && !session.metadata?.eduVerificationId);
+  for (const session of open) {
+    if (session.metadata?.plan === plan && session.metadata?.interval === params.interval
+      && (session.metadata?.referralCreditsRequested === 'true') === params.useCredits
+      && session.success_url === params.successUrl && session.cancel_url === params.cancelUrl
+      && session.url && session.expires_at * 1000 > Date.now()) return session.url;
+  }
+  // Invalidating an unrelated open paid checkout could discard a prior credit
+  // application. Require deliberate resolution rather than silently replacing it.
+  if (open.length) throw new Error('An open subscription checkout already exists with different options. Complete it or let it expire before changing checkout options.');
+  return null;
+}
+
 /**
  * Create a Stripe Checkout Session for an artist subscription.
  *
@@ -109,6 +132,7 @@ export async function createSubscriptionCheckoutSession(params: {
   plan?: string;
   interval?: BillingInterval;
   couponId?: string;
+  useCredits?: boolean;
 }): Promise<string> {
   if (!stripe) {
     throw new Error('Stripe is not configured. Set STRIPE_SECRET_KEY environment variable.');
@@ -143,6 +167,7 @@ export async function createSubscriptionCheckoutSession(params: {
       plan: productKey,
       interval,
       ...(params.eduVerificationId ? { eduVerificationId: params.eduVerificationId } : {}),
+      referralCreditsRequested: params.useCredits ? 'true' : 'false',
     },
     success_url: params.successUrl,
     cancel_url: params.cancelUrl,
@@ -159,8 +184,17 @@ export async function createSubscriptionCheckoutSession(params: {
     sessionParams.subscription_data!.trial_period_days = product.trialDays;
   }
 
-  const session = await stripe.checkout.sessions.create(sessionParams);
-  return session.url!;
+  const previous = await stripe.checkout.sessions.list({ customer: params.customerId, limit: 100 });
+  const owned = previous.data.filter(s => s.mode === 'subscription' && s.metadata?.userId === params.userId && !s.metadata?.eduVerificationId);
+  const open = owned.find(s => s.status === 'open' && s.url && s.expires_at * 1000 > Date.now()
+    && s.metadata?.plan === productKey && s.metadata.interval === interval);
+  if (open?.url) return open.url;
+  const previousId = owned.sort((a, b) => b.created - a.created)[0]?.id || 'initial';
+  const fingerprint = createHash('sha256').update(JSON.stringify({ customer: params.customerId, userId: params.userId,
+    productKey, interval, coupon: params.couponId || null, success: params.successUrl, cancel: params.cancelUrl, previousId })).digest('hex');
+  const session = await stripe.checkout.sessions.create(sessionParams, { idempotencyKey: `ologywood-subscription:${fingerprint}` });
+  if (!session.url) throw new Error('Stripe did not return a usable checkout URL');
+  return session.url;
 }
 
 /**

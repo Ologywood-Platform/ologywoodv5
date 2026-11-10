@@ -13,6 +13,7 @@ import { stripeConnectAccounts } from "../../drizzle/schema";
 import { eq } from "drizzle-orm";
 import { positiveRouteId } from './routeInput';
 import { trustedCheckoutOrigin } from '../services/trustedOrigin';
+import { createPurchaseFanEmailOptInMetadata } from '../services/purchaseFanEmailService';
 
 const stripe = new Stripe(getDefaultStripeApiKey(), {
   apiVersion: "2025-12-15.clover",
@@ -137,6 +138,26 @@ router.post("/", async (req: Request, res: Response) => {
 
     // Build the checkout session
     const origin = trustedCheckoutOrigin(process.env.BASE_URL, req.headers.origin);
+    const fanEmailMetadata = await createPurchaseFanEmailOptInMetadata({
+      creatorUserId: artistProfile.userId,
+      buyerUserId: user?.id,
+      optIn: fanEmailOptIn === true,
+    });
+    const purchaseMetadata: Record<string, string> = {
+      releaseId: release.id.toString(),
+      artistId: release.artistId.toString(),
+      artistUserId: artistProfile.userId.toString(),
+      buyerUserId: user?.id?.toString() || "",
+      buyerEmail: user?.email || buyerEmail || "",
+      buyerName: user?.name || buyerName || "",
+      ...fanEmailMetadata,
+      type: "release_purchase",
+      amountCents: finalPriceCents.toString(),
+      currency: release.currency || "usd",
+      source: "release_checkout",
+      platformFeeCents: platformFeeCents.toString(),
+      hasConnectAccount: artistStripeAccountId ? "true" : "false",
+    };
 
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
       payment_method_types: ["card"],
@@ -154,18 +175,8 @@ router.post("/", async (req: Request, res: Response) => {
           quantity: 1,
         },
       ],
-      metadata: {
-        releaseId: release.id.toString(),
-        artistId: release.artistId.toString(),
-        artistUserId: artistProfile.userId.toString(),
-        buyerUserId: user?.id?.toString() || "",
-        buyerEmail: user?.email || buyerEmail || "",
-        buyerName: user?.name || buyerName || "",
-        fanEmailOptIn: user && fanEmailOptIn === true ? "true" : "false",
-        type: "release_purchase",
-        platformFeeCents: platformFeeCents.toString(),
-        hasConnectAccount: artistStripeAccountId ? "true" : "false",
-      },
+      metadata: purchaseMetadata,
+      payment_intent_data: { metadata: purchaseMetadata },
       success_url: `${origin}/purchase-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/artist/${release.artistId}?purchase=cancelled`,
       allow_promotion_codes: true,
@@ -181,6 +192,7 @@ router.post("/", async (req: Request, res: Response) => {
     // If artist has Stripe Connect, route payment to them with platform fee
     if (artistStripeAccountId) {
       sessionParams.payment_intent_data = {
+        metadata: purchaseMetadata,
         application_fee_amount: platformFeeCents,
         transfer_data: {
           destination: artistStripeAccountId,

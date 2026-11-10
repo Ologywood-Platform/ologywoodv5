@@ -109,7 +109,7 @@ beforeEach(() => {
   contentReleasePreviewLimiter.reset('7');
   contentReleasePreviewLimiter.reset('8');
   mocks.ensureSchema.mockResolvedValue(undefined);
-  mocks.subscription.mockResolvedValue({ tier: 'professional' });
+  mocks.subscription.mockResolvedValue({ tier: 'professional', status: 'active' });
   mocks.uploadHostedPreview.mockResolvedValue({
     previewMedia: 'valid-owner-token',
     previewUrl: 'https://media.example.test/preview.mp3',
@@ -169,7 +169,7 @@ describe('content release hosted-preview API', () => {
 
     const starterDb = contentDb([[{ id: 11 }], [{ id: 1 }, { id: 2 }]]);
     mocks.getDb.mockResolvedValue(starterDb);
-    mocks.subscription.mockResolvedValueOnce({ tier: 'starter' });
+    mocks.subscription.mockResolvedValueOnce({ tier: 'starter', status: 'active' });
     await expect(releasesRouter.createCaller(creatorContext).uploadPreview(previewUpload)).rejects.toMatchObject({ code: 'FORBIDDEN' });
 
     expect(mocks.uploadHostedPreview).not.toHaveBeenCalled();

@@ -35,9 +35,9 @@ export default function PurchaseSuccess() {
     { sessionId: sessionId || "" },
     { 
       enabled: !!sessionId,
-      refetchInterval: (data) => {
+      refetchInterval: (query) => {
         // Keep polling every 2s while purchase is null and we haven't verified yet
-        if (!data && !verifyAttempted) return 2000;
+        if (!query.state.data && !verifyAttempted) return 2000;
         return false;
       },
     }
@@ -80,7 +80,9 @@ export default function PurchaseSuccess() {
     if (!purchase) return;
     setIsDownloading(true);
     try {
-      const guestSession = !user ? `?session_id=${encodeURIComponent(sessionId || "")}` : "";
+      // The server only accepts this capability for a genuine guest purchase.
+      // An unrelated current login must not remove the guest's access token.
+      const guestSession = sessionId ? `?session_id=${encodeURIComponent(sessionId)}` : "";
       const response = await fetch(`/api/release/download/${purchase.id}${guestSession}`);
       const data = await response.json();
       if (data.success && data.downloadUrl) {
@@ -88,6 +90,7 @@ export default function PurchaseSuccess() {
         a.href = data.downloadUrl;
         a.download = data.fileName || "release.mp3";
         a.target = "_blank";
+        a.rel = "noopener noreferrer";
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -122,7 +125,7 @@ export default function PurchaseSuccess() {
   }
 
   // Error state — verification failed
-  if (verifyError) {
+  if (verifyError && !purchase) {
     return (
       <div className="max-w-lg mx-auto px-4 py-16 text-center">
         <AlertCircle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
@@ -131,6 +134,7 @@ export default function PurchaseSuccess() {
           We're having trouble confirming your purchase. If you were charged, your purchase will appear 
           in <strong>My Purchases</strong> shortly. Please check back in a few minutes.
         </p>
+        <p className="text-sm text-muted-foreground mb-6">If you checked out as a guest, keep this private link and use Try Again below. You do not need to create an account.</p>
         <div className="flex flex-col gap-2">
           <Button onClick={() => navigate("/my-purchases")}>
             <ShoppingBag className="h-4 w-4 mr-2" />
@@ -239,7 +243,7 @@ export default function PurchaseSuccess() {
             <p className="text-xs text-center text-muted-foreground mb-6">
               {purchase.maxDownloads - purchase.downloadCount} of {purchase.maxDownloads} downloads remaining
             </p>
-            {!user && <p className="text-xs text-center text-muted-foreground mb-6">Guest access is tied to this private payment-success link. Save the link or use your confirmation email if you need to return later.</p>}
+            {purchase.isGuestPurchase && <p className="text-xs text-center text-muted-foreground mb-6">Guest access is tied to this private payment-success link. Save the link or use your confirmation email if you need to return later.</p>}
 
             {/* Action links */}
             <div className="flex flex-col gap-2">

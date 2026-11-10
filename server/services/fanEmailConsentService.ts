@@ -1,4 +1,4 @@
-import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
+import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 import { getDb, getPool } from '../db';
 import { ENV } from '../_core/env';
 import { ensureFanEmailSchema } from './fanEmailSchemaService';
@@ -410,9 +410,129 @@ export async function revokeAllFanEmailConsentsForUser(followerUserId: number, e
   await executor.execute(
     `UPDATE fan_email_consents
         SET optIn = FALSE, revision = revision + 1, revokedAt = NOW(), consentVersion = ?
-      WHERE followerUserId = ? AND optIn = TRUE`,
+      WHERE followerUserId = ?`,
     [FAN_EMAIL_CONSENT_VERSION, followerUserId],
   );
+}
+
+// Compact claims keep the signed snapshot below Stripe's 500-character value
+// limit. The one-time action is consumed by advancing the scoped revision, not
+// by keeping process-local replay state. No purchase grants consent at checkout.
+type PurchaseConsentSnapshot = {
+  v: 1;
+  p: 'purchase_fan';
+  f: number;
+  c: number;
+  r: number;
+  e: string;
+  d: string;
+  a: string;
+  b?: string;
+};
+
+function verifyPurchaseConsentSnapshot(token: unknown): PurchaseConsentSnapshot | null {
+  if (typeof token !== 'string' || token.length > 500) return null;
+  const [part, signature, ...extra] = token.split('.');
+  const secret = getSigningSecret();
+  if (!secret || !part || !signature || extra.length || !/^[A-Za-z0-9_-]+$/u.test(part) || !/^[A-Za-z0-9_-]+$/u.test(signature)) return null;
+  const expected = Buffer.from(hmac(part, secret));
+  const supplied = Buffer.from(signature);
+  if (expected.length !== supplied.length || !timingSafeEqual(expected, supplied)) return null;
+  try {
+    const claim = JSON.parse(Buffer.from(part, 'base64url').toString('utf8')) as PurchaseConsentSnapshot;
+    if (claim.v !== 1 || claim.p !== 'purchase_fan' ||
+        !Number.isSafeInteger(claim.f) || claim.f < 1 || !Number.isSafeInteger(claim.c) || claim.c < 1 || claim.f === claim.c ||
+        !Number.isSafeInteger(claim.r) || claim.r < 0 || claim.r >= 2_147_483_647 ||
+        typeof claim.e !== 'string' || !/^[a-f0-9]{64}$/u.test(claim.e) ||
+        claim.d !== FAN_EMAIL_CONSENT_VERSION || typeof claim.a !== 'string' || !/^[a-f0-9]{32}$/u.test(claim.a) ||
+        (claim.b !== undefined && (typeof claim.b !== 'string' || !/^(merch|ticket):[1-9]\d*$/u.test(claim.b)))) return null;
+    return claim;
+  } catch { return null; }
+}
+
+/** Checkout-only snapshot; never follows, opts in, or clears global suppression. */
+export async function createPurchaseFanEmailConsentSnapshot(
+  followerUserId: number,
+  creatorUserId: number,
+  purchaseId?: string,
+): Promise<string> {
+  const secret = getSigningSecret();
+  if (!secret) throw new Error('Purchase consent signing is unavailable');
+  if (!Number.isSafeInteger(followerUserId) || followerUserId < 1 || !Number.isSafeInteger(creatorUserId) || creatorUserId < 1 || followerUserId === creatorUserId ||
+      (purchaseId !== undefined && !/^(merch|ticket):[1-9]\d*$/u.test(purchaseId))) throw new Error('Invalid purchase consent identity');
+  await ensureFanEmailSchema();
+  return withFanEmailUserLock(followerUserId, async connection => {
+    const user = (await selectRows<UserRow>(connection,
+      'SELECT id, name, email, emailVerified FROM users WHERE id = ? LIMIT 1', [followerUserId]))[0];
+    const emailHash = hashFanEmail(user?.email);
+    if (!user || !isTrue(user.emailVerified) || !isValidFanEmail(user.email) || !emailHash) throw new FanEmailConsentEligibilityError('Verified email required');
+    const preference = await loadPreference(connection, followerUserId, true);
+    if (preferenceBlocks(preference)) throw new FanEmailConsentEligibilityError('Creator updates are globally blocked');
+    const existing = await loadConsent(connection, followerUserId, creatorUserId, true);
+    const revision = asRevision(existing?.revision);
+    if (revision >= 2_147_483_647) throw new Error('Consent revision exhausted');
+    // Preserve a tombstone so unfollow/deletion can invalidate a pending first
+    // opt-in. Existing opted-in rows are never changed by opening checkout.
+    if (!existing) await connection.execute(
+      `INSERT INTO fan_email_consents
+        (followerUserId, creatorUserId, optIn, revision, consentVersion, emailHash)
+       VALUES (?, ?, FALSE, 0, ?, ?)`,
+      [followerUserId, creatorUserId, FAN_EMAIL_CONSENT_VERSION, emailHash],
+    );
+    const claim: PurchaseConsentSnapshot = {
+      v: 1, p: 'purchase_fan', f: followerUserId, c: creatorUserId, r: revision,
+      e: emailHash, d: FAN_EMAIL_CONSENT_VERSION, a: randomBytes(16).toString('hex'),
+      ...(purchaseId ? { b: purchaseId } : {}),
+    };
+    const part = encodeBase64Url(JSON.stringify(claim));
+    const token = `${part}.${hmac(part, secret)}`;
+    if (token.length > 500) throw new Error('Purchase consent snapshot too large');
+    return token;
+  });
+}
+
+/** Caller must establish paid fulfillment and supply its trusted Stripe metadata. */
+export async function applyPurchaseFanEmailConsentSnapshot(input: {
+  token: unknown;
+  followerUserId: number;
+  creatorUserId: number;
+  purchaseId: string;
+}): Promise<{ captured: boolean; reason?: string }> {
+  const claim = verifyPurchaseConsentSnapshot(input.token);
+  if (!claim || claim.f !== input.followerUserId || claim.c !== input.creatorUserId ||
+      !/^(?:merch|ticket):[1-9]\d*$|^release:cs_(?:test|live)_[A-Za-z0-9]+$/u.test(input.purchaseId) ||
+      (claim.b ? claim.b !== input.purchaseId : !input.purchaseId.startsWith('release:cs_'))) {
+    return { captured: false, reason: 'invalid_snapshot' };
+  }
+  await ensureFanEmailSchema();
+  return withFanEmailUserLock(claim.f, async connection => {
+    // Compare under the SAME lock used by revocations, global preferences and
+    // unfollow. In particular, never use a freshly read revision to regrant.
+    const existing = await loadConsent(connection, claim.f, claim.c, true);
+    if (!existing || asRevision(existing.revision) !== claim.r) return { captured: false, reason: 'stale_snapshot' };
+    const user = (await selectRows<UserRow>(connection,
+      'SELECT id, name, email, emailVerified FROM users WHERE id = ? LIMIT 1', [claim.f]))[0];
+    if (!user || !isTrue(user.emailVerified) || !isValidFanEmail(user.email) || hashFanEmail(user.email) !== claim.e) {
+      await revokeFanEmailConsent(claim.f, claim.c, connection);
+      return { captured: false, reason: 'email_changed_or_unverified' };
+    }
+    if (preferenceBlocks(await loadPreference(connection, claim.f, true))) {
+      await revokeFanEmailConsent(claim.f, claim.c, connection);
+      return { captured: false, reason: 'globally_blocked' };
+    }
+    if (!await isArtistFollow(connection, claim.f, claim.c)) await connection.execute(
+      'INSERT INTO follows (followerId, followingId, followingType) VALUES (?, ?, ?)', [claim.f, claim.c, 'artist'],
+    );
+    const [write] = await connection.execute(
+      `UPDATE fan_email_consents
+          SET optIn = TRUE, revision = ?, consentedAt = NOW(), revokedAt = NULL,
+              consentVersion = ?, emailHash = ?
+        WHERE id = ? AND revision = ?`,
+      [claim.r + 1, claim.d, claim.e, existing.id, claim.r],
+    );
+    if (Number(write?.affectedRows) !== 1) throw new FanEmailConsentConflictError();
+    return { captured: true };
+  });
 }
 
 const ELIGIBLE_RECIPIENT_SELECT = `

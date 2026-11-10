@@ -2,6 +2,7 @@ import { TRPCError } from '@trpc/server';
 import type { RiderDocumentContext } from '../../shared/riderDocuments';
 import { getGrantStatus } from '../../shared/complimentaryAccess';
 import { hasComplimentaryOwnerAccess } from './ownerSubscriptionAccess';
+import { getEffectiveSubscriptionTier, hasPaidSubscriptionAccess } from '../../shared/subscriptionEntitlements';
 
 export type RiderDocumentConnection = {
   execute<T = any>(sql: string, values?: readonly unknown[]): Promise<[T, unknown]>;
@@ -35,13 +36,7 @@ function permissionObject(value: unknown): Record<string, unknown> {
 }
 
 function billingPlanAllowed(subscription: SqlRow | undefined): boolean {
-  if (!subscription) return false;
-  const tier = String(subscription.tier ?? 'free');
-  const status = String(subscription.status ?? '');
-  // Existing Rider Builder checks historically only used a non-free tier. For
-  // new document writes retain the active/trialing entitlement boundary.
-  return (tier === 'starter' || tier === 'professional' || tier === 'enterprise')
-    && (status === 'active' || status === 'trialing');
+  return hasPaidSubscriptionAccess(subscription);
 }
 
 function grantPlanAllowed(grant: SqlRow | undefined): boolean {
@@ -107,7 +102,7 @@ export async function getRiderDocumentContext(
 
   const [ownerRows, billingRows, grantRows] = await Promise.all([
     rows(connection, 'SELECT id, openId, email, emailVerified FROM users WHERE id = ? LIMIT 1 FOR UPDATE', [ownerUserId]),
-    rows(connection, 'SELECT tier, status FROM user_subscriptions WHERE userId = ? LIMIT 1 FOR UPDATE', [ownerUserId]),
+    rows(connection, 'SELECT tier, status, trialEndsAt FROM user_subscriptions WHERE userId = ? LIMIT 1 FOR UPDATE', [ownerUserId]),
     rows(connection, 'SELECT userId, tier, status, expiresAt, reason, grantedByUserId, grantedAt, revision, revokedAt, updatedAt FROM complimentary_access_grants WHERE userId = ? LIMIT 1 FOR UPDATE', [ownerUserId]),
   ]);
   const owner = ownerRows[0];
@@ -120,7 +115,7 @@ export async function getRiderDocumentContext(
   const billing = billingRows[0];
   const grant = grantRows[0];
   const planAllowed = ownerPlan || billingPlanAllowed(billing) || grantPlanAllowed(grant);
-  const tier = ownerPlan ? 'enterprise' : grantPlanAllowed(grant) ? String(grant!.tier) : String(billing?.tier ?? 'free');
+  const tier = ownerPlan ? 'enterprise' : grantPlanAllowed(grant) ? String(grant!.tier) : getEffectiveSubscriptionTier(billing);
 
   return {
     ownerUserId,

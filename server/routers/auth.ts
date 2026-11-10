@@ -68,10 +68,11 @@ export const authRouter = router({
         }
 
         // Update user to mark email as verified
-        await db.update(users).set({
+        const { updateUserEmailIdentity } = await import('../services/userEmailIdentityService');
+        await updateUserEmailIdentity(result.userId!, {
           emailVerified: true,
           lastSignedIn: new Date(),
-        }).where(eq(users.id, result.userId!));
+        });
 
         return {
           success: true,
@@ -208,13 +209,15 @@ export const authRouter = router({
 
         if (userToLink) {
           // Link existing OAuth account: add email, name, and password
-          await db.update(users).set({
+          const { updateUserEmailIdentity } = await import('../services/userEmailIdentityService');
+          await updateUserEmailIdentity(userToLink.id, {
             email: normalizedEmail,
+            ...(userToLink.email?.toLowerCase().trim() !== normalizedEmail ? { emailVerified: false } : {}),
             name: input.name,
             passwordHash: hashedPassword,
             loginMethod: 'email',
             lastSignedIn: new Date(),
-          }).where(eq(users.id, userToLink.id));
+          });
 
           newUserId = userToLink.id;
           newUser = await db.select().from(users).where(eq(users.id, newUserId)).limit(1);
@@ -567,18 +570,21 @@ export const authRouter = router({
         const hashedPassword = await bcrypt.hash(input.password, BCRYPT_ROUNDS);
 
         // Update the user's email and password
-        await db.update(users).set({
+        const { updateUserEmailIdentity } = await import('../services/userEmailIdentityService');
+        const emailChanged = user.email?.toLowerCase().trim() !== normalizedEmail;
+        await updateUserEmailIdentity(userId, {
           email: normalizedEmail,
+          ...(emailChanged ? { emailVerified: false } : {}),
           passwordHash: hashedPassword,
           loginMethod: 'email',
           lastSignedIn: new Date(),
-        }).where(eq(users.id, userId));
+        });
 
         console.log('[Auth] linkEmailPassword: email linked');
 
         return {
           success: true,
-          message: 'Email and password linked successfully! You can now log in with email and password.',
+          message: emailChanged ? 'Email and password linked. Please verify your new email before using verified-account features.' : 'Email and password linked successfully! You can now log in with email and password.',
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;

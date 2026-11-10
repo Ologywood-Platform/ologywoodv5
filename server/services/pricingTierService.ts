@@ -1,6 +1,7 @@
-import { getDb, getSubscriptionByUserId, getBillingSubscriptionByUserId } from "../db";
-import { userSubscriptions, bookingUsage } from "../../drizzle/schema";
+import { getDb, getSubscriptionByUserId, upsertSubscription } from "../db";
+import { bookingUsage } from "../../drizzle/schema";
 import { eq, and } from "drizzle-orm";
+import { getEffectiveSubscriptionTier, projectSubscriptionEntitlements } from '../../shared/subscriptionEntitlements';
 
 /**
  * Pricing tier definitions and feature access
@@ -144,34 +145,14 @@ export type FeatureKey = keyof (typeof PRICING_TIERS)["free"]["features"];
  * Get or create user subscription
  */
 export async function getUserSubscription(userId: number) {
-  const db = await getDb();
-  if (!db) throw new Error('Database not available');
-
   const subscription = await getSubscriptionByUserId(userId);
-  if (subscription) return subscription;
-
-  // Create default free subscription
-  const newSubscription = await db!.insert(userSubscriptions).values({
-    userId,
-    tier: "free",
-    status: "active",
-  });
-
-  return {
-    id: (newSubscription as any).insertId || 0,
-    userId,
-    tier: "free" as PricingTier,
-    status: "active",
-    stripeCustomerId: null,
-    stripeSubscriptionId: null,
-    stripePriceId: null,
-    trialEndsAt: null,
-    currentPeriodStart: null,
-    currentPeriodEnd: null,
-    cancelledAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  } as any;
+  if (subscription) return projectSubscriptionEntitlements(subscription);
+  // An empty patch inserts schema defaults if absent, without overwriting a
+  // subscription that was created between this read and the user-row lock.
+  await upsertSubscription({ userId });
+  const created = await getSubscriptionByUserId(userId);
+  if (!created) throw new Error('Subscription could not be loaded');
+  return projectSubscriptionEntitlements(created);
 }
 
 /**
@@ -182,7 +163,7 @@ export async function hasFeatureAccess(
   feature: FeatureKey
 ): Promise<boolean> {
   const subscription = await getUserSubscription(userId);
-  const tier = PRICING_TIERS[subscription.tier as PricingTier];
+  const tier = PRICING_TIERS[getEffectiveSubscriptionTier(subscription)];
   return tier.features[feature] || false;
 }
 
@@ -244,7 +225,7 @@ export async function canCreateBooking(userId: number): Promise<{
   remaining?: number;
 }> {
   const subscription = await getUserSubscription(userId);
-  const tier = PRICING_TIERS[subscription.tier as PricingTier];
+  const tier = PRICING_TIERS[getEffectiveSubscriptionTier(subscription)];
 
   if (tier.bookingsPerMonth === Infinity) {
     return { allowed: true };
@@ -275,49 +256,27 @@ export async function upgradeTier(
     priceId: string;
   }
 ): Promise<void> {
-  const db = await getDb();
-  if (!db) return;
-  
-  if (!await getBillingSubscriptionByUserId(userId)) {
-    await db.insert(userSubscriptions).values({ userId, tier: 'free', status: 'active' });
-  }
-
-  await db
-    .update(userSubscriptions)
-    .set({
-      tier: newTier,
-      status: "active",
-      stripeCustomerId: stripeData?.customerId,
-      stripeSubscriptionId: stripeData?.subscriptionId,
-      stripePriceId: stripeData?.priceId,
-      currentPeriodStart: new Date(),
-      currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-      updatedAt: new Date(),
-    })
-    .where(eq(userSubscriptions.userId, userId));
+  if (stripeData) throw new Error('Stripe upgrades require synchronizeSubscription with an injected mode-specific Stripe client');
+  // Legacy local grants retain their non-Stripe path; no fabricated billing period.
+  await upsertSubscription({ userId, tier: newTier, status: 'active', updatedAt: new Date() });
 }
 
 /**
  * Set trial for beta users (first 20)
  */
 export async function setTrialForBetaUser(userId: number): Promise<void> {
-  const db = await getDb();
-  if (!db) return;
-  
   const trialEndsAt = new Date();
   trialEndsAt.setMonth(trialEndsAt.getMonth() + 3); // 3 months
 
-  await db
-    .update(userSubscriptions)
-    .set({
+  await upsertSubscription({
+      userId,
       tier: "professional",
       status: "trialing",
       trialEndsAt,
       currentPeriodStart: new Date(),
       currentPeriodEnd: trialEndsAt,
       updatedAt: new Date(),
-    })
-    .where(eq(userSubscriptions.userId, userId));
+    });
 }
 
 /**
@@ -346,7 +305,7 @@ export async function canCreateRelease(userId: number, currentActiveCount: numbe
   currentCount: number;
 }> {
   const subscription = await getUserSubscription(userId);
-  const tier = PRICING_TIERS[subscription.tier as PricingTier];
+  const tier = PRICING_TIERS[getEffectiveSubscriptionTier(subscription)];
   const maxAllowed = tier.maxActiveReleases;
 
   if (maxAllowed === 0) {
@@ -386,7 +345,7 @@ export async function canCreateProjectPreview(userId: number, currentCount: numb
   currentCount: number;
 }> {
   const subscription = await getUserSubscription(userId);
-  const tier = PRICING_TIERS[subscription.tier as PricingTier];
+  const tier = PRICING_TIERS[getEffectiveSubscriptionTier(subscription)];
   const maxAllowed = tier.maxProjectPreviews;
 
   if (maxAllowed === 0) {
@@ -415,7 +374,7 @@ export async function canCreateProjectPreview(userId: number, currentCount: numb
  */
 export async function getMaxTracksPerProject(userId: number): Promise<number> {
   const subscription = await getUserSubscription(userId);
-  const tier = PRICING_TIERS[subscription.tier as PricingTier];
+  const tier = PRICING_TIERS[getEffectiveSubscriptionTier(subscription)];
   return tier.maxTracksPerProject;
 }
 
@@ -424,6 +383,6 @@ export async function getMaxTracksPerProject(userId: number): Promise<number> {
  */
 export async function getMaxSnippetSeconds(userId: number): Promise<number> {
   const subscription = await getUserSubscription(userId);
-  const tier = PRICING_TIERS[subscription.tier as PricingTier];
+  const tier = PRICING_TIERS[getEffectiveSubscriptionTier(subscription)];
   return tier.maxSnippetSeconds;
 }

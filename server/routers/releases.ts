@@ -25,6 +25,7 @@ import { RateLimiter } from "../utils/rateLimiter";
 import { createContentReleaseCheckout } from "../services/contentReleaseCommerceService";
 import { contentReleasePublicView, isVerifiedContentPurchase } from "../../shared/contentReleaseCommerce";
 import { PREVIEW_INPUT_BYTES, PREVIEW_ERROR, readPreviewReference, resolveHostedPreview, uploadHostedPreview } from "../services/releasePreviewMedia";
+import { getEffectiveSubscriptionTier } from '../../shared/subscriptionEntitlements';
 
 export const contentReleaseCoverLimiter = new RateLimiter({ maxRequests: 10, windowMs: 60_000, namespace: 'release-cover' });
 export const contentReleasePreviewLimiter = new RateLimiter({ maxRequests: 6, windowMs: 60_000, namespace: 'release-preview' });
@@ -157,8 +158,9 @@ export const releasesRouter = router({
       } else {
         const {getSubscriptionByUserId}=await import('../db');
         const subscription=await getSubscriptionByUserId(ctx.user.id);
-        if(!subscription || subscription.tier==='free')throw new TRPCError({code:'FORBIDDEN',message:'Content Releases require Starter or higher.'});
-        if(subscription.tier==='starter'){
+        const tier = getEffectiveSubscriptionTier(subscription);
+        if(tier==='free')throw new TRPCError({code:'FORBIDDEN',message:'Content Releases require Starter or higher.'});
+        if(tier==='starter'){
           const existing=await database.select({id:releases.id}).from(releases).where(eq(releases.userId,ctx.user.id));
           if(existing.length>=2)throw new TRPCError({code:'FORBIDDEN',message:'Starter plan is limited to 2 releases. Edit an existing release or upgrade.'});
         }
@@ -193,7 +195,7 @@ export const releasesRouter = router({
       } else {
         const { getSubscriptionByUserId } = await import('../db');
         const subscription = await getSubscriptionByUserId(ctx.user.id);
-        const tier = subscription?.tier || 'free';
+        const tier = getEffectiveSubscriptionTier(subscription);
         if (tier === 'free') throw new TRPCError({code:'FORBIDDEN', message:'Content Releases require a Starter plan or higher.'});
         if (tier === 'starter') {
           const existing = await database.select({id:releases.id}).from(releases).where(eq(releases.userId, ctx.user.id));
@@ -235,7 +237,7 @@ export const releasesRouter = router({
       // Tier enforcement: check release limit
       const { getSubscriptionByUserId } = await import("../db");
       const subscription = await getSubscriptionByUserId(ctx.user.id);
-      const userTier = subscription?.tier || "free";
+      const userTier = getEffectiveSubscriptionTier(subscription);
       if (userTier === "free") {
         throw new TRPCError({ code: "FORBIDDEN", message: "Content Releases require a Starter plan or higher. Please upgrade your subscription." });
       }

@@ -97,10 +97,38 @@ export async function sessionRemindersHandler(req: Request, res: Response) {
       }
     }
 
+    // Reuse the deployed project-owned scheduler. No in-process timer or new
+    // registration is introduced; provider modes remain strictly independent.
+    const eduLifecycle: Array<{ mode: string; checked: number; blocked: number }> = [];
+    let eduLifecycleUnavailable = false;
+    try {
+      const { sql } = await import('drizzle-orm');
+      const [dueRows] = await db.execute(sql`SELECT COUNT(*) AS total FROM edu_verifications WHERE (billingMode IS NOT NULL OR status = 'approved') AND (billingReconcileAfter IS NULL OR billingReconcileAfter <= UTC_TIMESTAMP())`);
+      const due = Array.isArray(dueRows) ? Number((dueRows[0] as any)?.total || 0) : 0;
+      if (due > 0) {
+        const { defaultEduBillingDependencies, runEduLifecycleBatch } = await import('../services/eduBillingService');
+        const modes: Array<'live' | 'test'> = [];
+        const primary = process.env.STRIPE_SECRET_KEY || '';
+        if (primary.startsWith('sk_live_') || process.env.STRIPE_LIVE_SECRET_KEY?.startsWith('sk_live_')) modes.push('live');
+        if (primary.startsWith('sk_test_') || process.env.STRIPE_TEST_SECRET_KEY?.startsWith('sk_test_')) modes.push('test');
+        for (const mode of modes) {
+          const result = await runEduLifecycleBatch({ limit: 5 }, await defaultEduBillingDependencies(mode));
+          eduLifecycle.push({ mode, checked: result.results.length, blocked: result.blocked });
+        }
+      }
+    } catch (error) {
+      // Never interfere with Ology Live reminders. Surface the separate EDU
+      // dependency failure to the scheduler rather than reporting completion.
+      eduLifecycleUnavailable = true;
+      console.error('[EDU Lifecycle] Scheduled batch unavailable', { kind: error instanceof Error ? error.name : 'UnknownError' });
+    }
+
     res.json({
       ok: true,
       upcomingSessionsFound: upcomingBookings.length,
       remindersSent,
+      eduLifecycle,
+      eduLifecycleUnavailable,
       checkedAt: now.toISOString(),
     });
   } catch (error: unknown) {

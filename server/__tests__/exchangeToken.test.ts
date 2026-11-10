@@ -1,35 +1,39 @@
-import { describe, it, expect } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import express from 'express';
+import request from 'supertest';
+const mocks = vi.hoisted(() => ({ verifySession: vi.fn() }));
+vi.mock('../_core/sdk', () => ({ sdk: { verifySession: mocks.verifySession } }));
+vi.mock('../db', () => ({ getDb: vi.fn() }));
+vi.mock('../services/freeTrialService', () => ({ FreeTrialService: {} }));
+vi.mock('../services/pricingTierService', () => ({ getUserSubscription: vi.fn() }));
+vi.mock('../utils/persistAvatar', () => ({ persistAvatarToS3: vi.fn() }));
+import authRouter from '../routes/spotifyAuth';
+const app = express(); app.use(express.json()); app.use('/api/auth', authRouter);
 
-describe('Exchange Token Endpoint', () => {
-  const BASE_URL = process.env.BASE_URL && process.env.BASE_URL.startsWith('http') ? process.env.BASE_URL : 'http://localhost:3000';
-
-  it('should reject requests without a token', async () => {
-    const response = await fetch(`${BASE_URL}/api/auth/exchange-token`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({}),
-    });
+beforeEach(() => { vi.clearAllMocks(); mocks.verifySession.mockResolvedValue(null); });
+describe('Exchange Token Endpoint (offline HTTP and mocked session verification)', () => {
+  it('rejects a missing token without attempting verification or setting cookies', async () => {
+    const response = await request(app).post('/api/auth/exchange-token').send({});
     expect(response.status).toBe(400);
-    const data = await response.json();
-    expect(data.error).toBe('Missing token');
+    expect(response.body.error).toBe('Missing token');
+    expect(mocks.verifySession).not.toHaveBeenCalled();
+    expect(response.headers['set-cookie']).toBeUndefined();
   });
-
-  it('should reject requests with an invalid token', async () => {
-    const response = await fetch(`${BASE_URL}/api/auth/exchange-token`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: 'invalid-token-value' }),
-    });
-    // Should be 401 (invalid) or 500 (verification error)
-    expect([401, 500]).toContain(response.status);
+  it('rejects invalid tokens without setting a cookie', async () => {
+    const response = await request(app).post('/api/auth/exchange-token').send({ token: 'invalid-unit-token' });
+    expect(response.status).toBe(401);
+    expect(response.headers['set-cookie']).toBeUndefined();
   });
-
-  it('should reject non-string token values', async () => {
-    const response = await fetch(`${BASE_URL}/api/auth/exchange-token`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: 12345 }),
-    });
+  it('rejects non-string token values before session verification', async () => {
+    const response = await request(app).post('/api/auth/exchange-token').send({ token: 12345 });
     expect(response.status).toBe(400);
+    expect(mocks.verifySession).not.toHaveBeenCalled();
+  });
+  it('returns a safe failure if the verification dependency is unavailable', async () => {
+    mocks.verifySession.mockRejectedValue(new Error('fixture failure'));
+    const response = await request(app).post('/api/auth/exchange-token').send({ token: 'fixture' });
+    expect(response.status).toBe(500);
+    expect(response.body).toEqual({ error: 'Token exchange failed' });
+    expect(response.headers['set-cookie']).toBeUndefined();
   });
 });

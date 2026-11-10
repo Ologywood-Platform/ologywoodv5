@@ -69,12 +69,13 @@ export default function EduApply() {
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-purple-700">OlogyWood EDU</p>
             <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">Let&apos;s build the right starting point.</h1>
-            <p className="mt-5 text-lg leading-8 text-slate-600">This is an interest form, not a promise of admission, employment, bookings, income, or discounted pricing. We will use your answers to understand whether a student start or a school pilot is the right next step.</p>
+            <p className="mt-5 text-lg leading-8 text-slate-600">This is an interest form, not eligibility approval or paid activation, and not a promise of admission, employment, bookings, or income. The approved student framework is 50% off Starter or Professional after manual eligibility review and a separate successful checkout. We will use your answers to understand whether a student start or a school pilot is the right next step.</p>
             <div className="mt-8 space-y-3 text-sm text-slate-600">
               <div className="flex gap-3"><CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600" />No payment is required to submit interest.</div>
-              <div className="flex gap-3"><CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600" />Education pricing is not final until matched to an existing OlogyWood plan.</div>
+              <div className="flex gap-3"><CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600" />Approved eligibility lasts 12 months with a 30-day renewal grace period. Enterprise pricing remains institution-specific.</div>
               <div className="flex gap-3"><CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600" />A free OlogyWood account remains available separately.</div>
             </div>
+            <Link href="/edu/verify" className="mt-5 inline-flex text-sm font-semibold text-purple-700 underline">Already have an account? Submit evidence for manual eligibility review.</Link>
           </div>
 
           <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8" aria-labelledby="edu-apply-title">

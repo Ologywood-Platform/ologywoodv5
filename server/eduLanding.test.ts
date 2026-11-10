@@ -24,7 +24,7 @@ describe("OlogyWood EDU foundation", () => {
     expect(page).toContain("Explore a school pilot");
     expect(page).toContain("Request a partnership conversation");
     expect(page).toContain("Free entry-level access is available");
-    expect(page).toContain("Approved EDU pricing");
+    expect(page).toContain("The approved EDU framework");
     expect(page).toContain("without promising bookings, employment, income, or school endorsement");
   });
 
@@ -33,7 +33,8 @@ describe("OlogyWood EDU foundation", () => {
     expect(page).toContain("50% student discount");
     expect(page).toContain("12-month verification");
     expect(page).toContain("30-day renewal grace");
-    expect(page).toContain("approved cohort");
+    expect(page).toContain("requires manual eligibility approval and a separate successful checkout");
+    expect(page).toContain("entering an email or code does not automatically verify ownership, validity, or enrollment");
     expect(page).toContain("not automatically enrolled in a paid plan");
   });
 

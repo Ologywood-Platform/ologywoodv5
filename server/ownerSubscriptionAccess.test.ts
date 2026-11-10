@@ -40,8 +40,11 @@ describe('Owner complimentary Enterprise entitlement',()=>{
   const db=src('server/db.ts');const pricing=src('server/services/pricingTierService.ts');
   expect(db).toContain('const ownerSubscription = resolveOwnerSubscription(user, subscription)');
   expect(db).toContain("if (ownerSubscription?.accessSource === 'platform_owner') return ownerSubscription");
-  expect(db).toContain('return applyComplimentaryGrant(userId, ownerSubscription)');
-  expect(db).toContain('const existing = await getBillingSubscriptionByUserId(data.userId)');
+  expect(db).toContain('const effective = await applyComplimentaryGrant(userId, ownerSubscription)');
+  expect(db).toContain('projectSubscriptionEntitlements(effective)');
+  expect(db).toContain('await persistSubscriptionPatch(data, undefined, expectedStripeSubscriptionId)');
+  expect(db).toContain('SELECT * FROM user_subscriptions WHERE userId = ? LIMIT 1 FOR UPDATE');
+  expect(db).toContain('stripeSubscriptionId <=> ?');
   expect(pricing).toContain('const subscription = await getSubscriptionByUserId(userId)');
  });
  it('blocks owner checkout/reactivation and does not bypass role or athlete gates',()=>{

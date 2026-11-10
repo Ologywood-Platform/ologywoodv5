@@ -194,13 +194,14 @@ router.get('/spotify/callback', async (req: Request, res: Response) => {
         if (existingEmailUser.length > 0) {
           // Link Spotify to existing email account
           user = existingEmailUser[0];
-          await db.update(users).set({
+          const { updateUserEmailIdentity } = await import('../services/userEmailIdentityService');
+          await updateUserEmailIdentity(user.id, {
             oauthProvider: 'spotify',
             oauthProviderId: spotifyUser.id,
             avatarUrl: avatarUrl || user.avatarUrl,
             emailVerified: true,
             lastSignedIn: new Date(),
-          }).where(eq(users.id, user.id));
+          });
           console.log('[Spotify OAuth] Linked Spotify to existing account');
         } else {
           // Create brand new user

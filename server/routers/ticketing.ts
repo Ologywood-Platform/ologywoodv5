@@ -10,6 +10,7 @@ import { randomUUID } from 'crypto';
 import { formatDateOnly } from '../../shared/dateOnly';
 import { trustedCheckoutOrigin } from '../services/trustedOrigin';
 import { escapeFanEmailHtml, safeFanEmailHref, sanitizeFanEmailSubject } from '../services/fanEmailFormatting';
+import { createPurchaseFanEmailOptInMetadata } from '../services/purchaseFanEmailService';
 
 const MAX_TICKET_ORDER_CENTS = 100_000_000;
 
@@ -370,6 +371,12 @@ export const ticketingRouter = router({
         }
       }
 
+      const fanEmailMetadata = await createPurchaseFanEmailOptInMetadata({
+        creatorUserId: artistProfile?.userId,
+        buyerUserId: ctx.user?.id,
+        optIn: input.fanEmailOptIn === true,
+        purchaseId: `ticket:${order.id}`,
+      });
       // Create Stripe Checkout Session
       const origin = trustedCheckoutOrigin(process.env.BASE_URL, (ctx.req as any)?.headers?.origin);
       const sessionParams: any = {
@@ -385,7 +392,7 @@ export const ticketingRouter = router({
           totalTickets: totalTickets.toString(),
           items: JSON.stringify(input.items),
           buyerUserId: (ctx.user as any)?.id?.toString() || '',
-          fanEmailOptIn: ctx.user && input.fanEmailOptIn ? 'true' : 'false',
+          ...fanEmailMetadata,
           promoCode: appliedPromoCode || '',
           promoDiscount: promoDiscount.toString(),
         },
@@ -402,7 +409,7 @@ export const ticketingRouter = router({
         totalTickets: totalTickets.toString(),
         items: JSON.stringify(input.items),
         buyerUserId: (ctx.user as any)?.id?.toString() || '',
-        fanEmailOptIn: ctx.user && input.fanEmailOptIn ? 'true' : 'false',
+        ...fanEmailMetadata,
         customer_email: buyerEmail,
         customer_name: buyerName,
         promoCode: appliedPromoCode || '',

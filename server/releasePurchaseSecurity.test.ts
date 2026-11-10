@@ -13,7 +13,8 @@ describe('release purchase security boundaries', () => {
 
   it('escapes purchase-confirmation content and constrains generated links', () => {
     expect(source).toContain('escapeFanEmailHtml(release.title)');
-    expect(source).toContain('escapeFanEmailHtml(artistProfile.artistName)');
+    expect(source).toContain('escapeFanEmailHtml(artistName)');
+    expect(source).toContain('safeFanEmailHref(`${baseUrl}/purchase-success?session_id=');
     expect(source).toContain('safeFanEmailHref(unsubscribeUrl)');
     expect(source).toContain('trustedCheckoutOrigin(process.env.BASE_URL, undefined)');
     expect(source).toContain('sanitizeFanEmailSubject(`Purchase Confirmed');

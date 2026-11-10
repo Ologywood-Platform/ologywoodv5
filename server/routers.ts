@@ -2985,7 +2985,15 @@ export const appRouter = router({
         if (!isApprovedReturnUrl(input.successUrl) || !isApprovedReturnUrl(input.cancelUrl)) {
           throw new TRPCError({ code: 'BAD_REQUEST', message: 'Checkout return URLs must use the approved application origin' });
         }
-        
+        const { assertSubscriptionCheckoutAllowed } = await import('./services/subscriptionLifecycleService');
+        const effectiveAccess = await db.getSubscriptionByUserId(ctx.user.id);
+        return db.subscriptionRepository.withUserLock(ctx.user.id, async (subscriptionTx) => {
+          try {
+            assertSubscriptionCheckoutAllowed(await subscriptionTx.getCurrent(), effectiveAccess);
+          } catch {
+            throw new TRPCError({ code: 'CONFLICT', message: 'You already have a subscription or complimentary access. Manage your current plan instead of starting another checkout.' });
+          }
+
         // Get or create Stripe customer
         const customerId = await getOrCreateStripeCustomer({
           email: ctx.user.email || '',
@@ -2995,36 +3003,48 @@ export const appRouter = router({
 
         let couponId: string | undefined;
 
-        // EDU is an auditable entitlement, not a role or a complimentary grant.
-        // Only an admin-approved verification inside its 12-month + 30-day grace
-        // window can receive the discount. Enterprise is intentionally excluded.
-        let eduDiscountApplied = false;
-        let eduVerificationId: string | undefined;
+        // EDU owns its restricted coupon, checkout reuse and disclosed deadline.
+        // Never silently fall back to standard-price checkout if that flow fails.
         if ((input.plan === 'starter' || input.plan === 'professional') && stripeClient) {
-          const [eduVerification] = await db.getDb().then(async database => database
-            ? database.select().from(schema.eduVerifications).where(eq(schema.eduVerifications.userId, ctx.user.id)).limit(1)
-            : []);
-          const eduEnd = eduVerification?.graceUntil || eduVerification?.verifiedUntil;
-          if (eduVerification?.status === 'approved' && eduEnd && eduEnd.getTime() >= Date.now()) {
-            const eduCoupon = await stripeClient.coupons.create({
-              percent_off: 50,
-              duration: 'repeating',
-              duration_in_months: 12,
-              name: 'OlogyWood EDU Student (50% for 12 months)',
-              metadata: {
-                type: 'edu_student_discount',
-                userId: ctx.user.id.toString(),
-                verificationId: eduVerification.id.toString(),
-              },
+          const { prepareEduDiscountCheckout, EduBillingBlocked } = await import('./services/eduBillingService');
+          try {
+            const eduCheckout = await prepareEduDiscountCheckout({
+              userId: ctx.user.id,
+              customerId,
+              plan: input.plan,
+              interval: input.interval,
+              successUrl: input.successUrl,
+              cancelUrl: input.cancelUrl,
+              useCredits: input.useCredits,
             });
-            couponId = eduCoupon.id;
-            eduDiscountApplied = true;
-            eduVerificationId = eduVerification.id.toString();
+            if (eduCheckout.status === 'ready') return { checkoutUrl: eduCheckout.checkoutUrl };
+          } catch (error) {
+            const reason = error instanceof EduBillingBlocked ? error.reason : 'billing_dependency_failed';
+            console.warn('[EDU Checkout] Discount checkout blocked', { reason });
+            throw new TRPCError({ code: 'PRECONDITION_FAILED', message: reason === 'edu_cannot_stack_referral_credits'
+              ? 'The EDU discount cannot be combined with referral credits. Turn off referral credits and try again.'
+              : 'Your student discount checkout could not be prepared safely. Please retry or contact support; no standard-price checkout was created.' });
           }
         }
 
+        const { findReusableSubscriptionCheckout } = await import('./stripe');
+        try {
+          const reusable = await findReusableSubscriptionCheckout({
+            customerId,
+            userId: ctx.user.id.toString(),
+            plan: input.plan,
+            interval: input.interval,
+            successUrl: input.successUrl,
+            cancelUrl: input.cancelUrl,
+            useCredits: input.useCredits,
+          });
+          if (reusable) return { checkoutUrl: reusable };
+        } catch {
+          throw new TRPCError({ code: 'CONFLICT', message: 'An open checkout with different options may already exist. Complete your current checkout or let it expire before starting another one.' });
+        }
+
         // If user wants to apply referral credits, create a Stripe coupon
-        if (input.useCredits && stripeClient && !eduDiscountApplied) {
+        if (input.useCredits && stripeClient) {
           const { referralCredits } = await import('../drizzle/schema');
           const { eq } = await import('drizzle-orm');
           const { getDb: getDatabase } = await import('./db');
@@ -3084,15 +3104,16 @@ export const appRouter = router({
           userEmail: ctx.user.email || '',
           userName: ctx.user.name || undefined,
           userId: ctx.user.id.toString(),
-          eduVerificationId,
           successUrl: input.successUrl,
           cancelUrl: input.cancelUrl,
           plan: input.plan,
           interval: input.interval,
           couponId,
+          useCredits: input.useCredits,
         });
 
         return { checkoutUrl };
+        });
       }),
 
     // Get subscription status from Stripe
@@ -3213,23 +3234,17 @@ export const appRouter = router({
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Cannot pause a cancelled subscription' });
       }
 
-      const { pauseSubscription, getSubscriptionStatus } = await import('./stripe');
+      const { pauseSubscription, getSubscriptionStatus, stripe: stripeClient } = await import('./stripe');
       const { SUBSCRIPTION_PRODUCTS } = await import('../shared/products');
 
       // Pause billing in Stripe
       await pauseSubscription(subscription.stripeSubscriptionId);
 
-      // Calculate 90-day expiration
-      const now = new Date();
-      const pauseExpiresAt = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
-
-      // Update local subscription record
-      await db.upsertSubscription({
-        userId: ctx.user.id,
-        status: 'paused',
-        pausedAt: now,
-        pauseExpiresAt,
-      });
+      if (!stripeClient) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Stripe is not configured' });
+      const { synchronizeSubscription } = await import('./services/subscriptionLifecycleService');
+      const synchronized = await synchronizeSubscription({ stripeClient, subscriptionId: subscription.stripeSubscriptionId, userId: ctx.user.id });
+      if (!synchronized.synced) throw new TRPCError({ code: 'CONFLICT', message: 'Your current subscription changed. Refresh your plan status before continuing.' });
+      const pauseExpiresAt = synchronized.state.pauseExpiresAt;
 
       // Determine plan name for email
       let planName = 'your plan';
@@ -3247,7 +3262,7 @@ export const appRouter = router({
       }
 
       // Send pause confirmation email
-      const resumeDateStr = pauseExpiresAt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      const resumeDateStr = pauseExpiresAt ? new Date(pauseExpiresAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'the date shown in your billing portal';
       if (ctx.user.email) {
         email.sendSubscriptionPausedEmail({
           artistEmail: ctx.user.email,
@@ -3270,19 +3285,16 @@ export const appRouter = router({
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Subscription is not paused' });
       }
 
-      const { resumeSubscription, getSubscriptionStatus } = await import('./stripe');
+      const { resumeSubscription, getSubscriptionStatus, stripe: stripeClient } = await import('./stripe');
       const { SUBSCRIPTION_PRODUCTS } = await import('../shared/products');
 
       // Resume billing in Stripe
       await resumeSubscription(subscription.stripeSubscriptionId);
 
-      // Update local subscription record
-      await db.upsertSubscription({
-        userId: ctx.user.id,
-        status: 'active',
-        pausedAt: null,
-        pauseExpiresAt: null,
-      });
+      if (!stripeClient) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Stripe is not configured' });
+      const { synchronizeSubscription } = await import('./services/subscriptionLifecycleService');
+      const synchronized = await synchronizeSubscription({ stripeClient, subscriptionId: subscription.stripeSubscriptionId, userId: ctx.user.id });
+      if (!synchronized.synced) throw new TRPCError({ code: 'CONFLICT', message: 'Your current subscription changed. Refresh your plan status before continuing.' });
 
       // Get plan details for email
       let planName = 'your plan';
@@ -3307,7 +3319,7 @@ export const appRouter = router({
       }
 
       // Send resume confirmation email
-      if (ctx.user.email) {
+      if (ctx.user.email && (synchronized.state.status === 'active' || synchronized.state.status === 'trialing')) {
         email.sendSubscriptionResumedEmail({
           artistEmail: ctx.user.email,
           artistName: ctx.user.name || 'Artist',
@@ -3324,7 +3336,6 @@ export const appRouter = router({
     syncFromStripe: protectedProcedure
       .mutation(async ({ ctx }) => {
         console.log('[SyncFromStripe] Starting subscription sync');
-        const { SUBSCRIPTION_PRODUCTS } = await import('../shared/products');
         const { stripe: stripeClient } = await import('./stripe');
 
         if (!stripeClient) {
@@ -3332,87 +3343,28 @@ export const appRouter = router({
           throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Stripe is not configured' });
         }
 
-        const stripe = stripeClient;
-
-        // Find Stripe customer by email
-        if (!ctx.user.email) {
-          console.error('[SyncFromStripe] No email on account');
-          throw new TRPCError({ code: 'BAD_REQUEST', message: 'No email on account' });
+        const { synchronizeSubscription } = await import('./services/subscriptionLifecycleService');
+        const billing = await db.getBillingSubscriptionByUserId(ctx.user.id);
+        let subscriptionId = billing?.stripeSubscriptionId;
+        if (!subscriptionId) {
+          if (!ctx.user.email) throw new TRPCError({ code: 'BAD_REQUEST', message: 'No email on account' });
+          const customers = await stripeClient.customers.list({ email: ctx.user.email, limit: 100 });
+          if (customers.has_more) throw new TRPCError({ code: 'CONFLICT', message: 'Your billing records require support review.' });
+          const candidates: import('stripe').default.Subscription[] = [];
+          for (const customer of customers.data) {
+            const subscriptions = await stripeClient.subscriptions.list({ customer: customer.id, status: 'all', limit: 100 });
+            if (subscriptions.has_more) throw new TRPCError({ code: 'CONFLICT', message: 'Your billing records require support review.' });
+            candidates.push(...subscriptions.data.filter(s => s.metadata?.userId === String(ctx.user.id) && s.metadata?.type !== 'fan_club_subscription'));
+          }
+          const ongoing = candidates.filter(s => s.status !== 'canceled' && s.status !== 'incomplete_expired');
+          if (ongoing.length > 1) throw new TRPCError({ code: 'CONFLICT', message: 'Multiple subscriptions need support reconciliation. No plan was replaced.' });
+          subscriptionId = (ongoing[0] || candidates.sort((a, b) => b.created - a.created)[0])?.id;
+          if (!subscriptionId) throw new TRPCError({ code: 'NOT_FOUND', message: 'No platform subscription found for your account.' });
         }
-
-        const customers = await stripe.customers.list({ email: ctx.user.email, limit: 1 });
-        console.log('[SyncFromStripe] Found customers:', customers.data.length);
-        if (customers.data.length === 0) {
-          console.log('[SyncFromStripe] No customer found, returning error');
-          throw new TRPCError({ code: 'NOT_FOUND', message: 'No Stripe customer found for your email. Please try upgrading again.' });
-        }
-
-        const customerId = customers.data[0].id;
-
-        // Get subscriptions
-        const subscriptions = await stripe.subscriptions.list({
-          customer: customerId,
-          status: 'all',
-          limit: 5,
-          expand: ['data.items.data.price'],
-        });
-        console.log('[SyncFromStripe] Found subscriptions:', subscriptions.data.length, subscriptions.data.map(s => ({ status: s.status })));
-
-        if (subscriptions.data.length === 0) {
-          console.log('[SyncFromStripe] No subscriptions found');
-          throw new TRPCError({ code: 'NOT_FOUND', message: 'No subscription found in Stripe for your account.' });
-        }
-
-        const activeSub = subscriptions.data.find(s => s.status === 'active' || s.status === 'trialing')
-          || subscriptions.data[0];
-        console.log('[SyncFromStripe] Using subscription status:', activeSub.status);
-
-        // Determine tier
-        const priceItem = (activeSub as any).items?.data?.[0]?.price;
-        const priceAmount = priceItem?.unit_amount;
-        const lookupKey = priceItem?.lookup_key;
-        const planMetadata = activeSub.metadata?.plan;
-
-        let tier: 'free' | 'starter' | 'professional' | 'enterprise' = 'professional';
-        if (planMetadata === 'ARTIST_ENTERPRISE' ||
-            lookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_ENTERPRISE.lookupKey ||
-            lookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_ENTERPRISE.yearlyLookupKey ||
-            priceAmount === SUBSCRIPTION_PRODUCTS.ARTIST_ENTERPRISE.priceMonthly ||
-            priceAmount === SUBSCRIPTION_PRODUCTS.ARTIST_ENTERPRISE.priceYearly) {
-          tier = 'enterprise';
-        } else if (planMetadata === 'ARTIST_STARTER' ||
-            lookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.lookupKey ||
-            lookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.yearlyLookupKey ||
-            priceAmount === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.priceMonthly ||
-            priceAmount === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.priceYearly) {
-          tier = 'starter';
-        }
-
-        // Map status
-        let status: 'active' | 'cancelled' | 'past_due' | 'trialing' | 'paused' = 'active';
-        if (activeSub.status === 'trialing') status = 'trialing';
-        else if (activeSub.status === 'past_due') status = 'past_due';
-        else if (activeSub.status === 'canceled') status = 'cancelled';
-        else if (activeSub.status === 'paused') status = 'paused';
-
-        const currentPeriodEnd = (activeSub as any).current_period_end
-          ? new Date((activeSub as any).current_period_end * 1000)
-          : undefined;
-
-        console.log('[SyncFromStripe] Upserting subscription:', { tier, status, currentPeriodEnd });
-
-        // Upsert using the top-level db import
-        await db.upsertSubscription({
-          userId: ctx.user.id,
-          stripeCustomerId: customerId,
-          stripeSubscriptionId: activeSub.id,
-          tier,
-          status,
-          currentPeriodEnd,
-        });
-
+        const synchronized = await synchronizeSubscription({ stripeClient, subscriptionId, userId: ctx.user.id, allowReplacement: true });
+        if (!synchronized.synced) throw new TRPCError({ code: 'CONFLICT', message: 'Your existing billing identity must be reconciled before replacing the plan.' });
         console.log('[SyncFromStripe] Sync succeeded');
-        return { success: true, tier, status };
+        return { success: true, tier: synchronized.state.tier, status: synchronized.state.status };
       }),
   }),
   

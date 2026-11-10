@@ -32,9 +32,9 @@ const studentBenefits = [
 ];
 
 const eduPolicy = [
-  ["50% student discount", "When activated for an approved EDU cohort, verified students receive 50% off Starter or Professional. Enterprise remains institution-specific."],
-  ["12-month verification", "Eligibility lasts 12 months and is renewed through a school email, approved school code, or documented manual review."],
-  ["30-day renewal grace", "Students receive reminders before expiration and a 30-day grace period to re-verify. No account or creative work is deleted."],
+  ["50% student discount", "Approved students are eligible for 50% off Starter or Professional at a separate successful checkout. Eligibility approval is not paid activation. Enterprise remains institution-specific."],
+  ["12-month verification", "Eligibility lasts 12 months. All school-email, school-code, and other enrollment evidence requires manual review; entering an email or code does not automatically verify ownership, validity, or enrollment."],
+  ["30-day renewal grace", "A 30-day grace period follows the verification deadline. Submit renewal evidence from your student status page; current eligibility and grace dates remain unchanged during review. Check the page for deadlines rather than relying on email reminders. No account or creative work is deleted."],
   ["Free pilot access", "A school pilot can begin with a defined 90-day cohort and no automatic paid conversion or institutional billing obligation."],
 ];
 
@@ -74,7 +74,7 @@ export default function Edu() {
                   Explore a school pilot <Handshake className="h-4 w-4" />
                 </Link>
               </div>
-              <p className="mt-5 text-sm text-slate-400">Free entry-level access is available. Approved EDU pricing is designed around OlogyWood&apos;s existing plans and activates only after eligibility is verified.</p>
+              <p className="mt-5 text-sm text-slate-400">Free entry-level access is available. The approved 50% Starter/Professional discount requires manual eligibility approval and a separate successful checkout; approval alone does not activate a paid plan.</p>
               <Link href="/edu/verify" className="mt-3 inline-flex text-sm font-semibold text-purple-300 hover:text-purple-200">Already have an account? Submit student verification →</Link>
             </div>
             <div className="relative rounded-3xl border border-white/15 bg-white/[0.06] p-6 shadow-2xl shadow-purple-950/30 backdrop-blur sm:p-8">
@@ -104,7 +104,7 @@ export default function Edu() {
             <div className="max-w-3xl">
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-purple-300">The approved EDU framework</p>
               <h2 className="mt-3 text-3xl font-bold sm:text-4xl">A meaningful benefit with clear guardrails.</h2>
-              <p className="mt-4 leading-7 text-slate-300">The EDU policy is designed to be attractive to students and responsible for schools. Student pricing is not automatic: OlogyWood will activate the discount only for an approved cohort or after eligibility verification.</p>
+              <p className="mt-4 leading-7 text-slate-300">The EDU policy is designed to be attractive to students and responsible for schools. Student pricing is not automatic: documented eligibility must be manually approved, and paid activation requires a separate successful checkout.</p>
             </div>
             <div className="mt-10 grid gap-4 sm:grid-cols-2">
               {eduPolicy.map(([title, copy]) => (

@@ -177,7 +177,7 @@ describe('rider document owner, manager, and entitlement boundary (mocked persis
 
   it.each([
     { subscription: { tier: 'starter', status: 'active' }, label: 'active Starter subscription' },
-    { subscription: { tier: 'professional', status: 'trialing' }, label: 'trialing paid subscription' },
+    { subscription: { tier: 'professional', status: 'trialing', trialEndsAt: new Date(Date.now() + 60_000) }, label: 'trialing paid subscription' },
     { grant: { tier: 'starter', status: 'active', expiresAt: new Date(Date.now() + 60_000) }, label: 'active complimentary grant' },
   ])('permits new writes for $label', async ({ subscription, grant }) => {
     await expect(assertRiderDocumentAccess(accessConnection({ subscription, grant }), 100, 100, { requirePlan: true }))

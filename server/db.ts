@@ -883,11 +883,9 @@ export async function updateBooking(id: number, data: Partial<InsertBooking>): P
   return await getBookingById(id);
 }
 
-export async function updateSubscriptionStatus(userId: number, status: "active" | "cancelled" | "past_due" | "trialing" | "paused"): Promise<void> {
-  const db = await getDb();
-  if (!db) return;
-  
-  await db.update(userSubscriptions).set({ status }).where(eq(userSubscriptions.userId, userId));
+export async function updateSubscriptionStatus(userId: number, status: UserSubscription['status'], expectedStripeSubscriptionId?: string): Promise<void> {
+  const { persistSubscriptionPatch } = await import('./services/subscriptionLifecycleService');
+  await persistSubscriptionPatch({ userId, status }, undefined, expectedStripeSubscriptionId);
 }
 
 export async function getSubscriptionByUserId(userId: number) {
@@ -896,7 +894,9 @@ export async function getSubscriptionByUserId(userId: number) {
   const ownerSubscription = resolveOwnerSubscription(user, subscription);
   if (ownerSubscription?.accessSource === 'platform_owner') return ownerSubscription;
   const { applyComplimentaryGrant } = await import('./services/complimentaryAccessService');
-  return applyComplimentaryGrant(userId, ownerSubscription);
+  const effective = await applyComplimentaryGrant(userId, ownerSubscription);
+  const { projectSubscriptionEntitlements } = await import('../shared/subscriptionEntitlements');
+  return effective ? projectSubscriptionEntitlements(effective) : null;
 }
 /** Raw billing state for Stripe writes; never persist an effective-access projection. */
 export async function getBillingSubscriptionByUserId(userId: number) {
@@ -905,20 +905,68 @@ export async function getBillingSubscriptionByUserId(userId: number) {
   const result = await db.select().from(userSubscriptions).where(eq(userSubscriptions.userId, userId)).limit(1);
   return result[0] || null;
 }
-export async function upsertSubscription(data: any): Promise<void> {
-  const db = await getDb();
-  if (!db) return;
-  const existing = await getBillingSubscriptionByUserId(data.userId);
-  if (existing) {
-    await db.update(userSubscriptions).set(data).where(eq(userSubscriptions.userId, data.userId));
-  } else {
-    await db.insert(userSubscriptions).values(data);
-  }
+/** Compatible userId-plus-partial-data contract; Stripe handlers should use synchronizeSubscription instead. */
+export async function upsertSubscription(data: import('./services/subscriptionLifecycleService').SubscriptionWrite, expectedStripeSubscriptionId?: string): Promise<void> {
+  const { persistSubscriptionPatch } = await import('./services/subscriptionLifecycleService');
+  await persistSubscriptionPatch(data, undefined, expectedStripeSubscriptionId);
 }
+
+/** Exported for fully mocked transaction tests; no schema changes or external calls at construction. */
+export function createSubscriptionRepository(pool: Pick<import('mysql2/promise').Pool, 'getConnection'>): import('./services/subscriptionLifecycleService').SubscriptionRepository {
+  const fields = ['tier', 'stripeCustomerId', 'stripeSubscriptionId', 'stripePriceId', 'status', 'trialEndsAt', 'currentPeriodStart', 'currentPeriodEnd', 'cancelledAt', 'pausedAt', 'pauseExpiresAt', 'updatedAt'] as const;
+  return {
+    async withUserLock(userId, work) {
+      const connection = await pool.getConnection();
+      try {
+        await connection.beginTransaction();
+        // Lock the user, not merely the subscription: first-time insert races have no subscription row to lock.
+        const [userRows] = await connection.execute<import('mysql2/promise').RowDataPacket[]>('SELECT id FROM users WHERE id = ? FOR UPDATE', [userId]);
+        if (!userRows.length) throw new Error('Subscription user was not found');
+        const result = await work({
+          async getCurrent() {
+            const [rows] = await connection.execute<import('mysql2/promise').RowDataPacket[]>('SELECT * FROM user_subscriptions WHERE userId = ? LIMIT 1 FOR UPDATE', [userId]);
+            return (rows[0] as UserSubscription | undefined) ?? null;
+          },
+          async save(data, expectedStripeSubscriptionId, exists) {
+            if (data.userId !== userId) throw new Error('Subscription transaction identity mismatch');
+            const keys = fields.filter(key => data[key] !== undefined);
+            const values = keys.map(key => data[key]);
+            if (exists) {
+              if (!keys.length) return;
+              const [result] = await connection.execute<import('mysql2/promise').ResultSetHeader>(
+                `UPDATE user_subscriptions SET ${keys.map(key => `\`${key}\` = ?`).join(', ')} WHERE userId = ? AND stripeSubscriptionId <=> ?`,
+                [...values, userId, expectedStripeSubscriptionId],
+              );
+              if (result.affectedRows !== 1) throw new Error('Subscription identity changed before persistence');
+            } else {
+              await connection.execute(`INSERT INTO user_subscriptions (userId${keys.length ? ', ' + keys.map(key => `\`${key}\``).join(', ') : ''}) VALUES (${[userId, ...values].map(() => '?').join(', ')})`, [userId, ...values]);
+            }
+          },
+        });
+        await connection.commit();
+        return result;
+      } catch (error) {
+        await connection.rollback();
+        throw error;
+      } finally {
+        connection.release();
+      }
+    },
+  };
+}
+
+export const subscriptionRepository: import('./services/subscriptionLifecycleService').SubscriptionRepository = {
+  async withUserLock(userId, work) {
+    await getDb();
+    const pool = getPool();
+    if (!pool) throw new Error('Database not available for subscription persistence');
+    return createSubscriptionRepository(pool).withUserLock(userId, work);
+  },
+};
 
 export async function updateBookingPaymentStatus(
   bookingId: number, 
-  paymentStatus: string, 
+  paymentStatus: string,
   stripeSessionId?: string,
   paymentType?: string
 ): Promise<void> {
@@ -1269,6 +1317,11 @@ export async function updateEmailPreferences(userId: number, data: Partial<Inser
         keys.map(key => values[key]),
       );
     }
+    if (changes.fanUpdates === false || changes.frequency === 'never' || changes.unsubscribedAt != null) {
+      const { revokeAllFanEmailConsentsForUser } = await import('./services/fanEmailConsentService');
+      // Includes pending FALSE tombstones, not just currently opted-in rows.
+      await revokeAllFanEmailConsentsForUser(userId, connection);
+    }
   });
   
   return await getEmailPreferences(userId);
@@ -1297,6 +1350,8 @@ export async function unsubscribeAllEmailPreferencesByToken(token: string): Prom
         WHERE userId = ?`,
       [preference[0].userId],
     );
+    const { revokeAllFanEmailConsentsForUser } = await import('./services/fanEmailConsentService');
+    await revokeAllFanEmailConsentsForUser(preference[0].userId, connection);
     return true;
   });
 }

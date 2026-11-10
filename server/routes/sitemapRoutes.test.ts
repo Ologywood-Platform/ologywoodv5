@@ -1,8 +1,10 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach, vi } from 'vitest';
 import express from 'express';
 import request from 'supertest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+const mocks = vi.hoisted(() => ({ getDb: vi.fn() }));
+vi.mock('../db', () => ({ getDb: mocks.getDb }));
 import sitemapRoutes, {
   PUBLIC_STATIC_PAGES,
   artistSitemapPath,
@@ -16,6 +18,7 @@ const source = readFileSync(resolve(__dirname, 'sitemapRoutes.ts'), 'utf8');
 describe('Sitemap and Robots.txt Routes', () => {
   let app: express.Application;
 
+  beforeEach(() => mocks.getDb.mockResolvedValue(null));
   beforeAll(() => {
     app = express();
     app.use('/', sitemapRoutes);
@@ -94,10 +97,21 @@ describe('Sitemap and Robots.txt Routes', () => {
       expect(response.text).toContain('<changefreq>');
     });
 
-    it('should include lastmod timestamp', async () => {
+    it('includes the true lastmod timestamp for a known public profile', async () => {
+      mocks.getDb.mockResolvedValue({ select: (selection: any) => {
+        const rows = selection?.artistName ? [{ userId: 42, artistName: 'Fixture Creator', updatedAt: new Date('2026-11-01T12:00:00Z') }] : [];
+        const chain: any = { from: () => chain, where: () => chain, orderBy: () => chain, limit: () => chain,
+          then: (ok: any, fail: any) => Promise.resolve(rows).then(ok, fail) };
+        return chain;
+      } });
       const response = await request(app).get('/sitemap.xml');
-      expect(response.text).toContain('<lastmod>');
-      expect(response.text).toContain('</lastmod>');
+      expect(response.text).toContain('<lastmod>2026-11-01T12:00:00.000Z</lastmod>');
+    });
+
+    it('does not fabricate modification timestamps when only the static fallback is available', async () => {
+      const response = await request(app).get('/sitemap.xml');
+      expect(response.status).toBe(200);
+      expect(response.text).not.toContain('<lastmod>');
     });
 
     it('should set proper cache headers for sitemap', async () => {

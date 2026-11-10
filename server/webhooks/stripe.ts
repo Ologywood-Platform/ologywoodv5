@@ -17,7 +17,10 @@ import {
 } from '../services/ologyLiveCheckoutService';
 import { syncFanClubMembershipFromSubscription } from '../services/fanClubMembershipService';
 import { escapeFanEmailHtml, safeFanEmailHref, sanitizeFanEmailSubject } from '../services/fanEmailFormatting';
-import { capturePurchaseFanEmailOptIn } from '../services/purchaseFanEmailService';
+import { captureCheckoutFanEmailBestEffort, getRealCheckoutSessionId, hasVerifiedCheckoutPayment } from '../services/purchaseFulfillmentSafety';
+import { commitReleasePurchase, validatePaidReleaseCheckout } from '../services/releasePurchaseFulfillmentService';
+import { trustedCheckoutOrigin } from '../services/trustedOrigin';
+import { synchronizeSubscription } from '../services/subscriptionLifecycleService';
 
 export async function handleStripeWebhook(req: Request, res: Response) {
   const sig = req.headers['stripe-signature'];
@@ -55,7 +58,7 @@ export async function handleStripeWebhook(req: Request, res: Response) {
         const session = event.data.object as Stripe.Checkout.Session;
         if (session.metadata?.type === 'ology_live_booking') {
           await handleOlogyLiveCheckout(session);
-        } else if (session.metadata?.type === 'fan_club_subscription') {
+        } else {
           await handleCheckoutSessionCompleted(session, getStripeClientForWebhookMode(mode));
         }
         break;
@@ -73,19 +76,19 @@ export async function handleStripeWebhook(req: Request, res: Response) {
       case 'customer.subscription.created':
       case 'customer.subscription.updated': {
         const subscription = event.data.object as Stripe.Subscription;
-        await handleSubscriptionUpdate(subscription);
+        await handleSubscriptionUpdate(subscription, getStripeClientForWebhookMode(mode));
         break;
       }
 
       case 'customer.subscription.deleted': {
         const subscription = event.data.object as Stripe.Subscription;
-        await handleSubscriptionDeleted(subscription);
+        await handleSubscriptionDeleted(subscription, getStripeClientForWebhookMode(mode));
         break;
       }
 
       case 'invoice.paid': {
         const invoice = event.data.object as Stripe.Invoice;
-        await handleInvoicePaid(invoice);
+        await handleInvoicePaid(invoice, getStripeClientForWebhookMode(mode));
         break;
       }
 
@@ -98,7 +101,7 @@ export async function handleStripeWebhook(req: Request, res: Response) {
       case 'payment_intent.succeeded': {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
         if (paymentIntent.metadata?.type !== 'ology_live_booking') {
-          await handlePaymentIntentSucceeded(paymentIntent);
+          await handlePaymentIntentSucceeded(paymentIntent, getStripeClientForWebhookMode(mode));
         }
         break;
       }
@@ -156,6 +159,9 @@ export function createMerchCheckoutSessionFromPaymentIntent(
     metadata: paymentIntent.metadata,
     payment_intent: paymentIntent.id,
     amount_total: paymentIntent.amount_received || paymentIntent.amount,
+    payment_status: 'paid',
+    mode: 'payment',
+    currency: paymentIntent.currency,
   } as Stripe.Checkout.Session;
 }
 
@@ -171,6 +177,9 @@ export function createTicketCheckoutSessionFromPaymentIntent(
     metadata: paymentIntent.metadata,
     payment_intent: paymentIntent.id,
     amount_total: paymentIntent.amount_received || paymentIntent.amount,
+    payment_status: 'paid',
+    mode: 'payment',
+    currency: paymentIntent.currency,
   } as Stripe.Checkout.Session;
 }
 
@@ -200,14 +209,18 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session, 
   const userId = session.metadata?.userId;
   const bookingId = session.metadata?.bookingId;
   const paymentType = session.metadata?.paymentType; // 'deposit', 'final_payment', or undefined for full payment
-  const customerId = session.customer as string;
-  const subscriptionId = session.subscription as string;
+  const customerId = typeof session.customer === 'string' ? session.customer : session.customer?.id;
+  const subscriptionId = typeof session.subscription === 'string' ? session.subscription : session.subscription?.id;
   const platformFeeAmount = session.metadata?.platformFeeAmount ? parseInt(session.metadata.platformFeeAmount) : 0;
 
   // Release purchases and ticket purchases use different metadata patterns
   const isReleasePurchase = !!session.metadata?.releaseId;
   const isTicketPurchase = session.metadata?.type === 'ticket_purchase';
   const isMerchPurchase = session.metadata?.type === 'merch_purchase';
+  if ((bookingId || isReleasePurchase || isTicketPurchase || isMerchPurchase) && !hasVerifiedCheckoutPayment(session)) {
+    console.log(`[Stripe Webhook] Checkout ${session.id} awaits verified payment`);
+    return;
+  }
   if (!userId && !isReleasePurchase && !isTicketPurchase && !isMerchPurchase) {
     console.error('[Stripe Webhook] No userId in session metadata');
     return;
@@ -283,6 +296,14 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session, 
       // Check idempotency — don't process the same session twice
       const existingPurchase = await db.getPurchaseBySessionId(session.id);
       if (existingPurchase) {
+        await captureCheckoutFanEmailBestEffort(session, {
+          buyerUserId: existingPurchase.buyerUserId,
+          purchaseId: `release:${session.id}`,
+          resolveCreatorUserId: async () => {
+            const source = await db.getReleaseById(existingPurchase.releaseId);
+            return source ? (await db.getArtistProfileById(source.artistId))?.userId ?? null : null;
+          },
+        });
         console.log(`[Stripe Webhook] Purchase already recorded for session ${session.id}, skipping`);
         return;
       }
@@ -293,45 +314,59 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session, 
         return;
       }
 
+      if (!validatePaidReleaseCheckout(session, release)) {
+        console.error('[Stripe Webhook] Release checkout identity or amount invalid');
+        return;
+      }
       const amountPaid = session.amount_total || release.priceInCents;
       const platformFeeCents = Math.max(1, Math.round(amountPaid * 0.01)); // 1% fee, minimum 1 cent
 
-      // Create purchase record
-      await db.createReleasePurchase({
+      // Commit the receipt and counters under the same release row lock.
+      const committed = await commitReleasePurchase({
         releaseId,
         buyerEmail: session.customer_details?.email || session.metadata?.buyerEmail || 'unknown',
         buyerName: session.customer_details?.name || session.metadata?.buyerName || null,
         buyerUserId: session.metadata?.buyerUserId ? parseInt(session.metadata.buyerUserId) : null,
         stripeCheckoutSessionId: session.id,
+        stripePaymentIntentId: typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id,
         amountPaidCents: amountPaid,
         platformFeeCents,
         artistNetCents: amountPaid - platformFeeCents,
       });
-
-      // Increment sales counters on the release
-      await db.incrementReleaseSales(releaseId, amountPaid);
+      if (!committed.created) {
+        await captureCheckoutFanEmailBestEffort(session, {
+          buyerUserId: committed.purchase.buyerUserId,
+          purchaseId: `release:${session.id}`,
+          resolveCreatorUserId: async () => (await db.getArtistProfileById(release.artistId))?.userId ?? null,
+        });
+        return;
+      }
 
       console.log(`[Stripe Webhook] Release purchase recorded: release=${releaseId}, amount=$${(amountPaid / 100).toFixed(2)}, fee=$${(platformFeeCents / 100).toFixed(2)}`);
 
-      // Send purchase confirmation email to buyer and a separate sale notice to the artist.
-      const artistProfile = await db.getArtistProfileById(release.artistId);
-      await capturePurchaseFanEmailOptIn({
-        creatorUserId: artistProfile?.userId ?? null,
+      // Optional marketing lookups never affect the durable paid result.
+      await captureCheckoutFanEmailBestEffort(session, {
         buyerUserId: session.metadata?.buyerUserId ? parseInt(session.metadata.buyerUserId, 10) : null,
-        optIn: session.metadata?.fanEmailOptIn === 'true',
+        purchaseId: `release:${session.id}`,
+        resolveCreatorUserId: async () => (await db.getArtistProfileById(release.artistId))?.userId ?? null,
       });
+      let artistProfile: Awaited<ReturnType<typeof db.getArtistProfileById>> = null;
+      // Profile enrichment is also optional for the buyer's receipt.
+      try { artistProfile = await db.getArtistProfileById(release.artistId); } catch {}
       try {
         const buyerEmail = session.customer_details?.email || session.metadata?.buyerEmail;
-        if (buyerEmail && artistProfile) {
-          const baseUrl = process.env.BASE_URL || 'https://www.ologywood.com';
+        if (buyerEmail) {
+          const baseUrl = trustedCheckoutOrigin(process.env.BASE_URL, undefined);
           const unsubscribeUrl = `${baseUrl}/unsubscribe?email=${encodeURIComponent(buyerEmail)}&type=purchase`;
           const safeTitle = escapeFanEmailHtml(release.title);
-          const safeArtistName = escapeFanEmailHtml(artistProfile.artistName);
+          const artistName = artistProfile?.artistName || 'the creator';
+          const safeArtistName = escapeFanEmailHtml(artistName);
           const safeBaseUrl = safeFanEmailHref(baseUrl);
+          const deliveryUrl = safeFanEmailHref(`${baseUrl}/purchase-success?session_id=${encodeURIComponent(session.id)}`);
           const safeUnsubscribeUrl = safeFanEmailHref(unsubscribeUrl);
           await email.sendEmail({
             to: buyerEmail,
-            subject: sanitizeFanEmailSubject(`Purchase Confirmed — "${release.title}" by ${artistProfile.artistName}`),
+            subject: sanitizeFanEmailSubject(`Purchase Confirmed — "${release.title}" by ${artistName}`),
             html: `<div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
               <div style="background: linear-gradient(135deg, #6D28D9 0%, #00D9FF 100%); padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0;">
                 ${getEmailLogoImage({ size: 88, marginBottom: 12 })}
@@ -350,7 +385,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session, 
                 </div>
                 
                 <div style="text-align: center; margin: 30px 0;">
-                  <a href="${safeBaseUrl}/my-purchases" style="display: inline-block; background: linear-gradient(135deg, #6D28D9 0%, #7c3aed 100%); color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Download Your Track</a>
+                  <a href="${deliveryUrl}" style="display: inline-block; background: linear-gradient(135deg, #6D28D9 0%, #7c3aed 100%); color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Download Your Track</a>
                 </div>
                 
                 <p style="font-size: 14px; color: #6b7280; margin: 20px 0 0 0;">You can also re-download anytime from <a href="${safeBaseUrl}/my-purchases" style="color: #6D28D9; text-decoration: none;">My Purchases</a> (click "Purchases" in the navigation bar).</p>
@@ -377,7 +412,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session, 
         const artistEmail = artistUser?.email;
         const buyerEmail = session.customer_details?.email || session.metadata?.buyerEmail;
         if (artistEmail && artistProfile && artistEmail.toLowerCase() !== buyerEmail?.toLowerCase()) {
-          const baseUrl = process.env.BASE_URL || 'https://www.ologywood.com';
+          const baseUrl = trustedCheckoutOrigin(process.env.BASE_URL, undefined);
           const safeTitle = escapeFanEmailHtml(release.title);
           const safeArtistName = escapeFanEmailHtml(artistProfile.artistName);
           await email.sendEmail({
@@ -402,6 +437,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session, 
       }
     } catch (error) {
       console.error('[Stripe Webhook] Error processing release purchase:', error);
+      throw error;
     }
   } else if (isTicketPurchase) {
     // Handle ticket purchase checkout
@@ -409,30 +445,28 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session, 
   } else if (isMerchPurchase) {
     await handleMerchPurchaseCompleted(session);
   } else if (subscriptionId && userId) {
-    // Handle subscription checkout
-    // Determine tier from session metadata
-    const { SUBSCRIPTION_PRODUCTS } = await import('../../shared/products');
-    const planMetadata = session.metadata?.plan;
-    let tier: 'free' | 'starter' | 'professional' | 'enterprise' = 'professional';
-    if (planMetadata === 'ARTIST_STARTER') {
-      tier = 'starter';
-    } else if (planMetadata === 'ARTIST_ENTERPRISE') {
-      tier = 'enterprise';
-    }
-    
-    // Update or create subscription record with tier
-    await db.upsertSubscription({
+    if (!stripeClient) throw new Error('Subscription verification client unavailable');
+    const synchronized = await synchronizeSubscription({
+      stripeClient,
+      subscriptionId,
       userId: parseInt(userId),
-      stripeCustomerId: customerId,
-      stripeSubscriptionId: subscriptionId,
-      tier,
-      status: 'trialing', // Will be updated by subscription.created/updated event
+      expectedCustomerId: customerId,
+      allowReplacement: true,
     });
-    console.log(`[Stripe Webhook] Subscription checkout completed: user=${userId}, tier=${tier}, subscriptionId=${subscriptionId}`);
+    if (!synchronized.synced) {
+      console.warn('[Stripe Webhook] Checkout cannot replace another current subscription');
+      return;
+    }
+    console.log(`[Stripe Webhook] Subscription checkout verified: user=${userId}, status=${synchronized.state.status}, subscriptionId=${subscriptionId}`);
+    if (session.metadata?.eduVerificationId) {
+      const { recordEduSubscriptionActivation, defaultEduBillingDependencies } = await import('../services/eduBillingService');
+      const eduDeps = await defaultEduBillingDependencies(session.livemode ? 'live' : 'test');
+      await recordEduSubscriptionActivation({ userId: parseInt(userId), checkoutSessionId: session.id, subscriptionId }, eduDeps);
+    }
   }
 }
 
-async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
+async function handleSubscriptionUpdate(subscription: Stripe.Subscription, stripeClient: Stripe) {
   if (subscription.metadata?.type === 'fan_club_subscription') {
     const result = await syncFanClubMembershipFromSubscription(subscription);
     if (!result.synced) {
@@ -440,7 +474,6 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
     }
     return;
   }
-  const customerId = subscription.customer as string;
   const userId = subscription.metadata?.userId;
 
   if (!userId) {
@@ -448,49 +481,14 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
     return;
   }
 
-  console.log(`[Stripe Webhook] Subscription ${subscription.status} for user ${userId}`);
-
-  const status = mapStripeStatus(subscription.status);
-  const subData = subscription as any;
-  const currentPeriodEnd = subData.current_period_end ? new Date(subData.current_period_end * 1000) : undefined;
-
-  // Determine tier from plan metadata or price lookup key
-  const { SUBSCRIPTION_PRODUCTS } = await import('../../shared/products');
-  const planMetadata = subscription.metadata?.plan;
-  const lookupKey = subData.items?.data?.[0]?.price?.lookup_key;
-  const priceAmount = subData.items?.data?.[0]?.price?.unit_amount;
-  
-  let tier: 'free' | 'starter' | 'professional' | 'enterprise' = 'professional'; // default
-  if (planMetadata === 'ARTIST_STARTER' || 
-      lookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.lookupKey ||
-      lookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.yearlyLookupKey ||
-      priceAmount === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.priceMonthly ||
-      priceAmount === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.priceYearly) {
-    tier = 'starter';
-  } else if (planMetadata === 'ARTIST_ENTERPRISE' || 
-             lookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_ENTERPRISE.lookupKey ||
-             lookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_ENTERPRISE.yearlyLookupKey ||
-             priceAmount === SUBSCRIPTION_PRODUCTS.ARTIST_ENTERPRISE.priceMonthly ||
-             priceAmount === SUBSCRIPTION_PRODUCTS.ARTIST_ENTERPRISE.priceYearly) {
-    tier = 'enterprise';
-  } else if (planMetadata === 'ARTIST_PROFESSIONAL' || 
-             lookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_PROFESSIONAL.lookupKey ||
-             lookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_PROFESSIONAL.yearlyLookupKey ||
-             priceAmount === SUBSCRIPTION_PRODUCTS.ARTIST_PROFESSIONAL.priceMonthly ||
-             priceAmount === SUBSCRIPTION_PRODUCTS.ARTIST_PROFESSIONAL.priceYearly) {
-    tier = 'professional';
-  }
-  
-  console.log(`[Stripe Webhook] Resolved tier: ${tier} (metadata: ${planMetadata}, lookupKey: ${lookupKey}, price: ${priceAmount})`);
-
-  await db.upsertSubscription({
+  const synchronized = await synchronizeSubscription({
+    stripeClient,
+    subscriptionId: subscription.id,
     userId: parseInt(userId),
-    stripeCustomerId: customerId,
-    stripeSubscriptionId: subscription.id,
-    status,
-    tier,
-    currentPeriodEnd,
   });
+  if (!synchronized.synced) return;
+  subscription = synchronized.subscription;
+  console.log(`[Stripe Webhook] Current subscription ${subscription.status} for user ${userId}`);
   
   // Email is non-critical after subscription state has been persisted. A
   // provider outage must not make Stripe retry the financial event.
@@ -552,7 +550,7 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
   }
 }
 
-async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
+async function handleSubscriptionDeleted(subscription: Stripe.Subscription, stripeClient: Stripe) {
   if (subscription.metadata?.type === 'fan_club_subscription') {
     const result = await syncFanClubMembershipFromSubscription(subscription);
     if (!result.synced) {
@@ -569,7 +567,10 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 
   console.log(`[Stripe Webhook] Subscription deleted for user ${userId}`);
 
-  await db.updateSubscriptionStatus(parseInt(userId), 'cancelled');
+  const synchronized = await synchronizeSubscription({ stripeClient, subscriptionId: subscription.id, userId: parseInt(userId) });
+  if (!synchronized.synced) return;
+  subscription = synchronized.subscription;
+  if (synchronized.state.status !== 'cancelled') return;
   
   // Email is non-critical after cancellation state has been persisted.
   try {
@@ -605,20 +606,30 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   }
 }
 
-async function handleInvoicePaid(invoice: Stripe.Invoice) {
-  const invoiceData = invoice as any;
-  const subscriptionId = invoiceData.subscription as string | undefined;
+function invoiceSubscriptionId(invoice: Stripe.Invoice): string | undefined {
+  const data = invoice as Stripe.Invoice & { subscription?: string | Stripe.Subscription | null };
+  const reference = data.parent?.subscription_details?.subscription || data.subscription;
+  return typeof reference === 'string' ? reference : reference?.id;
+}
+
+async function handleInvoicePaid(invoice: Stripe.Invoice, stripeClient: Stripe) {
+  const subscriptionId = invoiceSubscriptionId(invoice);
   
   if (subscriptionId) {
     console.log(`[Stripe Webhook] Invoice paid for subscription ${subscriptionId}`);
-    // Subscription status will be updated by subscription.updated event
+    const subscription = await stripeClient.subscriptions.retrieve(subscriptionId);
+    if (subscription.metadata?.type === 'fan_club_subscription') {
+      await syncFanClubMembershipFromSubscription(subscription);
+      return;
+    }
+    if (subscription.metadata?.userId) {
+      await synchronizeSubscription({ stripeClient, subscriptionId, userId: Number(subscription.metadata.userId) });
+    }
   }
 }
 
 async function handleInvoicePaymentFailed(invoice: Stripe.Invoice, stripeClient: Stripe) {
-  const invoiceData = invoice as any;
-  const subscriptionId = invoiceData.subscription as string | undefined;
-  const customerId = invoice.customer as string;
+  const subscriptionId = invoiceSubscriptionId(invoice);
 
   if (subscriptionId) {
     console.log(`[Stripe Webhook] Payment failed for subscription ${subscriptionId}`);
@@ -637,19 +648,22 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice, stripeClient:
     if (userId) {
       // Stripe retries and event ordering are not guaranteed. Persist the
       // subscription's current state, not the stale invoice event's state.
-      const currentStatus = subscription.status === 'active'
-        || subscription.status === 'trialing'
-        || subscription.status === 'past_due'
-        || subscription.status === 'paused'
-        ? subscription.status
-        : 'cancelled';
-      await db.updateSubscriptionStatus(parseInt(userId), currentStatus);
+      await synchronizeSubscription({ stripeClient, subscriptionId: subscription.id, userId: parseInt(userId) });
     }
   }
 }
 
-async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent) {
+async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent, stripeClient: Stripe) {
+  if (paymentIntent.status !== 'succeeded') return;
   if(paymentIntent.metadata?.type==='content_release_purchase'){await fulfillContentReleasePaymentIntent(paymentIntent);return;}
+  if (paymentIntent.metadata?.type === 'release_purchase') {
+    // Never replace the guest capability with a synthetic PaymentIntent marker.
+    const sessions = await stripeClient.checkout.sessions.list({ payment_intent: paymentIntent.id, limit: 1 });
+    const session = sessions.data[0];
+    if (!session) throw new Error('Paid music checkout is not available yet');
+    await handleCheckoutSessionCompleted(session, stripeClient);
+    return;
+  }
   // Handle tips separately
   if (paymentIntent.metadata?.type === 'tip') {
     await handleTipSucceeded(paymentIntent);
@@ -666,8 +680,11 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
     return;
   }
 
-  const ticketCheckoutSession = createTicketCheckoutSessionFromPaymentIntent(paymentIntent);
+  let ticketCheckoutSession = createTicketCheckoutSessionFromPaymentIntent(paymentIntent);
   if (ticketCheckoutSession) {
+    const sessions = await stripeClient.checkout.sessions.list({ payment_intent: paymentIntent.id, limit: 1 });
+    if (!sessions.data[0]) throw new Error('Paid ticket checkout is not available yet');
+    ticketCheckoutSession = sessions.data[0];
     await handleTicketPurchaseCompleted(ticketCheckoutSession);
     return;
   }
@@ -980,25 +997,6 @@ async function handlePayoutFailed(payout: Stripe.Payout) {
   }
 }
 
-function mapStripeStatus(stripeStatus: Stripe.Subscription.Status): 'active' | 'inactive' | 'trialing' | 'canceled' | 'past_due' {
-  switch (stripeStatus) {
-    case 'active':
-      return 'active';
-    case 'trialing':
-      return 'trialing';
-    case 'past_due':
-      return 'past_due';
-    case 'canceled':
-    case 'unpaid':
-    case 'incomplete_expired':
-      return 'canceled';
-    case 'incomplete':
-    case 'paused':
-    default:
-      return 'inactive';
-  }
-}
-
 // ==================== NATIVE MERCH PURCHASE WEBHOOK HANDLER ====================
 
 async function handleMerchPurchaseCompleted(session: Stripe.Checkout.Session) {
@@ -1022,6 +1020,11 @@ async function handleMerchPurchaseCompleted(session: Stripe.Checkout.Session) {
     return;
   }
   if (!['pending', 'failed'].includes(order.paymentStatus)) {
+    if (order.paymentStatus === 'paid') await captureCheckoutFanEmailBestEffort(session, {
+      buyerUserId: order.buyerUserId,
+      purchaseId: `merch:${order.id}`,
+      resolveCreatorUserId: async () => order.sellerType === 'artist' ? order.sellerUserId : null,
+    });
     console.log(`[Stripe Webhook] Merch order ${order.orderNumber} is ${order.paymentStatus}, skipping success replay`);
     return;
   }
@@ -1102,10 +1105,10 @@ async function handleMerchPurchaseCompleted(session: Stripe.Checkout.Session) {
 
   console.log(`[Stripe Webhook] Merch order paid: ${order.orderNumber}`);
 
-  await capturePurchaseFanEmailOptIn({
-    creatorUserId: order.sellerType === 'artist' ? order.sellerUserId : null,
+  await captureCheckoutFanEmailBestEffort(session, {
     buyerUserId: order.buyerUserId,
-    optIn: session.metadata?.fanEmailOptIn === 'true',
+    purchaseId: `merch:${order.id}`,
+    resolveCreatorUserId: async () => order.sellerType === 'artist' ? order.sellerUserId : null,
   });
 
   try {
@@ -1235,26 +1238,43 @@ async function handleTicketPurchaseCompleted(session: Stripe.Checkout.Session) {
     });
 
     if (!processed) {
+      if (session.metadata?.fanEmailOptIn === 'true') {
+        const [paidOrder] = await database.select().from(ticketOrders).where(eq(ticketOrders.id, parseInt(orderId))).limit(1);
+        if (paidOrder?.status === 'completed') await captureCheckoutFanEmailBestEffort(session, {
+          buyerUserId: paidOrder.buyerUserId,
+          purchaseId: `ticket:${orderId}`,
+          resolveCreatorUserId: async () => {
+            const [source] = await database.select({ artistId: events.artistId }).from(events).where(eq(events.id, paidOrder.eventId)).limit(1);
+            const [profile] = source ? await database.select({ userId: artistProfiles.userId }).from(artistProfiles).where(eq(artistProfiles.id, source.artistId)).limit(1) : [];
+            return profile?.userId ?? null;
+          },
+        });
+      }
       console.log(`[Stripe Webhook] Ticket order ${orderNumber || orderId} already processed, skipping`);
       return;
     }
 
     console.log(`[Stripe Webhook] Ticket purchase completed: order ${orderNumber}, ${items.reduce((sum: number, i: any) => sum + i.quantity, 0)} tickets created`);
-    const [event] = await database.select({ artistId: events.artistId }).from(events).where(eq(events.id, parseInt(eventId))).limit(1);
-    const [artistProfile] = event
-      ? await database.select({ userId: artistProfiles.userId }).from(artistProfiles).where(eq(artistProfiles.id, event.artistId)).limit(1)
-      : [];
-    await capturePurchaseFanEmailOptIn({
-      creatorUserId: artistProfile?.userId ?? null,
+    await captureCheckoutFanEmailBestEffort(session, {
       buyerUserId: session.metadata?.buyerUserId ? parseInt(session.metadata.buyerUserId, 10) : null,
-      optIn: session.metadata?.fanEmailOptIn === 'true',
+      purchaseId: `ticket:${orderId}`,
+      resolveCreatorUserId: async () => {
+        const [event] = await database.select({ artistId: events.artistId }).from(events).where(eq(events.id, parseInt(eventId))).limit(1);
+        const [artistProfile] = event
+          ? await database.select({ userId: artistProfiles.userId }).from(artistProfiles).where(eq(artistProfiles.id, event.artistId)).limit(1)
+          : [];
+        return artistProfile?.userId ?? null;
+      },
     });
 
     // Send ticket confirmation email
     try {
+      const [paidOrder] = await database.select().from(ticketOrders).where(eq(ticketOrders.id, parseInt(orderId))).limit(1);
+      const checkoutSessionId = getRealCheckoutSessionId(paidOrder?.stripeCheckoutSessionId, session.id);
+      if (!checkoutSessionId) throw new Error('Ticket receipt is waiting for the real checkout capability');
       await sendTicketConfirmationEmail({
         orderNumber: orderNumber || '',
-        checkoutSessionId: session.id,
+        checkoutSessionId,
         buyerEmail: session.customer_details?.email || session.metadata?.customer_email || '',
         buyerName: session.metadata?.customer_name || session.customer_details?.name || 'Guest',
         eventId: parseInt(eventId),

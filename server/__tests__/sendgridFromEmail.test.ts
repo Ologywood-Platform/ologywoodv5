@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 
-describe('SendGrid From Email Configuration', () => {
+// Explicit operator-run configuration gate; unit tests must not need live keys.
+describe.runIf(process.env.RUN_EMAIL_CONFIGURATION_CHECK === '1')('SendGrid From Email Configuration', () => {
   it('should have SENDGRID_FROM_EMAIL set to support@ologywood.com', () => {
     const fromEmail = process.env.SENDGRID_FROM_EMAIL;
     expect(fromEmail).toBeDefined();

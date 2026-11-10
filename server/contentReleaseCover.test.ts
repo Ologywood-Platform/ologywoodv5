@@ -25,7 +25,7 @@ function database(rows:any[][] = []) {
   const update=vi.fn(()=>({set}));
   return {execute,select,insert,values,update,set};
 }
-beforeEach(() => {vi.clearAllMocks();resetContentReleaseSchemaForTests();contentReleaseCoverLimiter.reset('7');mocks.subscription.mockResolvedValue({tier:'professional'});mocks.put.mockResolvedValue({key:'test',url:'https://media.example.test/cover.webp'});});
+beforeEach(() => {vi.clearAllMocks();resetContentReleaseSchemaForTests();contentReleaseCoverLimiter.reset('7');mocks.subscription.mockResolvedValue({tier:'professional',status:'active'});mocks.put.mockResolvedValue({key:'test',url:'https://media.example.test/cover.webp'});});
 
 describe('Content Release cover bytes', () => {
   it.each(['png','jpeg','webp'] as const)('decodes and normalizes actual %s bytes', async format => {
@@ -96,7 +96,7 @@ describe('Content Release owner-protected cover upload', () => {
   it('preserves create tier limits and allows owner cover edits without resetting an existing release', async () => {
     mocks.subscription.mockResolvedValue({tier:'free'});mocks.getDb.mockResolvedValue(database([[{id:11}]]));
     await expect(releasesRouter.createCaller(ctx).uploadCoverArt(baseInput())).rejects.toMatchObject({code:'FORBIDDEN'});
-    mocks.subscription.mockResolvedValue({tier:'starter'});mocks.getDb.mockResolvedValue(database([[{id:11}],[{id:1},{id:2}]]));
+    mocks.subscription.mockResolvedValue({tier:'starter',status:'active'});mocks.getDb.mockResolvedValue(database([[{id:11}],[{id:1},{id:2}]]));
     await expect(releasesRouter.createCaller(ctx).uploadCoverArt(baseInput())).rejects.toMatchObject({code:'FORBIDDEN'});
     const db=database([[{id:11}],[{id:101,userId:7}]]);mocks.getDb.mockResolvedValue(db);
     await expect(releasesRouter.createCaller(ctx).uploadCoverArt({...baseInput(),releaseId:101})).resolves.toMatchObject({url:expect.any(String)});

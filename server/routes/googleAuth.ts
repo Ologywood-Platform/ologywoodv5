@@ -174,13 +174,14 @@ router.get('/google/callback', async (req: Request, res: Response) => {
       if (existingEmailUser.length > 0) {
         // Link Google to existing email account
         user = existingEmailUser[0];
-        await db.update(users).set({
+        const { updateUserEmailIdentity } = await import('../services/userEmailIdentityService');
+        await updateUserEmailIdentity(user.id, {
           oauthProvider: 'google',
           oauthProviderId: googleUser.id,
           avatarUrl: avatarUrl || user.avatarUrl,
           emailVerified: true, // Google verified the email
           lastSignedIn: new Date(),
-        }).where(eq(users.id, user.id));
+        });
         console.log('[Google OAuth] Linked Google to existing account');
       } else {
         // Create brand new user

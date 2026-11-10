@@ -2919,6 +2919,28 @@ export const eduVerifications = mysqlTable('edu_verifications', {
   reviewedAt: timestamp('reviewedAt'),
   reviewedByUserId: int('reviewedByUserId'),
   rejectionReason: varchar('rejectionReason', { length: 500 }),
+  revision: int('revision').default(0).notNull(),
+  evidenceAcknowledged: boolean('evidenceAcknowledged').default(false).notNull(),
+  // Renewal evidence must never overwrite the currently approved evidence or dates.
+  renewalVerificationMethod: mysqlEnum('renewalVerificationMethod', ['school_email', 'school_code', 'manual']),
+  renewalInstitution: varchar('renewalInstitution', { length: 200 }),
+  renewalProgram: varchar('renewalProgram', { length: 200 }),
+  renewalSchoolEmail: varchar('renewalSchoolEmail', { length: 320 }),
+  renewalSchoolCodeLast4: varchar('renewalSchoolCodeLast4', { length: 4 }),
+  renewalVerificationNote: varchar('renewalVerificationNote', { length: 1000 }),
+  renewalEvidenceAcknowledged: boolean('renewalEvidenceAcknowledged'),
+  renewalSubmittedAt: timestamp('renewalSubmittedAt'),
+  renewalRejectionReason: varchar('renewalRejectionReason', { length: 500 }),
+  // Billing integration records provenance/reconciliation, not paid entitlement.
+  checkoutSessionId: varchar('checkoutSessionId', { length: 255 }),
+  stripeCouponId: varchar('stripeCouponId', { length: 255 }),
+  stripeSubscriptionId: varchar('stripeSubscriptionId', { length: 255 }),
+  billingMode: mysqlEnum('billingMode', ['test', 'live']),
+  billingVerificationRevision: int('billingVerificationRevision'),
+  renewalNoticeSentAt: timestamp('renewalNoticeSentAt'),
+  expiryNoticeSentAt: timestamp('expiryNoticeSentAt'),
+  discountEndsAt: timestamp('discountEndsAt'),
+  billingReconcileAfter: timestamp('billingReconcileAfter'),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().onUpdateNow().notNull(),
 }, (table) => ({
@@ -2935,7 +2957,37 @@ export const eduVerificationEvents = mysqlTable('edu_verification_events', {
   actorUserId: int('actorUserId').notNull(),
   action: mysqlEnum('action', ['submitted', 'approved', 'rejected', 'revoked']).notNull(),
   note: varchar('note', { length: 1000 }),
+  revision: int('revision').default(0).notNull(),
+  reviewDecision: mysqlEnum('reviewDecision', ['approve', 'reject', 'revoke', 'renew']),
+  manualProofConfirmed: boolean('manualProofConfirmed').default(false).notNull(),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
 }, (table) => ({
   verificationHistoryIdx: index('idx_edu_verification_events_history').on(table.verificationId, table.id),
+}));
+
+// Durable notice identities support replay-safe billing notice delivery.
+export const eduBillingNotices = mysqlTable('edu_billing_notices', {
+  noticeKey: varchar('noticeKey', { length: 191 }).primaryKey(),
+  userId: int('userId').notNull(),
+  verificationId: int('verificationId').notNull(),
+  revision: int('revision').notNull(),
+  kind: varchar('kind', { length: 32 }).notNull(),
+  deadline: timestamp('deadline').notNull(),
+  state: varchar('state', { length: 16 }).notNull(),
+  sentAt: timestamp('sentAt'),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+}, (table) => ({
+  verificationIdx: index('idx_edu_billing_notice_verification').on(table.verificationId, table.revision),
+}));
+export type EduBillingNotice = typeof eduBillingNotices.$inferSelect;
+
+export const eduBillingNoticeResolutions = mysqlTable('edu_billing_notice_resolutions', {
+  id: int('id').autoincrement().primaryKey(),
+  noticeKey: varchar('noticeKey', { length: 191 }).notNull(),
+  actorUserId: int('actorUserId').notNull(),
+  decision: varchar('decision', { length: 32 }).notNull(),
+  providerEvidence: varchar('providerEvidence', { length: 500 }).notNull(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+}, (table) => ({
+  noticeIdx: index('idx_edu_billing_resolution_notice').on(table.noticeKey),
 }));
