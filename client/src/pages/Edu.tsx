@@ -235,6 +235,34 @@ export default function Edu() {
           </div>
         </section>
 
+        <section className="border-y border-white/10 bg-[#0b1021]">
+          <div className="mx-auto max-w-7xl px-6 py-20 lg:px-10">
+            <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-purple-300">Professional Toolbelt</p>
+                <h2 className="mt-3 text-3xl font-bold sm:text-4xl">Know your rights. Build your leverage.</h2>
+                <p className="mt-4 leading-7 text-slate-300">The new entertainment world rewards creators who understand ownership, metadata, licensing and the difference between a promising opportunity and a contract they should review carefully.</p>
+                <p className="mt-4 text-sm leading-6 text-slate-400">These guides provide general education, not legal, tax or royalty-administration advice. Confirm current rules with the relevant organization and a qualified professional.</p>
+                <Link href="/help?article=toolbelt-release-checklist" className="mt-7 inline-flex items-center gap-2 font-semibold text-purple-300 hover:text-purple-200">Open the release checklist <ArrowRight className="h-4 w-4" /></Link>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {[
+                  ["Know Your Rights", "Composition, master, publishing, performance, sync and digital rights."],
+                  ["Build Your Royalty Map", "Keep splits, identifiers, owners, contacts and income paths together."],
+                  ["Review Before You Opt In", "Questions to ask before accepting a platform, sync or media offer."],
+                  ["Release Checklist", "A practical pre-release, placement and post-release record-keeping list."],
+                ].map(([title, copy]) => (
+                  <Link key={title} href={`/help?article=${title === "Know Your Rights" ? "toolbelt-know-your-rights" : title === "Build Your Royalty Map" ? "toolbelt-royalty-map" : title === "Review Before You Opt In" ? "toolbelt-review-opportunity" : "toolbelt-release-checklist"}`} className="rounded-2xl border border-purple-300/15 bg-purple-500/[0.07] p-5 transition hover:-translate-y-1 hover:border-purple-300/40 focus:outline-none focus:ring-2 focus:ring-purple-300">
+                    <h3 className="font-semibold text-white">{title}</h3>
+                    <p className="mt-2 text-sm leading-6 text-slate-400">{copy}</p>
+                    <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-purple-300">Read guide <ArrowRight className="h-3.5 w-3.5" /></span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section className="bg-gradient-to-r from-purple-700 to-fuchsia-700">
           <div className="mx-auto flex max-w-7xl flex-col gap-6 px-6 py-16 sm:flex-row sm:items-center sm:justify-between lg:px-10">
             <div><h2 className="text-3xl font-bold">Build your next opportunity early.</h2><p className="mt-2 text-purple-100">Join the platform where creative education meets real-world momentum.</p></div>

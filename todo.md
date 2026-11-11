@@ -5378,3 +5378,17 @@ Added a small, additive conversion and storytelling pass after the owner sent th
 - [x] Updated shared footer newsletter messaging to include emerging talent, student showcases, creative opportunities and entertainment industry news.
 
 Validation: 21 focused EDU/help/share tests passed across 3 files; TypeScript passed; production build passed with existing pnpm/chunk-size warnings. No schema, pricing, payment, entitlement, role, subscription or external-provider changes were made.
+
+## PROFESSIONAL TOOLBELT CURRICULUM — 2026-11-10
+
+Implemented the approved OlogyWood EDU Professional Toolbelt track. The content is educational and does not provide legal, tax or royalty-administration advice.
+
+- [x] Added a visible EDU Professional Toolbelt section: “Know your rights. Build your leverage.”
+- [x] Added searchable Help Center guide: “Know Your Rights,” explaining composition versus master, publishing, performance, sync and digital-rights distinctions.
+- [x] Added searchable Help Center guide: “Build Your Royalty Map,” covering splits, ISRC/ISWC, IPI/CAE, ownership, contacts, metadata and revenue paths.
+- [x] Added searchable Help Center guide: “Review an entertainment opportunity before you opt in,” covering exclusivity, territory, term, editing, advertising, AI/training, sublicensing, payment and revocation questions.
+- [x] Added searchable Help Center guide with the practical professional release checklist, including rights clearance, metadata, registrations, cue sheets, digital radio and record retention.
+- [x] Linked all four guides directly from the EDU landing page.
+- [x] Kept the language neutral: Music Reports is described as rights administration/licensing rather than a membership organization; ASCAP, SoundExchange and the Copyright Office are not presented as interchangeable; unusual agreements are directed to qualified professional review.
+
+Validation: 21 focused EDU/help/share tests passed across 3 files; TypeScript passed; production build passed. Existing pnpm configuration and large-chunk warnings remain unchanged. No schema, payment, entitlement, subscription, role or external-provider changes were made.

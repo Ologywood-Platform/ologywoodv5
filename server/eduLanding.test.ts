@@ -48,6 +48,15 @@ describe("OlogyWood EDU foundation", () => {
     expect(footer).toContain("{ label: 'OlogyWood EDU', path: '/edu' }");
     expect(help).toContain("How will OlogyWood EDU student pricing work?");
     expect(help).toContain("50% off Starter or Professional");
+    expect(page).toContain("Professional Toolbelt");
+    expect(page).toContain("Know your rights. Build your leverage.");
+    expect(page).toContain("toolbelt-know-your-rights");
+    expect(page).toContain("toolbelt-release-checklist");
+    expect(help).toContain("Know Your Rights: what does a creator actually own?");
+    expect(help).toContain("Build Your Royalty Map before releasing a project");
+    expect(help).toContain("Review an entertainment opportunity before you opt in");
+    expect(help).toContain("What should be in my professional release checklist?");
+    expect(help).toContain("This article is educational information, not legal advice.");
   });
 
   it("routes student and school interest through validated contact subjects", () => {

@@ -68,6 +68,32 @@ const faqItems: FAQItem[] = [
     answer: 'On OlogyWood EDU choose Explore a school pilot and select I represent a school. Submit your institution or department, contact email, and what you want a cohort to practice. The school-specific confirmation shows the submitted email and next steps: prepare cohort goals and approximate size, then discuss the possible pilot with the OlogyWood team. Sending interest does not create an account, activate a pilot, or start billing. Faculty do not need to submit student enrollment evidence to request a partnership conversation. Student eligibility review is a separate path for genuinely eligible students; a professor should not claim student enrollment just to test it. A proposed pilot is a defined 90-day cohort with no automatic paid conversion. Scope and any institution-specific pricing require a separate discussion.',
   },
 
+  // Professional Toolbelt
+  {
+    id: 'toolbelt-know-your-rights',
+    category: 'Professional Toolbelt',
+    question: 'Know Your Rights: what does a creator actually own?',
+    answer: 'A recording can involve at least two separate copyrights: the musical work (the composition and lyrics) and the sound recording (the specific master). A creator may own one, both, or only a share of either. Publishing, master ownership, public performance, mechanical, digital-performance, sync, name/image/likeness, and neighboring-rights questions are different questions. ASCAP generally concerns songwriter and publisher performance rights; SoundExchange concerns qualifying digital performance royalties for featured artists and sound-recording copyright owners, not songwriter or publisher royalties. Music Reports is a rights-administration and licensing company, not a membership organization. Check your agreements and the current rules of each organization before assuming one registration collects every royalty. This article is educational information, not legal advice.',
+  },
+  {
+    id: 'toolbelt-royalty-map',
+    category: 'Professional Toolbelt',
+    question: 'Build Your Royalty Map before releasing a project',
+    answer: 'Keep one private rights file for every release. Record the title and alternate titles, writers, publishers, ownership percentages, signed split sheet, ISRC, ISWC when available, IPI/CAE numbers, producer and featured-artist details, master owner, distributor, copyright-registration record, and current royalty contacts. Then map each use to the likely income path: direct sale, streaming, mechanical, composition performance, digital sound-recording performance, sync license, master-use fee, live performance, merch, ticketing, tips, fan club or another direct-to-fan stream. Review the file whenever a collaborator, distributor, publisher, label or licensing offer changes. Accurate metadata improves matching, but it does not replace a signed agreement or registration. This article is educational information, not legal advice.',
+  },
+  {
+    id: 'toolbelt-review-opportunity',
+    category: 'Professional Toolbelt',
+    question: 'Review an entertainment opportunity before you opt in',
+    answer: 'Before accepting a confidential invitation, platform feature, sync request, radio opportunity or other deal, read what rights are granted and to whom. Check exclusivity, territory, duration, editing rights, advertising use, artificial-intelligence or training language, sublicensing, payment terms, reporting, cancellation or revocation rights, and whether the offer affects an existing label, publisher, distributor, PRO or administrator agreement. Ask which copyright and which version of the recording are covered. Save the original offer and your response. Do not assume that an invitation is automatically harmless or valuable. For unusual, broad or high-value terms, consult an entertainment attorney or qualified rights professional before signing. This article is educational information, not legal advice.',
+  },
+  {
+    id: 'toolbelt-release-checklist',
+    category: 'Professional Toolbelt',
+    question: 'What should be in my professional release checklist?',
+    answer: 'Before release: confirm the composition and master owners; finalize writer and publisher splits in writing; clear samples, interpolations, beats, features and artwork; confirm the ISRC and other metadata; verify distributor delivery; register the work with the organizations that fit your rights and uses; and keep clean, explicit, instrumental, stems, lyrics and cover-art files when relevant. For sync or film/TV use, confirm who supplies the cue sheet and follow up after placement. For digital radio, confirm featured-artist and sound-recording-owner registrations where applicable. For traditional radio, remember that sound-recording performance rules differ from composition performance rules. After release, save statements, licenses, emails, cue sheets and version history in one place. Use this as a preparation checklist, not as a substitute for legal or tax advice.',
+  },
+
   // Booking & Contracts
   {
     id: 'booking-1',
