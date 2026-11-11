@@ -5392,3 +5392,15 @@ Implemented the approved OlogyWood EDU Professional Toolbelt track. The content 
 - [x] Kept the language neutral: Music Reports is described as rights administration/licensing rather than a membership organization; ASCAP, SoundExchange and the Copyright Office are not presented as interchangeable; unusual agreements are directed to qualified professional review.
 
 Validation: 21 focused EDU/help/share tests passed across 3 files; TypeScript passed; production build passed. Existing pnpm configuration and large-chunk warnings remain unchanged. No schema, payment, entitlement, subscription, role or external-provider changes were made.
+
+## INTERACTIVE PROFESSIONAL TOOLBELT — 2026-11-10
+
+Extended the Professional Toolbelt guides with local progress tracking, accessible terminology help and a dedicated registration walkthrough.
+
+- [x] Added an interactive six-step checklist to every Professional Toolbelt article. Users can check off rights, splits, metadata, registration, opportunity review and records tasks, reset progress, and see completion count.
+- [x] Kept checklist state browser-local through localStorage. OlogyWood does not receive, verify or store checklist selections.
+- [x] Added hover-and-keyboard glossary definitions for Sync/synch, Royalties, Master and PRO terms.
+- [x] Added a dedicated “How do I register with a PRO such as ASCAP or SoundExchange?” Help Center guide with current official starting points, role distinctions, identity/application steps, work/recording registration, claiming and recordkeeping guidance.
+- [x] Linked the PRO-registration guide directly from the EDU Toolbelt card grid.
+
+Validation: 25 focused tests passed across 4 files; TypeScript passed; production build passed with existing pnpm and large-chunk warnings. No account, payment, rights-registration, database or external-provider actions were performed by the platform.

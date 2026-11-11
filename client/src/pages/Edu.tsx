@@ -251,8 +251,9 @@ export default function Edu() {
                   ["Build Your Royalty Map", "Keep splits, identifiers, owners, contacts and income paths together."],
                   ["Review Before You Opt In", "Questions to ask before accepting a platform, sync or media offer."],
                   ["Release Checklist", "A practical pre-release, placement and post-release record-keeping list."],
+                  ["Register with the Right Organization", "A step-by-step starting point for ASCAP and SoundExchange registration."],
                 ].map(([title, copy]) => (
-                  <Link key={title} href={`/help?article=${title === "Know Your Rights" ? "toolbelt-know-your-rights" : title === "Build Your Royalty Map" ? "toolbelt-royalty-map" : title === "Review Before You Opt In" ? "toolbelt-review-opportunity" : "toolbelt-release-checklist"}`} className="rounded-2xl border border-purple-300/15 bg-purple-500/[0.07] p-5 transition hover:-translate-y-1 hover:border-purple-300/40 focus:outline-none focus:ring-2 focus:ring-purple-300">
+                  <Link key={title} href={`/help?article=${title === "Know Your Rights" ? "toolbelt-know-your-rights" : title === "Build Your Royalty Map" ? "toolbelt-royalty-map" : title === "Review Before You Opt In" ? "toolbelt-review-opportunity" : title === "Release Checklist" ? "toolbelt-release-checklist" : "toolbelt-pro-registration"}`} className="rounded-2xl border border-purple-300/15 bg-purple-500/[0.07] p-5 transition hover:-translate-y-1 hover:border-purple-300/40 focus:outline-none focus:ring-2 focus:ring-purple-300">
                     <h3 className="font-semibold text-white">{title}</h3>
                     <p className="mt-2 text-sm leading-6 text-slate-400">{copy}</p>
                     <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-purple-300">Read guide <ArrowRight className="h-3.5 w-3.5" /></span>

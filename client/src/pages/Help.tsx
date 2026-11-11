@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronDown, Search, Mail, MessageCircle, Phone } from 'lucide-react';
 import SiteHeader from '@/components/SiteHeader';
+import ProfessionalToolbeltChecklist from '@/components/ProfessionalToolbeltChecklist';
+import IndustryGlossary from '@/components/IndustryGlossary';
 import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
 
 interface FAQItem {
@@ -92,6 +94,12 @@ const faqItems: FAQItem[] = [
     category: 'Professional Toolbelt',
     question: 'What should be in my professional release checklist?',
     answer: 'Before release: confirm the composition and master owners; finalize writer and publisher splits in writing; clear samples, interpolations, beats, features and artwork; confirm the ISRC and other metadata; verify distributor delivery; register the work with the organizations that fit your rights and uses; and keep clean, explicit, instrumental, stems, lyrics and cover-art files when relevant. For sync or film/TV use, confirm who supplies the cue sheet and follow up after placement. For digital radio, confirm featured-artist and sound-recording-owner registrations where applicable. For traditional radio, remember that sound-recording performance rules differ from composition performance rules. After release, save statements, licenses, emails, cue sheets and version history in one place. Use this as a preparation checklist, not as a substitute for legal or tax advice.',
+  },
+  {
+    id: 'toolbelt-pro-registration',
+    category: 'Professional Toolbelt',
+    question: 'How do I register with a PRO such as ASCAP or SoundExchange?',
+    answer: 'Start by identifying the right you are registering. ASCAP is a PRO for public-performance rights in musical works; SoundExchange administers qualifying U.S. digital-performance royalties for featured artists and sound-recording copyright owners. They are not interchangeable, and SoundExchange does not collect songwriter or publisher royalties. For ASCAP: 1) gather your legal identity, tax/payment information and writer/publisher details; 2) use ASCAP’s official Join flow and choose new or existing member; 3) choose Writer, Publisher, or Writer & Publisher only when that matches your situation; 4) complete identity verification and submit the application; 5) sign in to Member Access or the ASCAP app; 6) choose Register a Work and enter the title, writers, publishers and agreed shares; 7) confirm the work appears correctly and keep the registration record. A writer can belong to only one U.S. PRO at a time, so check your current affiliation before switching. For SoundExchange: 1) use the official free registration page; 2) create or access SoundExchange Direct; 3) register in the role that applies to you as a featured artist and/or sound-recording copyright owner; 4) provide accurate identity, tax and payment information; 5) search your recordings by title, artist and ISRC; 6) claim or correct recordings you own or performed on; 7) review your catalog and payment information regularly. Do not claim a recording or share you do not control. Current forms, fees, eligibility and rules belong to each organization, so follow its official instructions. This article is educational information, not legal or tax advice.',
   },
 
   // Booking & Contracts
@@ -981,6 +989,8 @@ export default function Help() {
                 {expandedId === item.id && (
                   <div id={`${item.id}-answer`} className="px-6 py-4 border-t border-gray-200 bg-gray-50">
                     <p className="text-gray-700 leading-relaxed">{item.answer}</p>
+                    {item.category === 'Professional Toolbelt' && <IndustryGlossary />}
+                    {item.category === 'Professional Toolbelt' && <ProfessionalToolbeltChecklist />}
                   </div>
                 )}
               </div>
