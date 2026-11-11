@@ -5,6 +5,7 @@ import {
   ArrowRight,
   BadgeDollarSign,
   BarChart3,
+  BookOpen,
   CalendarClock,
   CheckCircle2,
   CircleDollarSign,
@@ -147,6 +148,7 @@ export default function Workspace() {
     { label: 'Sell', description: 'Bookings, events, Creator Shop, Books, releases, and Fan Club', href: '/merch', icon: Store },
     { label: 'Deliver', description: 'Bookings, orders, contracts, riders, and messages', href: '/dashboard', icon: ClipboardList },
     { label: 'Grow', description: 'Followers, promotions, sponsors, and analytics', href: '/promote', icon: BarChart3 },
+    { label: 'Professional Toolbelt', description: 'Rights, royalties, sync, distribution, deals, and creator checklists', href: '/help?article=toolbelt-know-your-rights', icon: BookOpen },
     { label: 'Money', description: 'Earnings, payouts, fees, and tax reporting', href: '/earnings', icon: CircleDollarSign },
     { label: 'Settings', description: 'Team, account, security, and preferences', href: '/settings', icon: Settings },
   ] : role === 'venue' ? [

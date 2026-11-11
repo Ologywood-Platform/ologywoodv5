@@ -5404,3 +5404,22 @@ Extended the Professional Toolbelt guides with local progress tracking, accessib
 - [x] Linked the PRO-registration guide directly from the EDU Toolbelt card grid.
 
 Validation: 25 focused tests passed across 4 files; TypeScript passed; production build passed with existing pnpm and large-chunk warnings. No account, payment, rights-registration, database or external-provider actions were performed by the platform.
+
+## SIX-MODULE PROFESSIONAL TOOLBELT — 2026-11-10
+
+Expanded Professional Toolbelt from four guides into the recommended six-module curriculum and aligned the interactive checklist.
+
+- [x] Know Your Rights: composition, master, publishing, performance, sync, neighboring rights and name/image/likeness distinctions.
+- [x] Follow the Money: PROs, SoundExchange, The MLC, distributors, publishers, administrators and direct-to-fan revenue paths are structurally distinguished.
+- [x] Get Sync Ready: composition and master permissions, rights summaries, splits, instrumental versions, stems, clearance contacts and cue-sheet questions.
+- [x] Radio, Streaming & Distribution: traditional radio, digital radio and interactive streaming are distinguished, with metadata and delivery-record guidance.
+- [x] Understand the Deal: territory, term, exclusivity, editing, advertising, AI/training, sublicensing, reporting, payment and revocation review.
+- [x] Build Your Professional Toolkit: release, placement and record-keeping preparation.
+- [x] Kept the ASCAP/SoundExchange registration guide as a supporting guide with correct structural language: ASCAP is a PRO for musical-work public performance; SoundExchange administers qualifying digital-performance royalties for featured artists and sound-recording copyright owners.
+- [x] Added visible last-reviewed dates and authoritative source links to each Toolbelt guide.
+- [x] Updated the checklist so every six readiness items links directly to its matching guide.
+- [x] Added Copy My Checklist and browser Print controls; export remains browser-local and no checklist state is collected by OlogyWood.
+- [x] Added Professional Toolbelt entry points to creator My Dashboard and creator Workspace, available to all creators without a new role or permission model.
+- [x] Kept direct rights-organization integrations out of scope; engagement can be measured before adding any provider connection.
+
+Validation: 26 focused tests passed across 4 files; TypeScript passed; production build passed. Existing pnpm and large-chunk warnings remain unchanged. No payment, account, rights-registration, database or external-provider actions were performed.

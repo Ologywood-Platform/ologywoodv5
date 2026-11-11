@@ -10,6 +10,8 @@ interface FAQItem {
   category: string;
   question: string;
   answer: string;
+  reviewed?: string;
+  sources?: { label: string; url: string }[];
 }
 
 const faqItems: FAQItem[] = [
@@ -76,30 +78,56 @@ const faqItems: FAQItem[] = [
     category: 'Professional Toolbelt',
     question: 'Know Your Rights: what does a creator actually own?',
     answer: 'A recording can involve at least two separate copyrights: the musical work (the composition and lyrics) and the sound recording (the specific master). A creator may own one, both, or only a share of either. Publishing, master ownership, public performance, mechanical, digital-performance, sync, name/image/likeness, and neighboring-rights questions are different questions. ASCAP generally concerns songwriter and publisher performance rights; SoundExchange concerns qualifying digital performance royalties for featured artists and sound-recording copyright owners, not songwriter or publisher royalties. Music Reports is a rights-administration and licensing company, not a membership organization. Check your agreements and the current rules of each organization before assuming one registration collects every royalty. This article is educational information, not legal advice.',
+    reviewed: 'November 10, 2026',
+    sources: [{ label: 'U.S. Copyright Office: Musicians', url: 'https://www.copyright.gov/engage/musicians/' }, { label: 'ASCAP: Music Creators', url: 'https://www.ascap.com/music-creators' }, { label: 'SoundExchange FAQ', url: 'https://www.soundexchange.com/frequently-asked-questions/' }],
   },
   {
     id: 'toolbelt-royalty-map',
     category: 'Professional Toolbelt',
-    question: 'Build Your Royalty Map before releasing a project',
-    answer: 'Keep one private rights file for every release. Record the title and alternate titles, writers, publishers, ownership percentages, signed split sheet, ISRC, ISWC when available, IPI/CAE numbers, producer and featured-artist details, master owner, distributor, copyright-registration record, and current royalty contacts. Then map each use to the likely income path: direct sale, streaming, mechanical, composition performance, digital sound-recording performance, sync license, master-use fee, live performance, merch, ticketing, tips, fan club or another direct-to-fan stream. Review the file whenever a collaborator, distributor, publisher, label or licensing offer changes. Accurate metadata improves matching, but it does not replace a signed agreement or registration. This article is educational information, not legal advice.',
+    question: 'Follow the Money: build your royalty map before releasing a project',
+    answer: 'Keep one private rights file for every release. Record the title and alternate titles, writers, publishers, ownership percentages, signed split sheet, ISRC, ISWC when available, IPI/CAE numbers, producer and featured-artist details, master owner, distributor, copyright-registration record, and current royalty contacts. Then map each use to the likely income path: direct sale, streaming, mechanical, composition performance, digital sound-recording performance, sync license, master-use fee, live performance, merch, ticketing, tips, fan club or another direct-to-fan stream. ASCAP, BMI, SESAC and similar PROs generally concern public performance of musical works; SoundExchange concerns qualifying digital performance royalties for featured artists and sound-recording copyright owners; The MLC, distributors, publishers and administrators have different roles. Review the official terms before registering. Accurate metadata improves matching, but it does not replace a signed agreement or registration. This article is educational information, not legal advice.',
+    reviewed: 'November 10, 2026',
+    sources: [{ label: 'ASCAP: Registering Your Music', url: 'https://www.ascap.com/help/registering-your-music' }, { label: 'SoundExchange: Register', url: 'https://www.soundexchange.com/register/' }, { label: 'The MLC', url: 'https://www.themlc.com/' }],
+  },
+  {
+    id: 'toolbelt-sync-ready',
+    category: 'Professional Toolbelt',
+    question: 'Get Sync Ready: prepare music for film, television, games and advertising',
+    answer: 'A sync opportunity may require permission for the composition and a separate master-use permission for the recording. Prepare a one-page rights summary, writer and publisher splits, master ownership, clearance contacts, alternate or instrumental versions, stems when appropriate, lyrics, clean edits, metadata and any sample or interpolation clearances. Ask who will issue the composition and master licenses, what media and territory are covered, how long the license lasts, whether the use is exclusive, and how cue-sheet or reporting responsibilities work. Never represent a track as one-stop or fully cleared unless the rights documentation supports that claim. This article is educational information, not legal advice.',
+    reviewed: 'November 10, 2026',
+    sources: [{ label: 'ASCAP: Cue Sheets', url: 'https://www.ascap.com/help/royalties-and-payment/cue-sheets' }, { label: 'U.S. Copyright Office: Musicians', url: 'https://www.copyright.gov/engage/musicians/' }],
+  },
+  {
+    id: 'toolbelt-radio-streaming',
+    category: 'Professional Toolbelt',
+    question: 'Radio, Streaming & Distribution: keep delivery and credits accurate',
+    answer: 'Traditional radio, digital radio and interactive streaming can involve different rights and payment systems. Keep the recording title, featured-artist credit, sound-recording owner, writers, publishers, ISRC, release version, distributor and label information consistent across delivery platforms and rights organizations. SoundExchange explains that its sound-recording performance royalties apply to featured artists and sound-recording copyright owners, while composition performance royalties are handled through organizations such as ASCAP, BMI or SESAC. Do not assume that an interactive stream, terrestrial broadcast and digital broadcast use the same royalty path. Save delivery confirmations and statements, investigate mismatches, and update metadata through the responsible platform. This article is educational information, not legal or tax advice.',
+    reviewed: 'November 10, 2026',
+    sources: [{ label: 'SoundExchange FAQ', url: 'https://www.soundexchange.com/frequently-asked-questions/' }, { label: 'SoundExchange: Register', url: 'https://www.soundexchange.com/register/' }, { label: 'Apple Music for Artists Support', url: 'https://artists.apple.com/support' }],
   },
   {
     id: 'toolbelt-review-opportunity',
     category: 'Professional Toolbelt',
     question: 'Review an entertainment opportunity before you opt in',
     answer: 'Before accepting a confidential invitation, platform feature, sync request, radio opportunity or other deal, read what rights are granted and to whom. Check exclusivity, territory, duration, editing rights, advertising use, artificial-intelligence or training language, sublicensing, payment terms, reporting, cancellation or revocation rights, and whether the offer affects an existing label, publisher, distributor, PRO or administrator agreement. Ask which copyright and which version of the recording are covered. Save the original offer and your response. Do not assume that an invitation is automatically harmless or valuable. For unusual, broad or high-value terms, consult an entertainment attorney or qualified rights professional before signing. This article is educational information, not legal advice.',
+    reviewed: 'November 10, 2026',
+    sources: [{ label: 'U.S. Copyright Office: Musicians', url: 'https://www.copyright.gov/engage/musicians/' }, { label: 'ASCAP: Music Business 101', url: 'https://www.ascap.com/help' }],
   },
   {
     id: 'toolbelt-release-checklist',
     category: 'Professional Toolbelt',
     question: 'What should be in my professional release checklist?',
     answer: 'Before release: confirm the composition and master owners; finalize writer and publisher splits in writing; clear samples, interpolations, beats, features and artwork; confirm the ISRC and other metadata; verify distributor delivery; register the work with the organizations that fit your rights and uses; and keep clean, explicit, instrumental, stems, lyrics and cover-art files when relevant. For sync or film/TV use, confirm who supplies the cue sheet and follow up after placement. For digital radio, confirm featured-artist and sound-recording-owner registrations where applicable. For traditional radio, remember that sound-recording performance rules differ from composition performance rules. After release, save statements, licenses, emails, cue sheets and version history in one place. Use this as a preparation checklist, not as a substitute for legal or tax advice.',
+    reviewed: 'November 10, 2026',
+    sources: [{ label: 'ASCAP: Registering Your Music', url: 'https://www.ascap.com/help/registering-your-music' }, { label: 'SoundExchange: Register', url: 'https://www.soundexchange.com/register/' }, { label: 'ASCAP: Cue Sheets', url: 'https://www.ascap.com/help/royalties-and-payment/cue-sheets' }],
   },
   {
     id: 'toolbelt-pro-registration',
     category: 'Professional Toolbelt',
-    question: 'How do I register with a PRO such as ASCAP or SoundExchange?',
+    question: 'How do I register with ASCAP and SoundExchange?',
     answer: 'Start by identifying the right you are registering. ASCAP is a PRO for public-performance rights in musical works; SoundExchange administers qualifying U.S. digital-performance royalties for featured artists and sound-recording copyright owners. They are not interchangeable, and SoundExchange does not collect songwriter or publisher royalties. For ASCAP: 1) gather your legal identity, tax/payment information and writer/publisher details; 2) use ASCAP’s official Join flow and choose new or existing member; 3) choose Writer, Publisher, or Writer & Publisher only when that matches your situation; 4) complete identity verification and submit the application; 5) sign in to Member Access or the ASCAP app; 6) choose Register a Work and enter the title, writers, publishers and agreed shares; 7) confirm the work appears correctly and keep the registration record. A writer can belong to only one U.S. PRO at a time, so check your current affiliation before switching. For SoundExchange: 1) use the official free registration page; 2) create or access SoundExchange Direct; 3) register in the role that applies to you as a featured artist and/or sound-recording copyright owner; 4) provide accurate identity, tax and payment information; 5) search your recordings by title, artist and ISRC; 6) claim or correct recordings you own or performed on; 7) review your catalog and payment information regularly. Do not claim a recording or share you do not control. Current forms, fees, eligibility and rules belong to each organization, so follow its official instructions. This article is educational information, not legal or tax advice.',
+    reviewed: 'November 10, 2026',
+    sources: [{ label: 'ASCAP: Join', url: 'https://www.ascap.com/ome' }, { label: 'ASCAP: Registering Your Music', url: 'https://www.ascap.com/help/registering-your-music' }, { label: 'SoundExchange: Register', url: 'https://www.soundexchange.com/register/' }, { label: 'SoundExchange FAQ', url: 'https://www.soundexchange.com/frequently-asked-questions/' }],
   },
 
   // Booking & Contracts
@@ -989,6 +1017,15 @@ export default function Help() {
                 {expandedId === item.id && (
                   <div id={`${item.id}-answer`} className="px-6 py-4 border-t border-gray-200 bg-gray-50">
                     <p className="text-gray-700 leading-relaxed">{item.answer}</p>
+                    {item.category === 'Professional Toolbelt' && item.reviewed && <p className="mt-4 text-xs font-medium uppercase tracking-wide text-gray-500">Last reviewed: {item.reviewed}</p>}
+                    {item.category === 'Professional Toolbelt' && item.sources && (
+                      <div className="mt-3 rounded-lg border border-gray-200 bg-white p-3">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Official sources</p>
+                        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2">
+                          {item.sources.map(source => <a key={source.url} href={source.url} target="_blank" rel="noreferrer" className="text-sm text-purple-700 underline underline-offset-2 hover:text-purple-900">{source.label}</a>)}
+                        </div>
+                      </div>
+                    )}
                     {item.category === 'Professional Toolbelt' && <IndustryGlossary />}
                     {item.category === 'Professional Toolbelt' && <ProfessionalToolbeltChecklist />}
                   </div>

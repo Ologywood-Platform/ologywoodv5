@@ -53,7 +53,7 @@ describe("OlogyWood EDU foundation", () => {
     expect(page).toContain("toolbelt-know-your-rights");
     expect(page).toContain("toolbelt-release-checklist");
     expect(help).toContain("Know Your Rights: what does a creator actually own?");
-    expect(help).toContain("Build Your Royalty Map before releasing a project");
+    expect(help).toContain("Follow the Money: build your royalty map before releasing a project");
     expect(help).toContain("Review an entertainment opportunity before you opt in");
     expect(help).toContain("What should be in my professional release checklist?");
     expect(help).toContain("This article is educational information, not legal advice.");
