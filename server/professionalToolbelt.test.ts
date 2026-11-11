@@ -16,6 +16,8 @@ describe("Professional Toolbelt education", () => {
     expect(help).toContain("SoundExchange Direct");
     expect(help).toContain("Do not claim a recording or share you do not control.");
     expect(help).toContain("SoundExchange administers qualifying U.S. digital-performance royalties");
+    expect(help).toContain("Sync Licensing & Radio Placements: prepare, pitch and document the use");
+    expect(help).toContain("A traditional radio spin does not use the same sound-recording royalty path");
     expect(help).toContain("Last reviewed: {item.reviewed}");
     expect(help).toContain("Official sources");
   });
@@ -44,6 +46,8 @@ describe("Professional Toolbelt education", () => {
     expect(edu).toContain("Register with the Right Organization");
     expect(edu).toContain("toolbelt-pro-registration");
     expect(edu).toContain("Get Sync Ready");
+    expect(edu).toContain("Sync Licensing & Radio Placements");
+    expect(edu).toContain("toolbelt-sync-radio-placements");
     expect(edu).toContain("Radio, Streaming & Distribution");
     expect(edu).toContain("Build Your Professional Toolkit");
   });

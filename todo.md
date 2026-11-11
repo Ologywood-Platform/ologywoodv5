@@ -5423,3 +5423,16 @@ Expanded Professional Toolbelt from four guides into the recommended six-module 
 - [x] Kept direct rights-organization integrations out of scope; engagement can be measured before adding any provider connection.
 
 Validation: 26 focused tests passed across 4 files; TypeScript passed; production build passed. Existing pnpm and large-chunk warnings remain unchanged. No payment, account, rights-registration, database or external-provider actions were performed.
+
+## SYNC LICENSING AND RADIO PLACEMENTS GUIDE — 2026-11-10
+
+- [x] Added a dedicated Professional Toolbelt guide for Sync Licensing & Radio Placements.
+- [x] Explained separate composition and master clearance for film, television, advertising, games and digital video.
+- [x] Added preparation guidance for rights summaries, splits, instrumental/clean/stem/lyric versions, clearance contacts, samples and interpolations.
+- [x] Added deal questions covering media, territory, term, exclusivity, edits, advertising context, approval rights, fees, backend reporting and cue-sheet responsibility.
+- [x] Distinguished terrestrial broadcast, non-interactive digital radio and interactive streaming; clarified that composition performance and sound-recording payments follow different paths.
+- [x] Added radio-placement recordkeeping for outlet, date, version, adds, playlists, airplay logs, delivery confirmations, statements and contacts.
+- [x] Linked the guide from the EDU Toolbelt card grid and kept official source links plus the November 10, 2026 review date visible in Help Center.
+- [x] Preserved the boundary that OlogyWood provides education only and does not endorse private offers, guarantee placements or administer rights registrations.
+
+Validation: 18 focused tests passed across 3 files; TypeScript passed; production build passed. No payment, account, rights-registration, database or external-provider actions were performed.

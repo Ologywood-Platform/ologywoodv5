@@ -122,6 +122,14 @@ const faqItems: FAQItem[] = [
     sources: [{ label: 'ASCAP: Registering Your Music', url: 'https://www.ascap.com/help/registering-your-music' }, { label: 'SoundExchange: Register', url: 'https://www.soundexchange.com/register/' }, { label: 'ASCAP: Cue Sheets', url: 'https://www.ascap.com/help/royalties-and-payment/cue-sheets' }],
   },
   {
+    id: 'toolbelt-sync-radio-placements',
+    category: 'Professional Toolbelt',
+    question: 'Sync Licensing & Radio Placements: prepare, pitch and document the use',
+    answer: 'Sync licensing and radio placement are related career opportunities, but they are not the same permission or royalty path. For a sync use in film, television, advertising, games or digital video, prepare to clear both the musical work and the specific sound recording unless the project will use a new recording. Confirm every writer, publisher, master owner, featured artist, sample and interpolation clearance before describing a track as one-stop. Ask for the media, territory, term, exclusivity, edit rights, advertising context, approval rights, fee, backend reporting and cue-sheet responsibility. Keep instrumental, clean, stems and lyric versions clearly labeled, and send a rights summary with the correct contact for each share. For radio, first identify the outlet and type of use: terrestrial broadcast, non-interactive digital radio, or interactive streaming. A traditional radio spin does not use the same sound-recording royalty path as a qualifying digital performance, and a composition performance royalty is not the same as a master or sound-recording payment. Keep title, writer, publisher, featured-artist, sound-recording-owner, ISRC, label and distributor metadata consistent. Ask the station, programmer, distributor or rights organization what reporting is provided and save adds, playlists, airplay logs, delivery confirmations and statements. After a sync placement, follow up on the cue sheet and statements; after a radio placement, document the outlet, date, version and contact. Never pay an unverified intermediary or grant broad rights based only on a placement promise. This article is educational information, not legal, tax or royalty-administration advice.',
+    reviewed: 'November 10, 2026',
+    sources: [{ label: 'ASCAP: Cue Sheets', url: 'https://www.ascap.com/help/royalties-and-payment/cue-sheets' }, { label: 'U.S. Copyright Office: Musicians', url: 'https://www.copyright.gov/engage/musicians/' }, { label: 'SoundExchange FAQ', url: 'https://www.soundexchange.com/frequently-asked-questions/' }, { label: 'SoundExchange: Register', url: 'https://www.soundexchange.com/register/' }],
+  },
+  {
     id: 'toolbelt-pro-registration',
     category: 'Professional Toolbelt',
     question: 'How do I register with ASCAP and SoundExchange?',

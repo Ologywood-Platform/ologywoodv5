@@ -250,6 +250,7 @@ export default function Edu() {
                   ["Know Your Rights", "Composition, master, publishing, performance, sync and digital rights.", "toolbelt-know-your-rights"],
                   ["Follow the Money", "Map PROs, SoundExchange, The MLC, distributors, publishers and other revenue paths.", "toolbelt-royalty-map"],
                   ["Get Sync Ready", "Prepare rights documentation, instrumentals, stems and clearance contacts.", "toolbelt-sync-ready"],
+                  ["Sync Licensing & Radio Placements", "Prepare, pitch and document sync uses and radio opportunities with the right permissions.", "toolbelt-sync-radio-placements"],
                   ["Radio, Streaming & Distribution", "Keep credits, identifiers, delivery records and royalty paths accurate.", "toolbelt-radio-streaming"],
                   ["Understand the Deal", "Review territory, term, exclusivity, compensation, AI and sublicensing language.", "toolbelt-review-opportunity"],
                   ["Build Your Professional Toolkit", "Use a practical release, placement and record-keeping checklist.", "toolbelt-release-checklist"],
