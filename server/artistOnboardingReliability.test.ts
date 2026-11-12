@@ -25,4 +25,13 @@ describe('artist onboarding reliability', () => {
     expect(source).toContain('href="/terms-of-service" target="_blank"');
     expect(source).toContain('onClick={(event) => event.stopPropagation()}');
   });
+
+  it('shows honest autosave feedback and a clear resume choice', () => {
+    expect(source).toContain('Auto-saving...');
+    expect(source).toContain('Saved securely');
+    expect(source).toContain('Welcome back — resume your setup');
+    expect(source).toContain('Continue setup');
+    expect(source).toContain('Start over');
+    expect(source).toContain('window.location.reload()');
+  });
 });

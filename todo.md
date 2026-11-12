@@ -5446,3 +5446,9 @@ Validation: 18 focused tests passed across 3 files; TypeScript passed; productio
 - [x] Added regression coverage for draft persistence, acknowledgement controls and non-destructive rights/terms navigation.
 
 Validation: 63 tests passed across 3 files; TypeScript passed; production build passed. No user records or complimentary-access records were changed.
+
+## ONBOARDING AUTOSAVE AND RESUME — 2026-11-11
+
+Added a live “Auto-saving...” / “Saved securely” indicator to the onboarding header. When account-scoped draft progress is detected, users now see a “Welcome back — resume your setup” prompt with Continue setup and Start over actions. Start over clears only the local onboarding draft and reloads the blank wizard; successful profile creation still clears the draft automatically.
+
+Validation: 64 tests passed across 3 files; TypeScript passed; production build passed. No user records, roles, payments or complimentary-access records were changed.

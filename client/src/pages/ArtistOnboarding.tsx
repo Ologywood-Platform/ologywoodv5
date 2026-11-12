@@ -17,7 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Music, ArrowRight, ArrowLeft, Check, Loader2, X, Mic2, Trophy, Sparkles, Plus, Trash2, Shield, ChevronDown, Copyright, DollarSign, Palette, Users, ShieldCheck, Film, BookOpen } from "lucide-react";
+import { Music, ArrowRight, ArrowLeft, Check, Loader2, X, Mic2, Trophy, Sparkles, Plus, Trash2, Shield, ChevronDown, Copyright, DollarSign, Palette, Users, ShieldCheck, Film, BookOpen, RotateCcw } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Link } from "wouter";
 import { toast } from "sonner";
@@ -44,6 +44,8 @@ export default function ArtistOnboarding() {
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 3;
   const [creatorRightsAcknowledged, setCreatorRightsAcknowledged] = useState(false);
+  const [draftStatus, setDraftStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const [showResumePrompt, setShowResumePrompt] = useState(false);
 
   // Block unverified users from creating a profile
   useEffect(() => {
@@ -201,6 +203,13 @@ export default function ArtistOnboarding() {
       const raw = localStorage.getItem(onboardingDraftKey);
       if (raw) {
         const draft = JSON.parse(raw) as Record<string, unknown>;
+        const hasMeaningfulProgress =
+          (typeof draft.currentStep === 'number' && draft.currentStep > 1) ||
+          (typeof draft.artistName === 'string' && draft.artistName.trim().length > 0) ||
+          (typeof draft.city === 'string' && draft.city.trim().length > 0) ||
+          draft.creatorRightsAcknowledged === true ||
+          (Array.isArray(draft.genres) && draft.genres.length > 0);
+        if (hasMeaningfulProgress) setShowResumePrompt(true);
         if (typeof draft.currentStep === 'number') setCurrentStep(Math.min(totalSteps, Math.max(1, draft.currentStep)));
         if (typeof draft.creatorRightsAcknowledged === 'boolean') setCreatorRightsAcknowledged(draft.creatorRightsAcknowledged);
         if (typeof draft.talentType === 'string') setTalentType(draft.talentType as TalentType);
@@ -231,12 +240,20 @@ export default function ArtistOnboarding() {
 
   useEffect(() => {
     if (!onboardingDraftKey || !draftRestoredRef.current) return;
+    setDraftStatus('saving');
     localStorage.setItem(onboardingDraftKey, JSON.stringify({
       currentStep, creatorRightsAcknowledged, talentType, artistName, location, city, state,
       country, bio, genres, feeRangeMin, feeRangeMax, touringPartySize, websiteUrl, instagram,
       facebook, youtube, spotify, appleMusic, tidal, soundcloud, otherStreaming,
     }));
+    const savedTimer = window.setTimeout(() => setDraftStatus('saved'), 250);
+    return () => window.clearTimeout(savedTimer);
   }, [onboardingDraftKey, currentStep, creatorRightsAcknowledged, talentType, artistName, location, city, state, country, bio, genres, feeRangeMin, feeRangeMax, touringPartySize, websiteUrl, instagram, facebook, youtube, spotify, appleMusic, tidal, soundcloud, otherStreaming]);
+
+  const startOver = () => {
+    if (onboardingDraftKey) localStorage.removeItem(onboardingDraftKey);
+    window.location.reload();
+  };
 
   const uploadPhoto = trpc.artist.uploadProfilePhoto.useMutation({
     onSuccess: (data) => {
@@ -512,12 +529,33 @@ export default function ArtistOnboarding() {
                 <CardDescription>Step {currentStep} of {totalSteps}</CardDescription>
               </div>
             </div>
-            <Badge variant="secondary">{user?.name}</Badge>
+            <div className="flex items-center gap-2">
+              <span aria-live="polite" className="hidden sm:inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                {draftStatus === 'saving' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5 text-emerald-600" />}
+                {draftStatus === 'saving' ? 'Auto-saving...' : draftStatus === 'saved' ? 'Saved securely' : 'Ready to save'}
+              </span>
+              <Badge variant="secondary">{user?.name}</Badge>
+            </div>
           </div>
           <Progress value={progress} className="h-2" />
         </CardHeader>
 
         <CardContent className="space-y-6">
+          {showResumePrompt && (
+            <div className="rounded-lg border border-primary/25 bg-primary/5 p-4" role="status">
+              <div className="flex items-start gap-3">
+                <RotateCcw className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-semibold text-sm">Welcome back — resume your setup</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">Your saved profile details have been restored. Continue where you left off, or start over if you want a clean profile.</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Button type="button" size="sm" onClick={() => setShowResumePrompt(false)}>Continue setup</Button>
+                    <Button type="button" size="sm" variant="outline" onClick={startOver}>Start over</Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           {/* Step 1: Basic Information */}
           {currentStep === 1 && (
             <div className="space-y-4 animate-fade-in">
