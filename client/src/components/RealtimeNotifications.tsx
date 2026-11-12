@@ -48,6 +48,8 @@ const merchOrderConfig = {
 
 export default function RealtimeNotifications() {
   const [isOpen, setIsOpen] = useState(false);
+  const [swipeOffset, setSwipeOffset] = useState(0);
+  const swipeStart = useRef<{ x: number; y: number } | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [, setLocation] = useLocation();
 
@@ -122,6 +124,31 @@ export default function RealtimeNotifications() {
     deleteMutation.mutate({ id });
   };
 
+  const handleSwipeStart = (event: React.TouchEvent<HTMLDivElement>) => {
+    const touch = event.touches[0];
+    swipeStart.current = touch ? { x: touch.clientX, y: touch.clientY } : null;
+    setSwipeOffset(0);
+  };
+
+  const handleSwipeMove = (event: React.TouchEvent<HTMLDivElement>) => {
+    const start = swipeStart.current;
+    const touch = event.touches[0];
+    if (!start || !touch) return;
+    const deltaX = touch.clientX - start.x;
+    const deltaY = touch.clientY - start.y;
+    // Leave vertical movement to the notification list's native scrolling.
+    if (Math.abs(deltaY) > Math.abs(deltaX) || Math.abs(deltaX) < 8) return;
+    setSwipeOffset(Math.max(-240, Math.min(240, deltaX)));
+  };
+
+  const handleSwipeEnd = () => {
+    if (Math.abs(swipeOffset) >= 96) {
+      setIsOpen(false);
+    }
+    setSwipeOffset(0);
+    swipeStart.current = null;
+  };
+
   return (
     <div className="relative" ref={dropdownRef}>
       {/* Bell Button */}
@@ -144,12 +171,20 @@ export default function RealtimeNotifications() {
           className="fixed left-2 right-2 top-[calc(env(safe-area-inset-top,0px)+4.5rem)] w-auto max-w-none bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 z-[60] max-h-[calc(100dvh-6.5rem)] flex flex-col overflow-hidden sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-96 sm:max-w-[calc(100vw-1rem)] sm:max-h-[calc(100dvh-8rem)]"
           role="dialog"
           aria-label="Notifications"
+          onTouchStart={handleSwipeStart}
+          onTouchMove={handleSwipeMove}
+          onTouchEnd={handleSwipeEnd}
+          style={{
+            transform: swipeOffset ? `translateX(${swipeOffset}px)` : undefined,
+            transition: swipeOffset ? 'none' : 'transform 180ms ease-out',
+            touchAction: 'pan-y',
+          }}
         >
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-700">
             <div className="min-w-0">
               <h3 className="font-semibold text-gray-900 dark:text-white text-sm">Notifications</h3>
-              <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">Tap an item for details; swipe or scroll for more.</p>
+              <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">Tap an item for details; swipe sideways to close or scroll for more.</p>
             </div>
             {unreadCount > 0 && (
               <button

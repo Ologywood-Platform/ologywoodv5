@@ -15,6 +15,10 @@ describe("mobile notification panel layout", () => {
   it("keeps the notification dialog accessible and explains mobile interaction", () => {
     expect(source).toContain('role="dialog"');
     expect(source).toContain('aria-label="Notifications"');
-    expect(source).toContain("swipe or scroll for more");
+    expect(source).toContain("onTouchStart={handleSwipeStart}");
+    expect(source).toContain("onTouchMove={handleSwipeMove}");
+    expect(source).toContain("onTouchEnd={handleSwipeEnd}");
+    expect(source).toContain("touchAction: 'pan-y'");
+    expect(source).toContain("swipe sideways to close or scroll for more");
   });
 });
