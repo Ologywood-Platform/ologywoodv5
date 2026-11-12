@@ -47,6 +47,7 @@ export default function EduAdmin() {
   return <div className="min-h-screen bg-slate-50 text-slate-900"><SiteHeader /><main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
     <div className="flex flex-wrap items-center justify-between gap-4"><div>
       <Link href="/admin" className="inline-flex items-center gap-2 text-sm font-semibold text-purple-700"><ArrowLeft className="h-4 w-4" /> Back to Admin Dashboard</Link>
+      <Link href="/edu/verify" className="mt-3 block text-sm font-semibold text-purple-700 underline underline-offset-2">View the student verification flow</Link>
       <h1 className="mt-4 text-3xl font-bold">EDU manual evidence review</h1>
       <p className="mt-1 text-slate-600">Approve only documented enrollment proof. Eligibility permits a 50% Starter/Professional discount at a separate checkout; approval never activates a paid plan or applies a coupon by itself.</p>
       <p className="mt-2 text-sm text-slate-600">{EDU_MANUAL_REVIEW_STATEMENT}</p>

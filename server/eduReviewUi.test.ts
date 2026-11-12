@@ -56,6 +56,8 @@ describe('EDU mocked React rendering', () => {
     expect(html).toContain('type="checkbox"');
     expect(html).toContain('maxLength="500"');
     expect(html).toContain('current eligibility unchanged');
+    expect(html).toContain('href="/edu/verify"');
+    expect(html).toContain('View the student verification flow');
   });
 
   it.each([

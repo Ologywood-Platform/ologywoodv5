@@ -5473,3 +5473,10 @@ Validation: 49 focused EDU admin/lifecycle/verification tests passed across 4 fi
 
 
 EDU admin follow-up: the app RDS also had only the original 16-column `edu_verifications` table; the current router requires the reviewed 36-column lifecycle/billing shape. Added the 20 missing additive columns from the existing EDU lifecycle migration, restarted the unpublished dev server, and verified the exact admin-list and notice-list queries against the app database. Final validation: 59 EDU tests passed across 4 files and TypeScript passed. No publication or user-record changes were made.
+
+## EDU HELP CENTER NAVIGATION — 2026-11-11
+- [x] Added a grouped “EDU & Professional Toolbelt” Help Center filter that reuses existing EDU, student-pricing, and six-plus Toolbelt articles rather than duplicating content.
+- [x] Added explanatory context for the grouped view and preserved direct article deep links.
+- [x] Added a visible “View the student verification flow” link on Admin EDU; it points to the student-facing route and does not submit evidence.
+- [x] Validation passed: focused EDU/Toolbelt tests, TypeScript, and production build. Build retains existing large-chunk warnings only.
+- [ ] Owner publication of this navigation-only checkpoint remains pending.

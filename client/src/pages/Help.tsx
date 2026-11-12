@@ -911,6 +911,9 @@ export function getRequestedHelpArticle(search: string): FAQItem | undefined {
   return faqItems.find(item => item.id === id);
 }
 
+const EDU_HELP_CATEGORY = 'EDU & Professional Toolbelt';
+const isEduHelpArticle = (item: FAQItem) => item.id.startsWith('edu-') || item.category === 'Professional Toolbelt' || item.id === 'payment-edu';
+
 export default function Help() {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -934,12 +937,13 @@ export default function Help() {
     return () => cancelAnimationFrame(frame);
   }, []);
 
-  const categories = ['All', ...new Set(faqItems.map(item => item.category))];
+  const categories = ['All', EDU_HELP_CATEGORY, ...new Set(faqItems.map(item => item.category))];
   
   const filteredFAQs = faqItems.filter(item => {
     const matchesSearch = item.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.answer.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
+    const matchesCategory = selectedCategory === 'All' ||
+      (selectedCategory === EDU_HELP_CATEGORY ? isEduHelpArticle(item) : item.category === selectedCategory);
     return matchesSearch && matchesCategory;
   });
 
@@ -996,6 +1000,11 @@ export default function Help() {
             </button>
           ))}
         </div>
+        {selectedCategory === EDU_HELP_CATEGORY && (
+          <p className="mt-3 rounded-lg border border-purple-100 bg-purple-50 px-4 py-3 text-sm text-purple-900">
+            EDU &amp; Professional Toolbelt brings student enrollment, verification, school pilots, rights education, royalty mapping, sync/radio preparation, and release-readiness guidance into one place.
+          </p>
+        )}
       </div>
 
       {/* FAQ Items */}

@@ -20,6 +20,9 @@ describe("Professional Toolbelt education", () => {
     expect(help).toContain("A traditional radio spin does not use the same sound-recording royalty path");
     expect(help).toContain("Last reviewed: {item.reviewed}");
     expect(help).toContain("Official sources");
+    expect(help).toContain("EDU & Professional Toolbelt");
+    expect(help).toContain("isEduHelpArticle");
+    expect(help).toContain("student enrollment, verification, school pilots");
   });
 
   it("keeps checklist progress local and reversible", () => {
