@@ -10,6 +10,7 @@ const hybridColumns = [
   'variants',
   'trackInventory',
   'inventoryQuantity',
+  'isPreOrder',
   'shippingAvailable',
   'pickupAvailable',
   'shippingAmountCents',

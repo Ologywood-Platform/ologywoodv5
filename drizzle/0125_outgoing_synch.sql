@@ -1,0 +1,1 @@
+ALTER TABLE `merch_items` ADD `isPreOrder` boolean DEFAULT false NOT NULL;

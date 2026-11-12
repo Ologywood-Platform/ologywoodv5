@@ -144,6 +144,7 @@ function normalizeLegacyMerchItem(item: any) {
     variants: [],
     trackInventory: false,
     inventoryQuantity: null,
+    isPreOrder: false,
     shippingAvailable: false,
     pickupAvailable: false,
     shippingAmountCents: 0,
@@ -311,6 +312,7 @@ export const merchRouter = router({
         variants: variantsSchema,
         trackInventory: z.boolean().default(false),
         inventoryQuantity: z.number().int().min(0).max(1_000_000).optional(),
+        isPreOrder: z.boolean().default(false),
         shippingAvailable: z.boolean().default(true),
         pickupAvailable: z.boolean().default(false),
         shippingAmountCents: z.number().int().min(0).max(1_000_000).default(0),
@@ -404,6 +406,7 @@ export const merchRouter = router({
         variants: input.sellingMethod === "ologywood" && !digitalDelivery ? input.variants : [],
         trackInventory: input.sellingMethod === "ologywood" && !digitalDelivery ? input.trackInventory : false,
         inventoryQuantity: input.sellingMethod === "ologywood" && !digitalDelivery && input.trackInventory ? input.inventoryQuantity : null,
+        isPreOrder: !digitalDelivery && input.isPreOrder,
         shippingAvailable: input.sellingMethod === "ologywood" && !digitalDelivery ? input.shippingAvailable : false,
         pickupAvailable: input.sellingMethod === "ologywood" && !digitalDelivery ? input.pickupAvailable : false,
         shippingAmountCents: input.sellingMethod === "ologywood" && !digitalDelivery && input.shippingAvailable ? input.shippingAmountCents : 0,
@@ -431,6 +434,7 @@ export const merchRouter = router({
         variants: variantsSchema.optional(),
         trackInventory: z.boolean().optional(),
         inventoryQuantity: z.number().int().min(0).max(1_000_000).optional().nullable(),
+        isPreOrder: z.boolean().optional(),
         shippingAvailable: z.boolean().optional(),
         pickupAvailable: z.boolean().optional(),
         shippingAmountCents: z.number().int().min(0).max(1_000_000).optional(),
@@ -476,6 +480,7 @@ export const merchRouter = router({
         priceInCents: input.priceInCents !== undefined ? input.priceInCents : item.priceInCents,
         trackInventory: input.trackInventory ?? item.trackInventory,
         inventoryQuantity: input.inventoryQuantity !== undefined ? input.inventoryQuantity : item.inventoryQuantity,
+        isPreOrder: input.isPreOrder ?? item.isPreOrder,
         shippingAvailable: input.shippingAvailable ?? item.shippingAvailable,
         pickupAvailable: input.pickupAvailable ?? item.pickupAvailable,
         isActive: input.isActive ?? item.isActive,
@@ -500,6 +505,7 @@ export const merchRouter = router({
       if (input.variants !== undefined) updates.variants = input.variants;
       if (input.trackInventory !== undefined) updates.trackInventory = input.trackInventory;
       if (input.inventoryQuantity !== undefined) updates.inventoryQuantity = input.inventoryQuantity;
+      if (input.isPreOrder !== undefined) updates.isPreOrder = input.isPreOrder;
       if (input.shippingAvailable !== undefined) updates.shippingAvailable = input.shippingAvailable;
       if (input.pickupAvailable !== undefined) updates.pickupAvailable = input.pickupAvailable;
       if (input.shippingAmountCents !== undefined) updates.shippingAmountCents = input.shippingAmountCents;
@@ -534,6 +540,7 @@ export const merchRouter = router({
       }
 
       if (digitalDelivery) {
+        updates.isPreOrder = false;
         updates.variants = [];
         updates.trackInventory = false;
         updates.inventoryQuantity = null;

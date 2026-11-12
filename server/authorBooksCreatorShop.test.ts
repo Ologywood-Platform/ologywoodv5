@@ -154,6 +154,22 @@ describe('Secure Creator Shop book commerce', () => {
     expect(social).not.toContain('ebookFileKey');
   });
 
+  it('supports explicit preorder status without coupling it to inventory', () => {
+    const schema = read('drizzle/schema.ts');
+    const router = read('server/routers/merch.ts');
+    const manager = read('client/src/components/MerchManager.tsx');
+    const item = read('client/src/pages/MerchItem.tsx');
+    const display = read('client/src/components/MerchDisplay.tsx');
+    expect(schema).toContain('isPreOrder: boolean("isPreOrder").default(false).notNull()');
+    expect(router).toContain('isPreOrder: z.boolean().default(false)');
+    expect(router).toContain('isPreOrder: z.boolean().optional()');
+    expect(router).toContain('updates.isPreOrder = input.isPreOrder');
+    expect(manager).toContain('Available now');
+    expect(manager).toContain('Pre-order');
+    expect(item).toContain("item.isPreOrder ? 'Pre-order' : 'Available now'");
+    expect(display).toContain("item.isPreOrder ? 'Pre-order' : 'Available now'");
+  });
+
   it('documents creator rights, non-publisher status, access, and refunds', () => {
     const terms = read('client/src/pages/TermsOfService.tsx');
     const disclaimer = read('client/src/pages/Disclaimer.tsx');

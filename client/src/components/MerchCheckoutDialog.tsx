@@ -123,6 +123,7 @@ export function MerchCheckoutDialog({ item, open, onOpenChange }: MerchCheckoutD
       <DialogContent className="sm:max-w-2xl max-h-[92vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isDigitalBook ? 'Buy' : 'Order'} {item.title}</DialogTitle>
+          {!isDigitalBook && <div className={`rounded-lg border px-3 py-2 text-sm ${item.isPreOrder ? 'border-orange-200 bg-orange-50 text-orange-900' : 'border-emerald-200 bg-emerald-50 text-emerald-900'}`}><strong>{item.isPreOrder ? 'Pre-order' : 'Available now'}:</strong> {item.isPreOrder ? 'Your order is placed before the item is ready. The creator will fulfill it according to the listing details.' : 'This item is ready for fulfillment after your order is confirmed.'}</div>}
           {isDigitalBook ? <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <span>An account is required for secure eBook access.</span>
             <Tooltip>

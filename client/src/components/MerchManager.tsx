@@ -61,6 +61,7 @@ export function MerchManager({ userType }: MerchManagerProps) {
   const [variantRows, setVariantRows] = useState<VariantRow[]>([]);
   const [trackInventory, setTrackInventory] = useState(false);
   const [inventoryQuantity, setInventoryQuantity] = useState('');
+  const [isPreOrder, setIsPreOrder] = useState(false);
   const [shippingAvailable, setShippingAvailable] = useState(true);
   const [pickupAvailable, setPickupAvailable] = useState(false);
   const [shippingDollars, setShippingDollars] = useState('0');
@@ -126,6 +127,7 @@ export function MerchManager({ userType }: MerchManagerProps) {
     setVariantRows([]);
     setTrackInventory(false);
     setInventoryQuantity('');
+    setIsPreOrder(false);
     setShippingAvailable(true);
     setPickupAvailable(false);
     setShippingDollars('0');
@@ -163,6 +165,7 @@ export function MerchManager({ userType }: MerchManagerProps) {
     })));
     setTrackInventory(!!item.trackInventory);
     setInventoryQuantity(item.inventoryQuantity != null ? String(item.inventoryQuantity) : '');
+    setIsPreOrder(!!item.isPreOrder);
     setShippingAvailable(item.shippingAvailable ?? true);
     setPickupAvailable(!!item.pickupAvailable);
     setShippingDollars(((item.shippingAmountCents || 0) / 100).toFixed(2));
@@ -258,6 +261,7 @@ export function MerchManager({ userType }: MerchManagerProps) {
       variants: sellingMethod === 'ologywood' && !digitalDelivery ? variants : [],
       trackInventory: sellingMethod === 'ologywood' && !digitalDelivery && trackInventory,
       inventoryQuantity: sellingMethod === 'ologywood' && !digitalDelivery && trackInventory ? Number(inventoryQuantity) : null,
+      isPreOrder: !digitalDelivery && isPreOrder,
       shippingAvailable: sellingMethod === 'ologywood' && !digitalDelivery && shippingAvailable,
       pickupAvailable: sellingMethod === 'ologywood' && !digitalDelivery && pickupAvailable,
       shippingAmountCents: sellingMethod === 'ologywood' && !digitalDelivery && shippingAvailable ? shippingAmountCents : 0,
@@ -398,6 +402,7 @@ export function MerchManager({ userType }: MerchManagerProps) {
               <div className="relative aspect-square bg-gray-100 dark:bg-gray-800">
                 {item.imageUrls?.[0] ? <img src={item.imageUrls[0]} alt={item.title} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><ImageIcon className="h-12 w-12 text-gray-300" /></div>}
                 {item.productCategory === 'book' && <Badge className="absolute bottom-2 left-2 bg-amber-700"><BookOpen className="h-3 w-3 mr-1" />{BOOK_FORMAT_OPTIONS.find((option) => option.value === item.bookFormat)?.label || 'Book'}</Badge>}
+                {!item.productCategory || item.productCategory === 'merch' ? <Badge className={`absolute ${item.productCategory === 'book' ? 'bottom-2 right-2' : 'bottom-2 left-2'} ${item.isPreOrder ? 'bg-orange-600' : 'bg-emerald-600'}`}>{item.isPreOrder ? 'Pre-order' : 'Available now'}</Badge> : null}
                 <Badge className={`absolute top-2 left-2 ${item.sellingMethod === 'ologywood' ? 'bg-purple-700' : 'bg-slate-700'}`}>{item.sellingMethod === 'ologywood' ? 'OlogyWood checkout' : 'External store'}</Badge>
                 {!item.isActive && <Badge className="absolute top-2 right-2 bg-gray-800">Hidden</Badge>}
               </div>
@@ -499,6 +504,7 @@ export function MerchManager({ userType }: MerchManagerProps) {
                       <label className="flex items-center gap-3 text-sm"><input type="checkbox" checked={pickupAvailable} onChange={(event) => setPickupAvailable(event.target.checked)} className="h-4 w-4" />Offer local pickup or in-person delivery</label>
                       <label className="flex items-center gap-3 text-sm"><input type="checkbox" checked={trackInventory} onChange={(event) => setTrackInventory(event.target.checked)} className="h-4 w-4" />Track available quantity</label>
                       {trackInventory && <div className="space-y-2 max-w-xs"><Label htmlFor="inventory">Quantity available</Label><Input id="inventory" value={inventoryQuantity} onChange={(event) => setInventoryQuantity(event.target.value)} type="number" min="0" /></div>}
+                      {!(productCategory === 'book' && isEbook(bookFormat)) && <div className="space-y-2"><Label>Availability</Label><div className="grid sm:grid-cols-2 gap-3"><button type="button" onClick={() => setIsPreOrder(false)} className={`rounded-lg border p-3 text-left ${!isPreOrder ? 'border-emerald-600 bg-emerald-50 ring-1 ring-emerald-600' : 'hover:border-emerald-300'}`}><p className="font-medium text-sm">Available now</p><p className="text-xs text-muted-foreground mt-1">Ready to ship or fulfill after purchase.</p></button><button type="button" onClick={() => setIsPreOrder(true)} className={`rounded-lg border p-3 text-left ${isPreOrder ? 'border-orange-600 bg-orange-50 ring-1 ring-orange-600' : 'hover:border-orange-300'}`}><p className="font-medium text-sm">Pre-order</p><p className="text-xs text-muted-foreground mt-1">Accept orders before the item is ready.</p></button></div></div>}
                     </div>
                   </>
                 )}

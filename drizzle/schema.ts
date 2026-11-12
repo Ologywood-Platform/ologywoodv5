@@ -1834,6 +1834,7 @@ export const merchItems = mysqlTable("merch_items", {
   variants: json("variants").$type<Array<{ name: string; options: string[] }>>().default([]),
   trackInventory: boolean("trackInventory").default(false).notNull(),
   inventoryQuantity: int("inventoryQuantity"),
+  isPreOrder: boolean("isPreOrder").default(false).notNull(),
   shippingAvailable: boolean("shippingAvailable").default(true).notNull(),
   pickupAvailable: boolean("pickupAvailable").default(false).notNull(),
   shippingAmountCents: int("shippingAmountCents").default(0).notNull(),
