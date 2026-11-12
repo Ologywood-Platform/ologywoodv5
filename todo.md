@@ -1,9 +1,6 @@
 
-## PREORDER SHOPPING EXPERIENCE — 2026-11-12
-
-- [x] Confirmed native physical merch supports guest checkout without an account, quantity selection, variant/size selection, and shipping or pickup; eBooks still correctly require an account for secure access.
-- [x] Added a required preorder acknowledgement: buyers must confirm the estimated fulfillment date may change before payment.
-- [x] Added an optional buyer email preference for fulfillment-date changes, available to guests and signed-in buyers.
-- [x] Stored the expected preorder date and buyer preferences on the order, displayed the date in buyer and creator order management, and added creator date updates through the existing guarded order-update flow.
-- [x] Buyer status emails include the expected date and “estimate may change” language; date-only notifications are sent only when the buyer opted in, while normal status notifications remain unchanged.
-- [x] Added additive migration `drizzle/0127_burly_stick.sql` and compatibility repair for legacy `merch_orders` tables. Focused merch/schema/commerce/security tests passed 36/36, TypeScript passed, production build passed, and `git diff --check` is clean. No orders, payments, prices, inventory, or customer records were changed.
+## MOBILE HOMEPAGE ASSETS AND PULL-TO-REFRESH — 2026-11-12
+- [x] Replaced the three fragile category-card storage URLs with bundled local WebP assets for Music Artists, Athletes and Filmmakers; the existing Venues & Places illustration remains local SVG/CSS.
+- [x] Added a guarded pull-down refresh gesture to the homepage: it activates only at the top of the page, ignores horizontal gestures, preserves normal vertical scrolling, refreshes artist and venue discovery data together, and shows accessible Pull / Release / Refreshing feedback.
+- [x] Validation passed: 21 focused tests, TypeScript, and production build. Existing large-chunk warnings remain only.
+- [ ] Owner publication remains pending.

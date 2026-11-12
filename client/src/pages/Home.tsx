@@ -23,10 +23,11 @@ import {
   Search,
   ChevronDown,
   Sparkles,
+  RefreshCw,
 } from "lucide-react";
 import { ArtistSearchDropdown } from "@/components/ArtistSearchDropdown";
 import { trpc } from "@/lib/trpc";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, type TouchEvent } from "react";
 import { Link } from "wouter";
 import { QuickSignupModal } from "@/components/QuickSignupModal";
 import SuggestedFollows from "@/components/SuggestedFollows";
@@ -49,19 +50,19 @@ const categories = [
     type: "artist",
     title: "Music Artists",
     description: "Bands · Singers · Producers",
-    image: "/manus-storage/ologywood-category-musician_5487c223.webp",
+    image: "/images/ologywood-category-musician.webp",
   },
   {
     type: "athlete",
     title: "Athletes",
     description: "Appearances · Sports · NIL",
-    image: "/manus-storage/ologywood-category-athlete_95ffa575.webp",
+    image: "/images/ologywood-category-athlete.webp",
   },
   {
     type: "filmmaker",
     title: "Filmmakers",
     description: "Directors · Producers · Storytellers",
-    image: "/manus-storage/ologywood-category-filmmaker_2f0c6c93.webp",
+    image: "/images/ologywood-category-filmmaker.webp",
   },
 ];
 const creatorTools = [
@@ -142,6 +143,9 @@ export default function Home() {
     "signup"
   );
   const [talentType, setTalentType] = useState("all");
+  const [pullDistance, setPullDistance] = useState(0);
+  const [isPullRefreshing, setIsPullRefreshing] = useState(false);
+  const pullStart = useRef<{ x: number; y: number } | null>(null);
   // Preserve the same public discovery sources and eligibility rules.
   const {
     data: artists,
@@ -207,6 +211,39 @@ export default function Home() {
       });
   };
 
+  const handlePullStart = (event: TouchEvent<HTMLElement>) => {
+    if (window.scrollY > 0 || isPullRefreshing) return;
+    const touch = event.touches[0];
+    pullStart.current = touch ? { x: touch.clientX, y: touch.clientY } : null;
+  };
+
+  const handlePullMove = (event: TouchEvent<HTMLElement>) => {
+    const start = pullStart.current;
+    const touch = event.touches[0];
+    if (!start || !touch || window.scrollY > 0 || isPullRefreshing) return;
+    const deltaX = touch.clientX - start.x;
+    const deltaY = touch.clientY - start.y;
+    if (deltaY <= 0 || Math.abs(deltaX) > deltaY) return;
+    setPullDistance(Math.min(88, deltaY * 0.45));
+  };
+
+  const handlePullEnd = async () => {
+    const shouldRefresh = pullDistance >= 58;
+    pullStart.current = null;
+    if (!shouldRefresh) {
+      setPullDistance(0);
+      return;
+    }
+    setIsPullRefreshing(true);
+    setPullDistance(58);
+    try {
+      await Promise.all([retryArtists(), retryVenues()]);
+    } finally {
+      setIsPullRefreshing(false);
+      setPullDistance(0);
+    }
+  };
+
   return (
     <div className="home-redesign dark min-h-screen flex flex-col">
       <JsonLd
@@ -217,6 +254,19 @@ export default function Home() {
         id="homepage"
       />
       <SiteHeader largeLogo />
+      <div
+        className="fixed left-1/2 top-[calc(env(safe-area-inset-top,0px)+4.25rem)] z-40 -translate-x-1/2 rounded-full border border-purple-300/30 bg-slate-950/90 px-3 py-1.5 text-xs text-purple-100 shadow-lg transition-opacity"
+        style={{
+          opacity: pullDistance > 0 || isPullRefreshing ? 1 : 0,
+          transform: `translate(-50%, ${Math.min(24, pullDistance * 0.25)}px)`,
+          pointerEvents: "none",
+        }}
+        role="status"
+        aria-live="polite"
+      >
+        <RefreshCw className={`mr-1 inline h-3 w-3 ${isPullRefreshing ? "animate-spin" : ""}`} />
+        {isPullRefreshing ? "Refreshing…" : pullDistance >= 58 ? "Release to refresh" : "Pull to refresh"}
+      </div>
       {oauthError && (
         <div className="home-auth-error" role="alert">
           <div className="home-container flex flex-wrap items-center gap-3">
@@ -248,7 +298,13 @@ export default function Home() {
           </div>
         </div>
       )}
-      <main id="home-main">
+      <main
+        id="home-main"
+        onTouchStart={handlePullStart}
+        onTouchMove={handlePullMove}
+        onTouchEnd={() => void handlePullEnd()}
+        style={{ touchAction: "pan-y" }}
+      >
         <section className="home-hero" aria-labelledby="home-headline">
           <img
             src={heroImage}
