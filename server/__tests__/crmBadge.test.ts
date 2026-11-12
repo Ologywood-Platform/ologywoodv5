@@ -77,12 +77,15 @@ describe('CRM Badge Feature', () => {
   it('uses a bundled badge asset that is available to the published app', () => {
     const component = readFileSync(resolve(process.cwd(), 'client/src/components/CrmBadge.tsx'), 'utf8');
     const editor = readFileSync(resolve(process.cwd(), 'client/src/pages/ArtistEditProfile.tsx'), 'utf8');
+    const browse = readFileSync(resolve(process.cwd(), 'client/src/pages/Browse.tsx'), 'utf8');
     const asset = resolve(process.cwd(), 'client/public/images/creators-rights-movement-badge.png');
 
     expect(existsSync(asset)).toBe(true);
     expect(component).toContain('/images/creators-rights-movement-badge.png');
     expect(editor).toContain('/images/creators-rights-movement-badge.png');
+    expect(browse).toContain('/images/creators-rights-movement-badge.png');
     expect(component).not.toContain('/manus-storage/crmbadge_optimized_2553962d.png');
     expect(editor).not.toContain('/manus-storage/crmbadge_optimized_2553962d.png');
+    expect(browse).not.toContain('/manus-storage/crmbadge_optimized_2553962d.png');
   });
 });

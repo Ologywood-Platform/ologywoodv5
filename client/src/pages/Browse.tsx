@@ -412,7 +412,7 @@ export default function Browse() {
                     : 'bg-background border-border text-muted-foreground hover:bg-muted'
                 }`}
               >
-                <img src="/manus-storage/crmbadge_optimized_2553962d.png" alt="" className="w-4 h-4 object-contain" />
+                <img src="/images/creators-rights-movement-badge.png" alt="" className="w-4 h-4 object-contain" />
                 CRM Supporters
               </button>
             </div>
