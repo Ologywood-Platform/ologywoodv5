@@ -1867,6 +1867,9 @@ export const merchOrders = mysqlTable("merch_orders", {
   buyerName: varchar("buyerName", { length: 255 }).notNull(),
   buyerPhone: varchar("buyerPhone", { length: 30 }),
   fulfillmentMethod: mysqlEnum("fulfillmentMethod", ["shipping", "pickup", "digital"]).notNull(),
+  expectedFulfillmentDate: varchar("expectedFulfillmentDate", { length: 10 }),
+  preorderDateAcknowledged: boolean("preorderDateAcknowledged").default(false).notNull(),
+  fulfillmentDateUpdatesOptIn: boolean("fulfillmentDateUpdatesOptIn").default(false).notNull(),
   shippingAddress: json("shippingAddress").$type<{
     line1: string;
     line2?: string;

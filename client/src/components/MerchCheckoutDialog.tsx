@@ -39,6 +39,8 @@ export function MerchCheckoutDialog({ item, open, onOpenChange }: MerchCheckoutD
   const [country, setCountry] = useState('United States');
   const [customerNote, setCustomerNote] = useState('');
   const [creatorUpdatesOptIn, setCreatorUpdatesOptIn] = useState(false);
+  const [preorderDateAcknowledged, setPreorderDateAcknowledged] = useState(false);
+  const [fulfillmentDateUpdatesOptIn, setFulfillmentDateUpdatesOptIn] = useState(false);
 
   const variants = (item?.variants || []) as Array<{ name: string; options: string[] }>;
   const isDigitalBook = item?.productCategory === 'book' && item?.bookFormat === 'ebook';
@@ -65,6 +67,8 @@ export function MerchCheckoutDialog({ item, open, onOpenChange }: MerchCheckoutD
     setCountry('United States');
     setCustomerNote('');
     setCreatorUpdatesOptIn(false);
+    setPreorderDateAcknowledged(false);
+    setFulfillmentDateUpdatesOptIn(false);
   }, [open, item?.id, user?.name, user?.email]);
 
   const missingVariant = useMemo(
@@ -101,6 +105,10 @@ export function MerchCheckoutDialog({ item, open, onOpenChange }: MerchCheckoutD
       toast.error('Complete the shipping address.');
       return;
     }
+    if (!isDigitalBook && item.isPreOrder && !preorderDateAcknowledged) {
+      toast.error('Acknowledge that the estimated preorder date may change before continuing.');
+      return;
+    }
 
     checkoutMutation.mutate({
       merchItemId: item.id,
@@ -120,6 +128,8 @@ export function MerchCheckoutDialog({ item, open, onOpenChange }: MerchCheckoutD
       } : undefined,
       customerNote: customerNote.trim() || undefined,
       fanEmailOptIn: canRequestCreatorUpdates && creatorUpdatesOptIn,
+      preorderDateAcknowledged,
+      fulfillmentDateUpdatesOptIn: !isDigitalBook && item.isPreOrder && fulfillmentDateUpdatesOptIn,
     });
   }
 
@@ -212,6 +222,17 @@ export function MerchCheckoutDialog({ item, open, onOpenChange }: MerchCheckoutD
           )}
 
           <div className="space-y-2"><Label htmlFor="customer-note">Note for the creator (optional)</Label><Textarea id="customer-note" value={customerNote} onChange={(event) => setCustomerNote(event.target.value)} maxLength={500} placeholder="Special instructions or a question about the order..." /></div>
+
+          {!isDigitalBook && item.isPreOrder && <div className="space-y-3 rounded-lg border border-orange-200 bg-orange-50 p-4 text-sm text-orange-950">
+            <label className="flex items-start gap-2">
+              <input type="checkbox" checked={preorderDateAcknowledged} onChange={(event) => setPreorderDateAcknowledged(event.target.checked)} className="mt-0.5 h-4 w-4 rounded border-input accent-primary" />
+              <span>I understand the estimated fulfillment date is an estimate and may change.</span>
+            </label>
+            <label className="flex items-start gap-2 text-orange-900/80">
+              <input type="checkbox" checked={fulfillmentDateUpdatesOptIn} onChange={(event) => setFulfillmentDateUpdatesOptIn(event.target.checked)} className="mt-0.5 h-4 w-4 rounded border-input accent-primary" />
+              <span>Email me if the creator updates this preorder’s estimated fulfillment date.</span>
+            </label>
+          </div>}
 
           {canRequestCreatorUpdates ? <label className="flex items-start gap-2 text-sm text-muted-foreground">
             <input

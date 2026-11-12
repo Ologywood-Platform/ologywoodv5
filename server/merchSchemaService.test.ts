@@ -51,7 +51,7 @@ describe('merch runtime schema repair', () => {
 
     await ensureMerchItemsSchema({ execute });
 
-    expect(execute).toHaveBeenCalledTimes(1 + hybridColumns.length + 6);
+    expect(execute).toHaveBeenCalledTimes(1 + hybridColumns.length + 12);
   });
 
   it('does not run ALTER statements when the hybrid schema is already complete', async () => {
@@ -68,7 +68,7 @@ describe('merch runtime schema repair', () => {
     await ensureMerchItemsSchema({ execute });
     await ensureMerchItemsSchema({ execute });
 
-    expect(execute).toHaveBeenCalledTimes(7);
+    expect(execute).toHaveBeenCalledTimes(13);
   });
 
   it('makes a legacy required externalUrl column optional', async () => {
@@ -85,6 +85,6 @@ describe('merch runtime schema repair', () => {
 
     await ensureMerchItemsSchema({ execute });
 
-    expect(execute).toHaveBeenCalledTimes(8);
+    expect(execute).toHaveBeenCalledTimes(14);
   });
 });

@@ -50,6 +50,12 @@ const orderStatusSchema = z.enum([
   'cancelled',
 ]);
 
+const expectedFulfillmentDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine((value) => {
+  const [year, month, day] = value.split('-').map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+}, 'Expected fulfillment date must be a valid calendar date.');
+
 const sellerProcedure = protectedProcedure.use(async ({ ctx, next }) => {
   if (ctx.user.role !== 'artist' && ctx.user.role !== 'venue') {
     throw new TRPCError({ code: 'FORBIDDEN', message: 'Seller access required' });
@@ -112,6 +118,8 @@ export const merchOrdersRouter = router({
       shippingAddress: addressSchema.optional(),
       customerNote: z.string().trim().max(500).optional(),
       fanEmailOptIn: z.boolean().default(false),
+      preorderDateAcknowledged: z.boolean().default(false),
+      fulfillmentDateUpdatesOptIn: z.boolean().default(false),
     }).strict())
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
@@ -135,6 +143,9 @@ export const merchOrdersRouter = router({
       }
       if (digitalDelivery && !ctx.user) {
         throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Sign in before purchasing an eBook so your secure access can be attached to your account.' });
+      }
+      if (!digitalDelivery && item.isPreOrder && !input.preorderDateAcknowledged) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Please acknowledge that the preorder estimate may change before continuing.' });
       }
       if (ctx.user?.id === item.userId) {
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'You cannot purchase your own product.' });
@@ -190,6 +201,9 @@ export const merchOrdersRouter = router({
           buyerName: input.buyerName.trim(),
           buyerPhone: input.buyerPhone?.trim() || null,
           fulfillmentMethod: digitalDelivery ? 'digital' : input.fulfillmentMethod,
+          expectedFulfillmentDate: !digitalDelivery && item.isPreOrder ? item.expectedFulfillmentDate || null : null,
+          preorderDateAcknowledged: !digitalDelivery && item.isPreOrder && input.preorderDateAcknowledged,
+          fulfillmentDateUpdatesOptIn: !digitalDelivery && item.isPreOrder && input.fulfillmentDateUpdatesOptIn,
           shippingAddress: !digitalDelivery && input.fulfillmentMethod === 'shipping' ? input.shippingAddress : null,
           paymentStatus: 'pending',
           status: 'new',
@@ -399,6 +413,7 @@ export const merchOrdersRouter = router({
     .input(z.object({
       orderId: z.number().int().safe().positive(),
       status: orderStatusSchema,
+      expectedFulfillmentDate: expectedFulfillmentDateSchema.optional().nullable(),
       trackingNumber: z.string().trim().max(255).optional(),
       trackingCarrier: z.string().trim().max(100).optional(),
       trackingUrl: z.string().url().max(2048).optional().or(z.literal('')),
@@ -414,8 +429,12 @@ export const merchOrdersRouter = router({
       if (order.paymentStatus !== 'paid') {
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Only paid orders can be fulfilled.' });
       }
-      if (!canTransitionMerchOrder(order.status, input.status, order.fulfillmentMethod)) {
+      const dateChanged = input.expectedFulfillmentDate !== undefined && input.expectedFulfillmentDate !== order.expectedFulfillmentDate;
+      if (input.status !== order.status && !canTransitionMerchOrder(order.status, input.status, order.fulfillmentMethod)) {
         throw new TRPCError({ code: 'BAD_REQUEST', message: `Order cannot move from ${order.status} to ${input.status}.` });
+      }
+      if (input.status === order.status && !dateChanged) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Choose a new status or expected fulfillment date.' });
       }
       if (input.status === 'ready_for_pickup' && !input.pickupNotes?.trim() && !order.pickupNotes) {
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Add pickup details so the buyer knows where and when to collect the order.' });
@@ -423,6 +442,7 @@ export const merchOrdersRouter = router({
 
       await db.update(merchOrders).set({
         status: input.status,
+        expectedFulfillmentDate: input.expectedFulfillmentDate === undefined ? order.expectedFulfillmentDate : input.expectedFulfillmentDate,
         trackingNumber: input.trackingNumber?.trim() || order.trackingNumber,
         trackingCarrier: input.trackingCarrier?.trim() || order.trackingCarrier,
         trackingUrl: input.trackingUrl?.trim() || order.trackingUrl,
@@ -431,20 +451,24 @@ export const merchOrdersRouter = router({
         fulfilledAt: input.status === 'completed' ? new Date() : order.fulfilledAt,
       }).where(eq(merchOrders.id, order.id));
 
-      try {
-        await email.sendMerchOrderStatusEmail({
-          buyerEmail: order.buyerEmail,
-          buyerName: order.buyerName,
-          orderNumber: order.orderNumber,
-          status: input.status,
-          trackingNumber: input.trackingNumber?.trim() || order.trackingNumber,
-          trackingCarrier: input.trackingCarrier?.trim() || order.trackingCarrier,
-          trackingUrl: input.trackingUrl?.trim() || order.trackingUrl,
-          pickupNotes: input.pickupNotes?.trim() || order.pickupNotes,
-          fulfillmentNotes: input.fulfillmentNotes?.trim() || order.fulfillmentNotes,
-        });
-      } catch (error) {
-        console.error('[Merch Orders] Failed to send status email:', { kind: error instanceof Error ? error.name : 'UnknownError' });
+      if (input.status !== order.status || (dateChanged && order.fulfillmentDateUpdatesOptIn)) {
+        try {
+          await email.sendMerchOrderStatusEmail({
+            buyerEmail: order.buyerEmail,
+            buyerName: order.buyerName,
+            orderNumber: order.orderNumber,
+            status: input.status,
+            trackingNumber: input.trackingNumber?.trim() || order.trackingNumber,
+            trackingCarrier: input.trackingCarrier?.trim() || order.trackingCarrier,
+            trackingUrl: input.trackingUrl?.trim() || order.trackingUrl,
+            pickupNotes: input.pickupNotes?.trim() || order.pickupNotes,
+            fulfillmentNotes: input.fulfillmentNotes?.trim() || order.fulfillmentNotes,
+            expectedFulfillmentDate: input.expectedFulfillmentDate === undefined ? order.expectedFulfillmentDate : input.expectedFulfillmentDate,
+            dateUpdate: dateChanged && order.fulfillmentDateUpdatesOptIn,
+          });
+        } catch (error) {
+          console.error('[Merch Orders] Failed to send status email:', { kind: error instanceof Error ? error.name : 'UnknownError' });
+        }
       }
 
       return { success: true };

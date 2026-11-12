@@ -1,9 +1,9 @@
 
-## EXPECTED PREORDER FULFILLMENT DATE — 2026-11-12
+## PREORDER SHOPPING EXPERIENCE — 2026-11-12
 
-- [x] Added optional `expectedFulfillmentDate` (`YYYY-MM-DD`) to merch items with strict calendar-date validation.
-- [x] Added a creator editor control shown only for physical preorders, with explanatory copy that the date is an estimate and does not automatically change order status or send notifications.
-- [x] Displayed the date on public Creator Shop cards, product detail pages, and the checkout dialog before payment.
-- [x] Ensured the value is only persisted for native physical preorders and is cleared when an item becomes Available now, external-only, or an eBook.
-- [x] Generated and reviewed additive migration `drizzle/0126_reflective_changeling.sql`, then applied it to the active development database. Existing rows remain unchanged and null.
-- [x] Merch schema, shop, commerce, and security regressions passed 23/23; TypeScript passed; production build passed; preview health and LSP checks are clean. No orders, prices, inventory, payments, or fulfillment statuses were changed.
+- [x] Confirmed native physical merch supports guest checkout without an account, quantity selection, variant/size selection, and shipping or pickup; eBooks still correctly require an account for secure access.
+- [x] Added a required preorder acknowledgement: buyers must confirm the estimated fulfillment date may change before payment.
+- [x] Added an optional buyer email preference for fulfillment-date changes, available to guests and signed-in buyers.
+- [x] Stored the expected preorder date and buyer preferences on the order, displayed the date in buyer and creator order management, and added creator date updates through the existing guarded order-update flow.
+- [x] Buyer status emails include the expected date and “estimate may change” language; date-only notifications are sent only when the buyer opted in, while normal status notifications remain unchanged.
+- [x] Added additive migration `drizzle/0127_burly_stick.sql` and compatibility repair for legacy `merch_orders` tables. Focused merch/schema/commerce/security tests passed 36/36, TypeScript passed, production build passed, and `git diff --check` is clean. No orders, payments, prices, inventory, or customer records were changed.

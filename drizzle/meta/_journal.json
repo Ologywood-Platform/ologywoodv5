@@ -897,6 +897,13 @@
       "when": 1794499856749,
       "tag": "0126_reflective_changeling",
       "breakpoints": true
+    },
+    {
+      "idx": 127,
+      "version": "5",
+      "when": 1794500348635,
+      "tag": "0127_burly_stick",
+      "breakpoints": true
     }
   ]
 }

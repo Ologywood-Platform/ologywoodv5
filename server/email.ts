@@ -2321,6 +2321,8 @@ export async function sendMerchOrderStatusEmail(params: {
   trackingUrl?: string | null;
   pickupNotes?: string | null;
   fulfillmentNotes?: string | null;
+  expectedFulfillmentDate?: string | null;
+  dateUpdate?: boolean;
 }) {
   const labels: Record<string, string> = {
     confirmed: 'Order confirmed',
@@ -2331,10 +2333,11 @@ export async function sendMerchOrderStatusEmail(params: {
     cancelled: 'Your order was cancelled',
     refunded: 'Your order was refunded',
   };
-  const statusLabel = labels[params.status] || params.status;
+  const statusLabel = params.dateUpdate ? 'Estimated fulfillment date updated' : (labels[params.status] || params.status);
   const tracking = params.trackingNumber ? `<div style="background:#eff6ff;padding:16px;border-radius:8px;margin:16px 0;"><p><strong>${escapeMerchEmailHtml(params.trackingCarrier || 'Tracking')}:</strong> ${escapeMerchEmailHtml(params.trackingNumber)}</p>${params.trackingUrl ? `<a href="${escapeMerchEmailHtml(params.trackingUrl)}" style="color:#1d4ed8;">Track shipment</a>` : ''}</div>` : '';
   const pickup = params.pickupNotes ? `<div style="background:#fffbeb;padding:16px;border-radius:8px;margin:16px 0;"><strong>Pickup details:</strong><br>${escapeMerchEmailHtml(params.pickupNotes)}</div>` : '';
   const note = params.fulfillmentNotes ? `<p><strong>Creator message:</strong> ${escapeMerchEmailHtml(params.fulfillmentNotes)}</p>` : '';
+  const expectedDate = params.expectedFulfillmentDate ? `<div style="background:#fff7ed;padding:16px;border-radius:8px;margin:16px 0;"><strong>Expected fulfillment date:</strong> ${escapeMerchEmailHtml(params.expectedFulfillmentDate)}<p style="margin:6px 0 0;color:#9a3412;font-size:13px;">This is an estimate and may change.</p></div>` : '';
 
   return sendEmail({
     to: params.buyerEmail,
@@ -2343,7 +2346,7 @@ export async function sendMerchOrderStatusEmail(params: {
       <h1 style="color:#6d28d9;">${escapeMerchEmailHtml(statusLabel)}</h1>
       <p>Hi ${escapeMerchEmailHtml(params.buyerName || 'there')},</p>
       <p>Order <strong>${escapeMerchEmailHtml(params.orderNumber)}</strong> has been updated.</p>
-      ${tracking}${pickup}${note}
+      ${tracking}${pickup}${expectedDate}${note}
       ${params.status === 'cancelled' ? '<p style="color:#92400e;font-size:13px;">A cancellation does not always mean the payment has been refunded. You will receive a separate update if Stripe processes a refund.</p>' : ''}
       <a href="${ENV.baseUrl}/merch-orders" style="display:inline-block;background:#7c3aed;color:white;padding:12px 22px;border-radius:6px;text-decoration:none;margin-top:12px;">View order</a>
       ${merchEmailFooter(params.buyerEmail)}

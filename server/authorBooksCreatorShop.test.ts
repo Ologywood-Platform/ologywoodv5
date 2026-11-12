@@ -177,6 +177,31 @@ describe('Secure Creator Shop book commerce', () => {
     expect(display).toContain('Expected fulfillment:');
   });
 
+  it('keeps preorder acknowledgement and date-change notifications explicit', () => {
+    const schema = read('drizzle/schema.ts');
+    const orders = read('server/routers/merchOrders.ts');
+    const checkout = read('client/src/components/MerchCheckoutDialog.tsx');
+    const orderManagement = read('client/src/pages/MerchOrders.tsx');
+    const email = read('server/email.ts');
+
+    expect(schema).toContain('expectedFulfillmentDate: varchar("expectedFulfillmentDate", { length: 10 })');
+    expect(schema).toContain('preorderDateAcknowledged: boolean("preorderDateAcknowledged").default(false).notNull()');
+    expect(schema).toContain('fulfillmentDateUpdatesOptIn: boolean("fulfillmentDateUpdatesOptIn").default(false).notNull()');
+    expect(orders).toContain('preorderDateAcknowledged: z.boolean().default(false)');
+    expect(orders).toContain('fulfillmentDateUpdatesOptIn: z.boolean().default(false)');
+    expect(orders).toContain('Please acknowledge that the preorder estimate may change');
+    expect(orders).toContain('expectedFulfillmentDate: expectedFulfillmentDateSchema.optional().nullable()');
+    expect(orders).toContain('order.fulfillmentDateUpdatesOptIn');
+    expect(checkout).toContain('I understand the estimated fulfillment date is an estimate and may change.');
+    expect(checkout).toContain('Email me if the creator updates this preorder’s estimated fulfillment date.');
+    expect(checkout).toContain('No account required. Enter your email for your receipt and order updates.');
+    expect(orderManagement).toContain('Expected preorder fulfillment:');
+    expect(orderManagement).toContain('expected-fulfillment-date');
+    expect(email).toContain('This is an estimate and may change.');
+    expect(email).toContain('Estimated fulfillment date updated');
+    expect(orders).toContain('dateUpdate: dateChanged && order.fulfillmentDateUpdatesOptIn');
+  });
+
   it('documents creator rights, non-publisher status, access, and refunds', () => {
     const terms = read('client/src/pages/TermsOfService.tsx');
     const disclaimer = read('client/src/pages/Disclaimer.tsx');

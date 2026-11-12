@@ -109,7 +109,7 @@ function BuyerOrdersPanel() {
         <Card key={order.id}>
           <CardContent className="p-5">
             <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-              <div><div className="flex flex-wrap items-center gap-2"><p className="font-semibold">{order.orderNumber}</p><Badge className={statusStyles[order.status]}>{statusLabels[order.status] || order.status}</Badge><Badge variant="outline">{order.fulfillmentMethod === 'shipping' ? 'Shipping' : order.fulfillmentMethod === 'digital' ? 'Digital access' : 'Pickup'}</Badge></div><p className="text-xs text-muted-foreground mt-1">Ordered {new Date(order.createdAt).toLocaleDateString()}</p></div>
+              <div><div className="flex flex-wrap items-center gap-2"><p className="font-semibold">{order.orderNumber}</p><Badge className={statusStyles[order.status]}>{statusLabels[order.status] || order.status}</Badge><Badge variant="outline">{order.fulfillmentMethod === 'shipping' ? 'Shipping' : order.fulfillmentMethod === 'digital' ? 'Digital access' : 'Pickup'}</Badge></div><p className="text-xs text-muted-foreground mt-1">Ordered {new Date(order.createdAt).toLocaleDateString()}</p>{order.expectedFulfillmentDate && <p className="text-xs font-medium text-orange-700 mt-1">Expected preorder fulfillment: {new Date(`${order.expectedFulfillmentDate}T12:00:00Z`).toLocaleDateString()} <span className="font-normal">(estimate)</span></p>}</div>
               <p className="font-bold text-purple-700">${(order.totalCents / 100).toFixed(2)}</p>
             </div>
             <div className="mt-4 border-t pt-4"><OrderItems items={order.items} /></div>
@@ -131,6 +131,7 @@ function SellerOrdersPanel() {
   const [trackingUrl, setTrackingUrl] = useState('');
   const [pickupNotes, setPickupNotes] = useState('');
   const [fulfillmentNotes, setFulfillmentNotes] = useState('');
+  const [expectedFulfillmentDate, setExpectedFulfillmentDate] = useState('');
   const [filter, setFilter] = useState<'active' | 'completed' | 'all'>('active');
 
   const { data: orders, isLoading, refetch } = trpc.merchOrders.sellerOrders.useQuery();
@@ -167,6 +168,7 @@ function SellerOrdersPanel() {
     setTrackingUrl(order.trackingUrl || '');
     setPickupNotes(order.pickupNotes || '');
     setFulfillmentNotes(order.fulfillmentNotes || '');
+    setExpectedFulfillmentDate(order.expectedFulfillmentDate || '');
   }
 
   function saveUpdate() {
@@ -174,6 +176,7 @@ function SellerOrdersPanel() {
     updateMutation.mutate({
       orderId: editingOrder.id,
       status: nextStatus as any,
+      expectedFulfillmentDate: expectedFulfillmentDate || null,
       trackingNumber: trackingNumber.trim() || undefined,
       trackingCarrier: trackingCarrier.trim() || undefined,
       trackingUrl: trackingUrl.trim(),
@@ -199,7 +202,7 @@ function SellerOrdersPanel() {
         <Card key={order.id}>
           <CardContent className="p-5">
             <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
-              <div className="space-y-2"><div className="flex flex-wrap items-center gap-2"><p className="font-semibold">{order.orderNumber}</p><Badge className={statusStyles[order.status]}>{statusLabels[order.status] || order.status}</Badge><Badge variant="outline">{order.fulfillmentMethod === 'shipping' ? 'Shipping' : order.fulfillmentMethod === 'digital' ? 'Digital access delivered' : 'Pickup'}</Badge></div><p className="text-xs text-muted-foreground">Paid {order.paidAt ? new Date(order.paidAt).toLocaleString() : new Date(order.createdAt).toLocaleString()}</p></div>
+              <div className="space-y-2"><div className="flex flex-wrap items-center gap-2"><p className="font-semibold">{order.orderNumber}</p><Badge className={statusStyles[order.status]}>{statusLabels[order.status] || order.status}</Badge><Badge variant="outline">{order.fulfillmentMethod === 'shipping' ? 'Shipping' : order.fulfillmentMethod === 'digital' ? 'Digital access delivered' : 'Pickup'}</Badge></div><p className="text-xs text-muted-foreground">Paid {order.paidAt ? new Date(order.paidAt).toLocaleString() : new Date(order.createdAt).toLocaleString()}</p>{order.expectedFulfillmentDate && <p className="text-xs font-medium text-orange-700">Expected preorder fulfillment: {new Date(`${order.expectedFulfillmentDate}T12:00:00Z`).toLocaleDateString()}</p>}</div>
               <div className="flex items-center gap-3"><p className="font-bold text-purple-700">${(order.totalCents / 100).toFixed(2)}</p>{(nextStatusOptions[order.status]?.length || 0) > 0 && <Button size="sm" onClick={() => openUpdate(order)}>Update order</Button>}</div>
             </div>
 
@@ -223,6 +226,7 @@ function SellerOrdersPanel() {
             <div className="space-y-2"><Label htmlFor="order-status">Next status</Label><select id="order-status" value={nextStatus} onChange={(event) => setNextStatus(event.target.value)} className="w-full h-10 rounded-md border bg-background px-3 text-sm">{(nextStatusOptions[editingOrder?.status] || []).filter((option) => option.value !== 'shipped' || editingOrder?.fulfillmentMethod === 'shipping').filter((option) => option.value !== 'ready_for_pickup' || editingOrder?.fulfillmentMethod === 'pickup').map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></div>
             {nextStatus === 'shipped' && <div className="grid sm:grid-cols-2 gap-3"><div className="space-y-2"><Label htmlFor="carrier">Carrier</Label><Input id="carrier" value={trackingCarrier} onChange={(event) => setTrackingCarrier(event.target.value)} placeholder="USPS, UPS, FedEx..." /></div><div className="space-y-2"><Label htmlFor="tracking-number">Tracking number</Label><Input id="tracking-number" value={trackingNumber} onChange={(event) => setTrackingNumber(event.target.value)} /></div><div className="space-y-2 sm:col-span-2"><Label htmlFor="tracking-url">Tracking link (optional)</Label><Input id="tracking-url" value={trackingUrl} onChange={(event) => setTrackingUrl(event.target.value)} type="url" placeholder="https://..." /></div></div>}
             {nextStatus === 'ready_for_pickup' && <div className="space-y-2"><Label htmlFor="pickup-notes">Pickup details *</Label><Textarea id="pickup-notes" value={pickupNotes} onChange={(event) => setPickupNotes(event.target.value)} placeholder="Where and when the buyer can pick up the item..." /></div>}
+            {editingOrder?.expectedFulfillmentDate && <div className="space-y-2"><Label htmlFor="expected-fulfillment-date">Expected preorder fulfillment date</Label><Input id="expected-fulfillment-date" type="date" value={expectedFulfillmentDate} onChange={(event) => setExpectedFulfillmentDate(event.target.value)} /><p className="text-xs text-muted-foreground">The buyer sees this as an estimate. If they opted in, they receive an email when you change it.</p></div>}
             <div className="space-y-2"><Label htmlFor="fulfillment-notes">Message to buyer (optional)</Label><Textarea id="fulfillment-notes" value={fulfillmentNotes} onChange={(event) => setFulfillmentNotes(event.target.value)} placeholder="A short update about the order..." maxLength={1000} /></div>
             {nextStatus === 'cancelled' && <div className="rounded-md bg-amber-50 border border-amber-200 p-3 text-xs text-amber-900">Cancelling the fulfillment record does not automatically refund the Stripe payment. Process any refund in Stripe; OlogyWood will update the order when Stripe confirms it.</div>}
           </div>
