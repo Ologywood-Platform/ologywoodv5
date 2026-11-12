@@ -50,7 +50,7 @@ export function CrmBadge({ size = "md" }: CrmBadgeProps) {
       }}
     >
       <img
-        src="/manus-storage/crmbadge_optimized_2553962d.png"
+        src="/images/creators-rights-movement-badge.png"
         alt="CRM Supporter"
         className={`${sizeClasses[size]} object-contain cursor-pointer`}
       />

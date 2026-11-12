@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { existsSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 // Mock the database module
 vi.mock('../db', () => ({
@@ -70,5 +72,17 @@ describe('CRM Badge Feature', () => {
 
     const profile = await db.getArtistProfileByUserId(10);
     expect((profile as any).crmSupporter).toBe(false);
+  });
+
+  it('uses a bundled badge asset that is available to the published app', () => {
+    const component = readFileSync(resolve(process.cwd(), 'client/src/components/CrmBadge.tsx'), 'utf8');
+    const editor = readFileSync(resolve(process.cwd(), 'client/src/pages/ArtistEditProfile.tsx'), 'utf8');
+    const asset = resolve(process.cwd(), 'client/public/images/creators-rights-movement-badge.png');
+
+    expect(existsSync(asset)).toBe(true);
+    expect(component).toContain('/images/creators-rights-movement-badge.png');
+    expect(editor).toContain('/images/creators-rights-movement-badge.png');
+    expect(component).not.toContain('/manus-storage/crmbadge_optimized_2553962d.png');
+    expect(editor).not.toContain('/manus-storage/crmbadge_optimized_2553962d.png');
   });
 });
