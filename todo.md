@@ -5480,3 +5480,9 @@ EDU admin follow-up: the app RDS also had only the original 16-column `edu_verif
 - [x] Added a visible “View the student verification flow” link on Admin EDU; it points to the student-facing route and does not submit evidence.
 - [x] Validation passed: focused EDU/Toolbelt tests, TypeScript, and production build. Build retains existing large-chunk warnings only.
 - [ ] Owner publication of this navigation-only checkpoint remains pending.
+
+## PUBLIC PROFILE ACTION LAYOUT — 2026-11-12
+- [x] Reworked the shared profile action card so Book, Attend, Buy, Watch / Listen and Join form the intentional primary-action row on desktop, with responsive one/two-column behavior below desktop widths.
+- [x] Moved Follow and optional email updates into a separate relationship-controls row so they no longer force Join onto a second, awkward grid row.
+- [x] Focused profile regressions, TypeScript and production build passed; existing large-chunk warnings remain only.
+- [ ] Owner publication remains pending.

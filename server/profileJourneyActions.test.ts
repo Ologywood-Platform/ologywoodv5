@@ -23,4 +23,10 @@ describe("artist profile journey actions", () => {
     expect(component).toContain("TooltipContent>Join this creator’s Fan Club");
     expect(component).toContain("toast.info(emptyMessage)");
   });
+
+  it("keeps the five primary actions together on desktop and separates relationship controls", () => {
+    expect(component).toContain("grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-5");
+    expect(component).toContain("border-t border-purple-100/80");
+    expect(component).toContain("<FollowButton artistUserId={artistUserId} artistName={artistName} showCount={false} />");
+  });
 });
