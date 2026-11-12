@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'wouter';
 import {
   Check,
@@ -59,6 +59,7 @@ export function MerchShareDialog({ item, open, onOpenChange }: MerchShareDialogP
   const [, navigate] = useLocation();
   const [copied, setCopied] = useState(false);
   const [fanDialogOpen, setFanDialogOpen] = useState(false);
+  const fanDialogTimer = useRef<number | null>(null);
   const isArtistOwner = user?.id === item.userId && item.userType === 'artist';
 
   const shareDetails = useMemo(() => {
@@ -76,6 +77,10 @@ export function MerchShareDialog({ item, open, onOpenChange }: MerchShareDialogP
   const shareUrls = buildMerchShareUrls(shareDetails);
   const fanUpdate = buildMerchFanUpdate(shareDetails);
   const socialPreviewImage = `/api/og-image/merch/${item.id}`;
+
+  useEffect(() => () => {
+    if (fanDialogTimer.current !== null) window.clearTimeout(fanDialogTimer.current);
+  }, []);
 
   const { data: fanStats, isLoading: fanStatsLoading } = trpc.follows.getStats.useQuery(
     { userId: item.userId },
@@ -132,8 +137,15 @@ export function MerchShareDialog({ item, open, onOpenChange }: MerchShareDialogP
       navigate('/pricing');
       return;
     }
+    // Radix dialogs share a focus-lock/portal stack. Open the second dialog
+    // only after the product-share dialog has finished closing; opening both
+    // in the same click leaves mobile focus trapped behind the overlay.
     onOpenChange(false);
-    setFanDialogOpen(true);
+    if (fanDialogTimer.current !== null) window.clearTimeout(fanDialogTimer.current);
+    fanDialogTimer.current = window.setTimeout(() => {
+      fanDialogTimer.current = null;
+      setFanDialogOpen(true);
+    }, 180);
   }
 
   return (
@@ -221,7 +233,7 @@ export function MerchShareDialog({ item, open, onOpenChange }: MerchShareDialogP
                       <p className="text-sm text-muted-foreground">
                         {fanStatsLoading || fanAccessLoading
                           ? 'Checking your fan list…'
-                          : `${followerCount} ${followerCount === 1 ? 'fan' : 'fans'} will receive a prefilled product update for your review.`}
+                          : `${followerCount} ${followerCount === 1 ? 'follower' : 'followers'} currently follow you. Only fans who separately opted in to creator email updates can receive this message.`}
                       </p>
                     </div>
                   </div>
@@ -231,7 +243,7 @@ export function MerchShareDialog({ item, open, onOpenChange }: MerchShareDialogP
                     disabled={fanStatsLoading || fanAccessLoading || followerCount === 0}
                   >
                     <Send className="h-4 w-4" />
-                    {fanAccess?.hasAccess === false ? 'Unlock Fan Updates' : 'Send to Fans'}
+                    {fanAccess?.hasAccess === false ? 'Unlock Fan Updates' : 'Review Fan Update'}
                   </Button>
                 </div>
                 <p className="mt-3 text-xs text-muted-foreground">

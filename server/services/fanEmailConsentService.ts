@@ -580,10 +580,12 @@ export async function getEligibleFanEmailRecipients(creatorUserId: number, limit
   try {
     await ensureFanEmailSchema();
     const pool = await getPoolOrThrow();
-    const rows = await selectRows<any>(pool,
-      `${ELIGIBLE_RECIPIENT_SELECT} ORDER BY f.followedAt ASC, u.id ASC LIMIT ? OFFSET ?`,
-      [creatorUserId, FAN_EMAIL_CONSENT_VERSION, safeLimit, safeOffset],
-    );
+    // TiDB/MySQL prepared statements reject bound LIMIT/OFFSET arguments
+    // (ER_WRONG_ARGUMENTS). These values are normalized and bounded above, so
+    // embedding them is safe and keeps the eligible-contact query working in
+    // both the dashboard and the send flow.
+    const pagedQuery = `${ELIGIBLE_RECIPIENT_SELECT} ORDER BY f.followedAt ASC, u.id ASC LIMIT ${safeLimit} OFFSET ${safeOffset}`;
+    const rows = await selectRows<any>(pool, pagedQuery, [creatorUserId, FAN_EMAIL_CONSENT_VERSION]);
     // A malformed source row must never be made eligible by JS fallback logic.
     return rows.map(normalizeRecipient).filter((row): row is EligibleFanEmailRecipient => !!row);
   } catch {

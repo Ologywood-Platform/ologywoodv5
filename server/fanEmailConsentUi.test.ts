@@ -14,6 +14,8 @@ describe("fan email consent UI", () => {
   const following = source("client/src/pages/Following.tsx");
   const fansSection = source("client/src/components/FansSection.tsx");
   const sendUpdate = source("client/src/components/SendUpdateDialog.tsx");
+  const merchShare = source("client/src/components/MerchShareDialog.tsx");
+  const consentService = source("server/services/fanEmailConsentService.ts");
   const preferences = source(
     "client/src/components/EmailPreferencesCenter.tsx"
   );
@@ -64,6 +66,17 @@ describe("fan email consent UI", () => {
     );
     expect(sendUpdate).not.toContain("delivered");
     expect(sendUpdate).toContain("This does not email all followers");
+  });
+
+  it("keeps eligible-contact pagination compatible with the production SQL driver", () => {
+    expect(consentService).toContain("LIMIT ${safeLimit} OFFSET ${safeOffset}");
+    expect(consentService).not.toContain("LIMIT ? OFFSET ?");
+  });
+
+  it("does not open the fan composer on top of the product share dialog", () => {
+    expect(merchShare).toContain("window.setTimeout");
+    expect(merchShare).toContain("Review Fan Update");
+    expect(merchShare).toContain("Only fans who separately opted in");
   });
 
   it("makes creator updates a separate global preference and still saves Never", () => {
