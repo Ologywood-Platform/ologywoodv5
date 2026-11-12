@@ -140,14 +140,21 @@ export default function RealtimeNotifications() {
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-96 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 z-50 max-h-[calc(100dvh-8rem)] flex flex-col overflow-hidden">
+        <div
+          className="fixed left-2 right-2 top-[calc(env(safe-area-inset-top,0px)+4.5rem)] w-auto max-w-none bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 z-[60] max-h-[calc(100dvh-6.5rem)] flex flex-col overflow-hidden sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-96 sm:max-w-[calc(100vw-1rem)] sm:max-h-[calc(100dvh-8rem)]"
+          role="dialog"
+          aria-label="Notifications"
+        >
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-700">
-            <h3 className="font-semibold text-gray-900 dark:text-white text-sm">Notifications</h3>
+            <div className="min-w-0">
+              <h3 className="font-semibold text-gray-900 dark:text-white text-sm">Notifications</h3>
+              <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">Tap an item for details; swipe or scroll for more.</p>
+            </div>
             {unreadCount > 0 && (
               <button
                 onClick={() => markAllReadMutation.mutate()}
-                className="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 font-medium"
+                className="ml-3 flex-shrink-0 text-xs text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 font-medium"
               >
                 Mark all read
               </button>
