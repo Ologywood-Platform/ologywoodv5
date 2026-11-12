@@ -256,7 +256,31 @@ export default function ArtistOnboarding() {
     window.location.reload();
   };
 
-  const bugReportHref = `mailto:support@ologywood.com?subject=${encodeURIComponent('Artist onboarding help')}&body=${encodeURIComponent(`I need help with artist onboarding. I am on step ${currentStep} of ${totalSteps}.${user?.email ? ` My account email is ${user.email}.` : ''}\n\nWhat happened:\n`)}`;
+  const getBugReportHref = () => {
+    const browserInfo = typeof navigator !== 'undefined' ? {
+      userAgent: navigator.userAgent,
+      platform: navigator.platform || 'Unavailable',
+      language: navigator.language || 'Unavailable',
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unavailable',
+      touchPoints: navigator.maxTouchPoints ?? 0,
+    } : { userAgent: 'Unavailable', platform: 'Unavailable', language: 'Unavailable', timezone: 'Unavailable', touchPoints: 0 };
+    const viewport = typeof window !== 'undefined' ? `${window.innerWidth}x${window.innerHeight}` : 'Unavailable';
+    const body = [
+      `I need help with artist onboarding. I am on step ${currentStep} of ${totalSteps}.`,
+      user?.email ? `Account email: ${user.email}` : '',
+      '',
+      'What happened:',
+      '',
+      'Diagnostic context (automatically included):',
+      `Browser user agent: ${browserInfo.userAgent}`,
+      `Device/platform: ${browserInfo.platform}`,
+      `Viewport: ${viewport}`,
+      `Language: ${browserInfo.language}`,
+      `Timezone: ${browserInfo.timezone}`,
+      `Touch points: ${browserInfo.touchPoints}`,
+    ].filter(Boolean).join('\n');
+    return `mailto:support@ologywood.com?subject=${encodeURIComponent('Artist onboarding help')}&body=${encodeURIComponent(body)}`;
+  };
 
   const uploadPhoto = trpc.artist.uploadProfilePhoto.useMutation({
     onSuccess: (data) => {
@@ -1204,12 +1228,29 @@ export default function ArtistOnboarding() {
               </div>
             </div>
             <div className="mt-3 grid gap-2">
-              <a href={bugReportHref} className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:opacity-90">
+              <a href={getBugReportHref()} className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:opacity-90">
                 <Bug className="h-4 w-4" /> Report a bug
               </a>
               <a href="/help?article=support-3" target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-2 rounded-md border border-border px-3 py-2 text-sm font-medium hover:bg-muted">
                 <ExternalLink className="h-4 w-4" /> Open Help Center
               </a>
+            </div>
+            <div className="mt-4 border-t border-border pt-3">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Quick setup answers</h3>
+              <div className="mt-2 space-y-2 text-sm">
+                <details className="rounded-md border border-border px-3 py-2">
+                  <summary className="cursor-pointer font-medium">Why can’t I continue past the Bill of Rights?</summary>
+                  <p className="mt-2 text-xs text-muted-foreground">Expand “Our Creator-First Promise,” check the acknowledgement box, and then select Next. The links open in a new tab so your saved setup stays here.</p>
+                </details>
+                <details className="rounded-md border border-border px-3 py-2">
+                  <summary className="cursor-pointer font-medium">What if I leave or refresh this page?</summary>
+                  <p className="mt-2 text-xs text-muted-foreground">Your text selections and current step are saved to this device for your account. Return to onboarding and choose Continue setup when prompted.</p>
+                </details>
+                <details className="rounded-md border border-border px-3 py-2">
+                  <summary className="cursor-pointer font-medium">Why am I being asked to verify my email?</summary>
+                  <p className="mt-2 text-xs text-muted-foreground">Email verification protects your profile and booking messages. Complete the verification email, then return to onboarding; your saved draft will remain available.</p>
+                </details>
+              </div>
             </div>
             <p className="mt-3 text-[11px] text-muted-foreground">Please include what you clicked and any error message. Screenshots are helpful.</p>
           </div>

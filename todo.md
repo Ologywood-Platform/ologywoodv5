@@ -5458,3 +5458,9 @@ Validation: 64 tests passed across 3 files; TypeScript passed; production build 
 Added a keyboard-accessible floating help button to every onboarding step. The expanded panel explains that progress is saved, provides a Report a bug mail link prefilled with the current onboarding step, and opens the Help Center support guide in a new tab so the onboarding draft remains available. No support message is sent automatically and no account records are changed.
 
 Validation: 65 tests passed across 3 files; TypeScript passed; production build passed.
+
+## ONBOARDING SUPPORT DIAGNOSTICS AND FAQ — 2026-11-11
+
+The Report a bug email draft now includes browser user agent, device/platform, viewport size, language, timezone and touch-point count. This context is generated locally and included only when the user chooses to open the email draft; OlogyWood does not send it automatically. The floating help panel now includes expandable answers for Bill of Rights acknowledgement, leaving or refreshing setup, and email verification.
+
+Validation: 67 tests passed across 3 files; TypeScript passed; production build passed.

@@ -42,4 +42,22 @@ describe('artist onboarding reliability', () => {
     expect(source).toContain('href="/help?article=support-3" target="_blank"');
     expect(source).toContain('Your progress is auto-saved. You can get help without leaving this setup.');
   });
+
+  it('adds useful browser and device context without sending it automatically', () => {
+    expect(source).toContain('navigator.userAgent');
+    expect(source).toContain('navigator.platform');
+    expect(source).toContain('navigator.language');
+    expect(source).toContain('Intl.DateTimeFormat().resolvedOptions().timeZone');
+    expect(source).toContain('window.innerWidth');
+    expect(source).toContain('Diagnostic context (automatically included):');
+    expect(source).toContain('mailto:support@ologywood.com?subject=');
+  });
+
+  it('provides quick answers for common onboarding blockers', () => {
+    expect(source).toContain('Quick setup answers');
+    expect(source).toContain('Why can’t I continue past the Bill of Rights?');
+    expect(source).toContain('What if I leave or refresh this page?');
+    expect(source).toContain('Why am I being asked to verify my email?');
+    expect(source).toContain('<details');
+  });
 });
