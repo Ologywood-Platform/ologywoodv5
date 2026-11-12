@@ -23,7 +23,7 @@ describe('Open Graph Meta Tags - seoMeta Utility', () => {
 
   it('should define DEFAULT_OG_IMAGE with the correct CDN URL', () => {
     expect(seoMetaSrc).toContain('const DEFAULT_OG_IMAGE');
-    expect(seoMetaSrc).toContain('https://www.ologywood.com/manus-storage/ologywood-platform-og-2026-10-10_f734dc76.png');
+    expect(seoMetaSrc).toContain('https://www.ologywood.com/manus-storage/ologywood-platform-og-2026-10-10_b5a657bf.png');
   });
 
   it('should define BASE_URL as www.ologywood.com', () => {

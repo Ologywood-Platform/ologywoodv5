@@ -11,7 +11,7 @@ The Open Graph and Twitter/X description starts with the homepage's discovery, o
 A new branded promotional image includes musician, athlete and filmmaker imagery, the brand mark, headline and `ologywood.com`. The image uses fictional promotional subjects, not registered profile data. The full image was resized with containment to **1200 × 630 PNG**, preserving all text and artwork.
 
 - Local image: `/home/ubuntu/webdev-static-assets/ologywood-platform-og-2026-10-10.png`
-- Versioned public image: https://www.ologywood.com/manus-storage/ologywood-platform-og-2026-10-10_f734dc76.png
+- Versioned public image: https://www.ologywood.com/manus-storage/ologywood-platform-og-2026-10-10_b5a657bf.png
 - Verified response: HTTP 200, `image/png`, 1,213,479 bytes, 1200 × 630 pixels.
 
 ## Metadata coverage

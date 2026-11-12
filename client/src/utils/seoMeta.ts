@@ -4,7 +4,7 @@
  * to improve social media link previews and search engine visibility.
  */
 
-const DEFAULT_OG_IMAGE = 'https://www.ologywood.com/manus-storage/ologywood-platform-og-2026-10-10_f734dc76.png';
+const DEFAULT_OG_IMAGE = 'https://www.ologywood.com/manus-storage/ologywood-platform-og-2026-10-10_b5a657bf.png';
 const BASE_URL = 'https://www.ologywood.com';
 const SITE_NAME = 'Ologywood';
 

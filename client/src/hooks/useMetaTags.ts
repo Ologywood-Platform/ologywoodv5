@@ -14,7 +14,7 @@ interface MetaTagsConfig {
   imageHeight?: string;
 }
 
-const DEFAULT_OG_IMAGE = 'https://www.ologywood.com/manus-storage/ologywood-platform-og-2026-10-10_f734dc76.png';
+const DEFAULT_OG_IMAGE = 'https://www.ologywood.com/manus-storage/ologywood-platform-og-2026-10-10_b5a657bf.png';
 const DEFAULT_SITE_NAME = 'Ologywood';
 const DEFAULT_DESCRIPTION = 'Get discovered, book opportunities, grow your audience, and earn from what you create. Creators own their audience. Creators choose where their content lives. OlogyWood powers bookings, tickets, fan clubs, merch, and content releases.';
 const BASE_URL = 'https://www.ologywood.com';

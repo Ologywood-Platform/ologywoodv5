@@ -19,7 +19,7 @@ import { injectEduShareMeta } from '../services/eduShareMetadata';
 
 const router = Router();
 
-const DEFAULT_OG_IMAGE = 'https://www.ologywood.com/manus-storage/ologywood-platform-og-2026-10-10_f734dc76.png';
+const DEFAULT_OG_IMAGE = 'https://www.ologywood.com/manus-storage/ologywood-platform-og-2026-10-10_b5a657bf.png';
 const SITE_NAME = 'Ologywood';
 
 function getPublicBaseUrl(req: Request): string {

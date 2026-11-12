@@ -20,7 +20,7 @@ import {
 } from '../utils/jsonLd';
 
 // Cache-busted 1200x630 branded social preview used by the homepage and entity fallbacks.
-const DEFAULT_OG_IMAGE = 'https://www.ologywood.com/manus-storage/ologywood-platform-og-2026-10-10_f734dc76.png';
+const DEFAULT_OG_IMAGE = 'https://www.ologywood.com/manus-storage/ologywood-platform-og-2026-10-10_b5a657bf.png';
 const SITE_NAME = 'Ologywood';
 const HOME_TITLE = 'Your Talent. Your Platform. Your Next Opportunity.';
 const HOME_DESCRIPTION = 'Get discovered, book opportunities, grow your audience, and earn from what you create. Creators own their audience. Creators choose where their content lives. OlogyWood powers bookings, tickets, fan clubs, merch, and content releases.';

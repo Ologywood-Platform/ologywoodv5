@@ -12,7 +12,7 @@ import { injectEduShareMeta } from "./services/eduShareMetadata";
 // fetch the image, or claim that the deployed static/CDN response was verified.
 const HOMEPAGE_TITLE = "Your Talent. Your Platform. Your Next Opportunity.";
 const HOMEPAGE_IMAGE =
-  "https://www.ologywood.com/manus-storage/ologywood-platform-og-2026-10-10_f734dc76.png";
+  "https://www.ologywood.com/manus-storage/ologywood-platform-og-2026-10-10_b5a657bf.png";
 const HOMEPAGE_DESCRIPTION = "Homepage booking and entertainment description.";
 
 const headAssets = [
@@ -172,7 +172,7 @@ describe("EDU sharing constants (offline contract)", () => {
     expect(image.pathname).toMatch(/\.png$/i);
     expect(EDU_SHARE_IMAGE).not.toBe(HOMEPAGE_IMAGE);
     expect(image.pathname).not.toContain(
-      "ologywood-platform-og-2026-10-10_f734dc76"
+      "ologywood-platform-og-2026-10-10_b5a657bf"
     );
   });
 });

@@ -31,7 +31,7 @@ const MAX_SOURCE_IMAGE_BYTES = 15 * 1024 * 1024;
 const MAX_SOURCE_IMAGE_PIXELS = 40 * 1024 * 1024;
 
 // Default fallback image URL
-const DEFAULT_OG_IMAGE = 'https://www.ologywood.com/manus-storage/ologywood-platform-og-2026-10-10_f734dc76.png';
+const DEFAULT_OG_IMAGE = 'https://www.ologywood.com/manus-storage/ologywood-platform-og-2026-10-10_b5a657bf.png';
 
 // Simple in-memory cache
 const imageCache = new Map<string, { buffer: Buffer; timestamp: number }>();

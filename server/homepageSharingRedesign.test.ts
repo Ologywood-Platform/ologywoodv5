@@ -7,7 +7,7 @@ vi.mock('./db', () => ({ getDb: mocks.getDb }));
 import { ogTagMiddleware } from './middleware/ogTags';
 
 const title = 'Your Talent. Your Platform. Your Next Opportunity.';
-const image = 'https://www.ologywood.com/manus-storage/ologywood-platform-og-2026-10-10_f734dc76.png';
+const image = 'https://www.ologywood.com/manus-storage/ologywood-platform-og-2026-10-10_b5a657bf.png';
 const source = (name: string) => readFileSync(resolve(import.meta.dirname, '..', name), 'utf8');
 
 async function request(path: string, userAgent: string) {
