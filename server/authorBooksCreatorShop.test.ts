@@ -161,13 +161,20 @@ describe('Secure Creator Shop book commerce', () => {
     const item = read('client/src/pages/MerchItem.tsx');
     const display = read('client/src/components/MerchDisplay.tsx');
     expect(schema).toContain('isPreOrder: boolean("isPreOrder").default(false).notNull()');
+    expect(schema).toContain('expectedFulfillmentDate: varchar("expectedFulfillmentDate", { length: 10 })');
     expect(router).toContain('isPreOrder: z.boolean().default(false)');
+    expect(router).toContain('expectedFulfillmentDate: expectedFulfillmentDateSchema.optional()');
+    expect(router).toContain('expectedFulfillmentDate: expectedFulfillmentDateSchema.optional().nullable()');
     expect(router).toContain('isPreOrder: z.boolean().optional()');
     expect(router).toContain('updates.isPreOrder = input.isPreOrder');
+    expect(router).toContain('updates.expectedFulfillmentDate = null');
     expect(manager).toContain('Available now');
     expect(manager).toContain('Pre-order');
+    expect(manager).toContain('Expected fulfillment date');
     expect(item).toContain("item.isPreOrder ? 'Pre-order' : 'Available now'");
+    expect(item).toContain('Expected fulfillment date:');
     expect(display).toContain("item.isPreOrder ? 'Pre-order' : 'Available now'");
+    expect(display).toContain('Expected fulfillment:');
   });
 
   it('documents creator rights, non-publisher status, access, and refunds', () => {

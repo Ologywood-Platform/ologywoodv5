@@ -1,0 +1,1 @@
+ALTER TABLE `merch_items` ADD `expectedFulfillmentDate` varchar(10);

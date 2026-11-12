@@ -11,6 +11,7 @@ const hybridColumns = [
   'trackInventory',
   'inventoryQuantity',
   'isPreOrder',
+  'expectedFulfillmentDate',
   'shippingAvailable',
   'pickupAvailable',
   'shippingAmountCents',

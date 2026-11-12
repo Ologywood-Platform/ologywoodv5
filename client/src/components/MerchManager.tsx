@@ -66,6 +66,7 @@ export function MerchManager({ userType }: MerchManagerProps) {
   const [pickupAvailable, setPickupAvailable] = useState(false);
   const [shippingDollars, setShippingDollars] = useState('0');
   const [fulfillmentTime, setFulfillmentTime] = useState('3–5 business days');
+  const [expectedFulfillmentDate, setExpectedFulfillmentDate] = useState('');
   const [productCategory, setProductCategory] = useState<ProductCategory>('merch');
   const [bookFormat, setBookFormat] = useState<BookFormat>('paperback');
   const [isbn, setIsbn] = useState('');
@@ -132,6 +133,7 @@ export function MerchManager({ userType }: MerchManagerProps) {
     setPickupAvailable(false);
     setShippingDollars('0');
     setFulfillmentTime('3–5 business days');
+    setExpectedFulfillmentDate('');
     setProductCategory('merch');
     setBookFormat('paperback');
     setIsbn('');
@@ -170,6 +172,7 @@ export function MerchManager({ userType }: MerchManagerProps) {
     setPickupAvailable(!!item.pickupAvailable);
     setShippingDollars(((item.shippingAmountCents || 0) / 100).toFixed(2));
     setFulfillmentTime(item.fulfillmentTime || '3–5 business days');
+    setExpectedFulfillmentDate(item.expectedFulfillmentDate || '');
     setProductCategory(item.productCategory || 'merch');
     setBookFormat(item.bookFormat || 'paperback');
     setIsbn(item.isbn || '');
@@ -266,6 +269,7 @@ export function MerchManager({ userType }: MerchManagerProps) {
       pickupAvailable: sellingMethod === 'ologywood' && !digitalDelivery && pickupAvailable,
       shippingAmountCents: sellingMethod === 'ologywood' && !digitalDelivery && shippingAvailable ? shippingAmountCents : 0,
       fulfillmentTime: sellingMethod === 'ologywood' && !digitalDelivery ? fulfillmentTime.trim() || undefined : null,
+      expectedFulfillmentDate: sellingMethod === 'ologywood' && !digitalDelivery && isPreOrder ? expectedFulfillmentDate || undefined : null,
       productCategory,
       bookFormat: productCategory === 'book' ? bookFormat : null,
       isbn: productCategory === 'book' ? isbn.trim() || null : null,
@@ -297,6 +301,7 @@ export function MerchManager({ userType }: MerchManagerProps) {
           priceInCents: common.priceInCents || undefined,
           inventoryQuantity: common.inventoryQuantity ?? undefined,
           fulfillmentTime: common.fulfillmentTime || undefined,
+          expectedFulfillmentDate: common.expectedFulfillmentDate || undefined,
           bookFormat: productCategory === 'book' ? bookFormat : undefined,
           isbn: common.isbn || undefined,
           publisher: common.publisher || undefined,
@@ -504,7 +509,7 @@ export function MerchManager({ userType }: MerchManagerProps) {
                       <label className="flex items-center gap-3 text-sm"><input type="checkbox" checked={pickupAvailable} onChange={(event) => setPickupAvailable(event.target.checked)} className="h-4 w-4" />Offer local pickup or in-person delivery</label>
                       <label className="flex items-center gap-3 text-sm"><input type="checkbox" checked={trackInventory} onChange={(event) => setTrackInventory(event.target.checked)} className="h-4 w-4" />Track available quantity</label>
                       {trackInventory && <div className="space-y-2 max-w-xs"><Label htmlFor="inventory">Quantity available</Label><Input id="inventory" value={inventoryQuantity} onChange={(event) => setInventoryQuantity(event.target.value)} type="number" min="0" /></div>}
-                      {!(productCategory === 'book' && isEbook(bookFormat)) && <div className="space-y-2"><Label>Availability</Label><div className="grid sm:grid-cols-2 gap-3"><button type="button" onClick={() => setIsPreOrder(false)} className={`rounded-lg border p-3 text-left ${!isPreOrder ? 'border-emerald-600 bg-emerald-50 ring-1 ring-emerald-600' : 'hover:border-emerald-300'}`}><p className="font-medium text-sm">Available now</p><p className="text-xs text-muted-foreground mt-1">Ready to ship or fulfill after purchase.</p></button><button type="button" onClick={() => setIsPreOrder(true)} className={`rounded-lg border p-3 text-left ${isPreOrder ? 'border-orange-600 bg-orange-50 ring-1 ring-orange-600' : 'hover:border-orange-300'}`}><p className="font-medium text-sm">Pre-order</p><p className="text-xs text-muted-foreground mt-1">Accept orders before the item is ready.</p></button></div></div>}
+                      {!(productCategory === 'book' && isEbook(bookFormat)) && <div className="space-y-3"><div className="space-y-2"><Label>Availability</Label><div className="grid sm:grid-cols-2 gap-3"><button type="button" onClick={() => setIsPreOrder(false)} className={`rounded-lg border p-3 text-left ${!isPreOrder ? 'border-emerald-600 bg-emerald-50 ring-1 ring-emerald-600' : 'hover:border-emerald-300'}`}><p className="font-medium text-sm">Available now</p><p className="text-xs text-muted-foreground mt-1">Ready to ship or fulfill after purchase.</p></button><button type="button" onClick={() => setIsPreOrder(true)} className={`rounded-lg border p-3 text-left ${isPreOrder ? 'border-orange-600 bg-orange-50 ring-1 ring-orange-600' : 'hover:border-orange-300'}`}><p className="font-medium text-sm">Pre-order</p><p className="text-xs text-muted-foreground mt-1">Accept orders before the item is ready.</p></button></div></div>{isPreOrder && <div className="space-y-2 max-w-xs"><Label htmlFor="expected-fulfillment-date">Expected fulfillment date</Label><Input id="expected-fulfillment-date" type="date" value={expectedFulfillmentDate} onChange={(event) => setExpectedFulfillmentDate(event.target.value)} /><p className="text-xs text-muted-foreground">Shown to buyers as an estimate. It does not automatically change order status or send notifications.</p></div>}</div>}
                     </div>
                   </>
                 )}

@@ -7,6 +7,13 @@ import { BookOpen, Download, Eye, ImageIcon, ShoppingBag } from 'lucide-react';
 import { merchUrl } from '@/lib/slugify';
 import { useLocation } from 'wouter';
 
+function formatExpectedDate(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const [year, month, day] = value.split('-').map(Number);
+  if (!year || !month || !day) return null;
+  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(Date.UTC(year, month - 1, day)));
+}
+
 interface MerchDisplayProps {
   userId: number;
   userType: 'artist' | 'venue' | 'athlete';
@@ -49,6 +56,7 @@ export function MerchDisplay({ userId, userType, talentType }: MerchDisplayProps
                 <h3 className="font-medium text-sm truncate">{item.title}</h3>
                 <p className="text-purple-600 font-bold text-sm mt-0.5">{item.priceDisplay}</p>
                 {item.description && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{item.description}</p>}
+                {item.productCategory === 'merch' && item.isPreOrder && formatExpectedDate(item.expectedFulfillmentDate) && <p className="text-[11px] text-orange-700 dark:text-orange-300 mt-2">Expected fulfillment: {formatExpectedDate(item.expectedFulfillmentDate)}</p>}
                 {item.sellingMethod === 'ologywood' && <p className="text-[11px] text-muted-foreground mt-2">{isDigitalBook ? 'Secure digital delivery' : item.shippingAvailable && item.pickupAvailable ? 'Shipping or pickup' : item.shippingAvailable ? 'Shipping available' : 'Local pickup'}</p>}
               </CardContent>
             </Card>

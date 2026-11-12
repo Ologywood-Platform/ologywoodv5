@@ -10,6 +10,13 @@ import { toast } from 'sonner';
 import { Download, HelpCircle, Loader2, LockKeyhole, MapPin, Package, Truck } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
+function formatExpectedDate(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const [year, month, day] = value.split('-').map(Number);
+  if (!year || !month || !day) return null;
+  return new Intl.DateTimeFormat(undefined, { dateStyle: 'long', timeZone: 'UTC' }).format(new Date(Date.UTC(year, month - 1, day)));
+}
+
 interface MerchCheckoutDialogProps {
   item: any;
   open: boolean;
@@ -123,7 +130,7 @@ export function MerchCheckoutDialog({ item, open, onOpenChange }: MerchCheckoutD
       <DialogContent className="sm:max-w-2xl max-h-[92vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isDigitalBook ? 'Buy' : 'Order'} {item.title}</DialogTitle>
-          {!isDigitalBook && <div className={`rounded-lg border px-3 py-2 text-sm ${item.isPreOrder ? 'border-orange-200 bg-orange-50 text-orange-900' : 'border-emerald-200 bg-emerald-50 text-emerald-900'}`}><strong>{item.isPreOrder ? 'Pre-order' : 'Available now'}:</strong> {item.isPreOrder ? 'Your order is placed before the item is ready. The creator will fulfill it according to the listing details.' : 'This item is ready for fulfillment after your order is confirmed.'}</div>}
+          {!isDigitalBook && <div className={`rounded-lg border px-3 py-2 text-sm ${item.isPreOrder ? 'border-orange-200 bg-orange-50 text-orange-900' : 'border-emerald-200 bg-emerald-50 text-emerald-900'}`}><strong>{item.isPreOrder ? 'Pre-order' : 'Available now'}:</strong> {item.isPreOrder ? 'Your order is placed before the item is ready. The creator will fulfill it according to the listing details.' : 'This item is ready for fulfillment after your order is confirmed.'}{item.isPreOrder && formatExpectedDate(item.expectedFulfillmentDate) && <><br /><span className="font-medium">Expected fulfillment date: {formatExpectedDate(item.expectedFulfillmentDate)}</span></>}</div>}
           {isDigitalBook ? <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <span>An account is required for secure eBook access.</span>
             <Tooltip>
@@ -147,7 +154,7 @@ export function MerchCheckoutDialog({ item, open, onOpenChange }: MerchCheckoutD
             <div className="min-w-0">
               <p className="font-semibold">{item.title}</p>
               <p className="text-purple-700 font-bold">${(item.priceInCents / 100).toFixed(2)}</p>
-              {isDigitalBook ? <p className="text-xs text-muted-foreground mt-1">Secure PDF or EPUB access after verified payment</p> : item.fulfillmentTime && <p className="text-xs text-muted-foreground mt-1">Usually fulfilled in {item.fulfillmentTime}</p>}
+              {isDigitalBook ? <p className="text-xs text-muted-foreground mt-1">Secure PDF or EPUB access after verified payment</p> : <>{item.fulfillmentTime && <p className="text-xs text-muted-foreground mt-1">Usually fulfilled in {item.fulfillmentTime}</p>}{item.isPreOrder && formatExpectedDate(item.expectedFulfillmentDate) && <p className="text-xs text-orange-700 dark:text-orange-300 mt-1">Expected fulfillment date: {formatExpectedDate(item.expectedFulfillmentDate)}</p>}</>}
             </div>
           </div>
 

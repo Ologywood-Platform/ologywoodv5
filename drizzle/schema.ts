@@ -1835,6 +1835,7 @@ export const merchItems = mysqlTable("merch_items", {
   trackInventory: boolean("trackInventory").default(false).notNull(),
   inventoryQuantity: int("inventoryQuantity"),
   isPreOrder: boolean("isPreOrder").default(false).notNull(),
+  expectedFulfillmentDate: varchar("expectedFulfillmentDate", { length: 10 }),
   shippingAvailable: boolean("shippingAvailable").default(true).notNull(),
   pickupAvailable: boolean("pickupAvailable").default(false).notNull(),
   shippingAmountCents: int("shippingAmountCents").default(0).notNull(),

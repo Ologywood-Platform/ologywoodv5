@@ -10,6 +10,13 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { trpc } from '@/lib/trpc';
 
+function formatExpectedDate(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const [year, month, day] = value.split('-').map(Number);
+  if (!year || !month || !day) return null;
+  return new Intl.DateTimeFormat(undefined, { dateStyle: 'long', timeZone: 'UTC' }).format(new Date(Date.UTC(year, month - 1, day)));
+}
+
 export default function MerchItem() {
   const { slug = '' } = useParams<{ slug: string }>();
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -65,6 +72,7 @@ export default function MerchItem() {
               {isBook && <div className="grid sm:grid-cols-2 gap-x-6 gap-y-2 rounded-xl border bg-white/70 dark:bg-gray-900/70 p-4 text-sm"><p><strong>Format:</strong> {item.bookFormat === 'ebook' ? 'eBook' : item.bookFormat === 'hardcover' ? 'Hardcover' : 'Paperback'}</p>{item.publisher && <p><strong>Publisher:</strong> {item.publisher}</p>}{item.publicationDate && <p><strong>Published:</strong> {item.publicationDate}</p>}{item.edition && <p><strong>Edition:</strong> {item.edition}</p>}{item.pageCount && <p><strong>Pages:</strong> {item.pageCount}</p>}{item.language && <p><strong>Language:</strong> {item.language}</p>}{item.isbn && <p><strong>ISBN:</strong> {item.isbn}</p>}</div>}
               {item.sellingMethod === 'ologywood' && (isDigitalBook ? <div className="flex items-center gap-3 rounded-xl border border-purple-200 bg-purple-50/80 dark:bg-purple-950/30 p-4"><Download className="h-5 w-5 text-purple-700" /><div><p className="font-medium">Secure digital delivery</p><p className="text-xs text-muted-foreground">Access your purchased PDF or EPUB from OlogyWood orders after verified payment.</p></div></div> : <div className="grid sm:grid-cols-2 gap-3">{item.shippingAvailable && <div className="flex items-center gap-3 rounded-xl border bg-white/80 dark:bg-gray-900/80 p-4"><Truck className="h-5 w-5 text-purple-700" /><div><p className="font-medium">Shipping available</p><p className="text-xs text-muted-foreground">Author-managed fulfillment</p></div></div>}{item.pickupAvailable && <div className="flex items-center gap-3 rounded-xl border bg-white/80 dark:bg-gray-900/80 p-4"><MapPin className="h-5 w-5 text-purple-700" /><div><p className="font-medium">Local pickup</p><p className="text-xs text-muted-foreground">Details provided after purchase</p></div></div>}</div>)}
               {!isDigitalBook && item.fulfillmentTime && <p className="text-sm text-muted-foreground">Estimated fulfillment: {item.fulfillmentTime}</p>}
+              {!isDigitalBook && item.isPreOrder && formatExpectedDate(item.expectedFulfillmentDate) && <p className="text-sm font-medium text-orange-700 dark:text-orange-300">Expected fulfillment date: {formatExpectedDate(item.expectedFulfillmentDate)}</p>}
               <Button size="lg" className="w-full sm:w-auto gap-2 bg-purple-700 hover:bg-purple-800" disabled={soldOut || (item.sellingMethod === 'external' && !item.externalUrl)} onClick={buyItem}>{item.sellingMethod === 'ologywood' ? (isDigitalBook ? <Download className="h-5 w-5" /> : <ShoppingCart className="h-5 w-5" />) : <ExternalLink className="h-5 w-5" />}{soldOut ? 'Sold out' : item.isPreOrder && !isDigitalBook ? 'Pre-order now' : item.sellingMethod === 'ologywood' ? isDigitalBook ? 'Buy eBook securely' : isBook ? 'Order book securely' : 'Order securely' : 'Buy from external store'}</Button>
               <p className="text-xs text-muted-foreground">{item.sellingMethod === 'ologywood' ? isDigitalBook ? 'OlogyWood processes payment and provides purchase-authorized access. The author owns and supplies the eBook; OlogyWood is not the publisher.' : 'OlogyWood processes payment and tracks the order. The creator fulfills physical products directly.' : 'You’ll review the destination before leaving OlogyWood. Checkout and store access are handled by the creator’s external provider.'}</p>
             </div>

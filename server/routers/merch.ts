@@ -38,6 +38,10 @@ const variantsSchema = z.array(z.object({
 })).max(3).default([]);
 
 const optionalUrlSchema = z.string().url().max(2048).optional().or(z.literal(""));
+const expectedFulfillmentDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine((value) => {
+  const date = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}, "Enter a valid expected fulfillment date.");
 
 function normalizeExternalStoreUrlOrThrow(value: string | null | undefined): string | null {
   if (!value?.trim()) return null;
@@ -145,6 +149,7 @@ function normalizeLegacyMerchItem(item: any) {
     trackInventory: false,
     inventoryQuantity: null,
     isPreOrder: false,
+    expectedFulfillmentDate: null,
     shippingAvailable: false,
     pickupAvailable: false,
     shippingAmountCents: 0,
@@ -313,6 +318,7 @@ export const merchRouter = router({
         trackInventory: z.boolean().default(false),
         inventoryQuantity: z.number().int().min(0).max(1_000_000).optional(),
         isPreOrder: z.boolean().default(false),
+        expectedFulfillmentDate: expectedFulfillmentDateSchema.optional(),
         shippingAvailable: z.boolean().default(true),
         pickupAvailable: z.boolean().default(false),
         shippingAmountCents: z.number().int().min(0).max(1_000_000).default(0),
@@ -407,6 +413,7 @@ export const merchRouter = router({
         trackInventory: input.sellingMethod === "ologywood" && !digitalDelivery ? input.trackInventory : false,
         inventoryQuantity: input.sellingMethod === "ologywood" && !digitalDelivery && input.trackInventory ? input.inventoryQuantity : null,
         isPreOrder: !digitalDelivery && input.isPreOrder,
+        expectedFulfillmentDate: input.sellingMethod === "ologywood" && !digitalDelivery && input.isPreOrder ? input.expectedFulfillmentDate || null : null,
         shippingAvailable: input.sellingMethod === "ologywood" && !digitalDelivery ? input.shippingAvailable : false,
         pickupAvailable: input.sellingMethod === "ologywood" && !digitalDelivery ? input.pickupAvailable : false,
         shippingAmountCents: input.sellingMethod === "ologywood" && !digitalDelivery && input.shippingAvailable ? input.shippingAmountCents : 0,
@@ -435,6 +442,7 @@ export const merchRouter = router({
         trackInventory: z.boolean().optional(),
         inventoryQuantity: z.number().int().min(0).max(1_000_000).optional().nullable(),
         isPreOrder: z.boolean().optional(),
+        expectedFulfillmentDate: expectedFulfillmentDateSchema.optional().nullable(),
         shippingAvailable: z.boolean().optional(),
         pickupAvailable: z.boolean().optional(),
         shippingAmountCents: z.number().int().min(0).max(1_000_000).optional(),
@@ -481,6 +489,7 @@ export const merchRouter = router({
         trackInventory: input.trackInventory ?? item.trackInventory,
         inventoryQuantity: input.inventoryQuantity !== undefined ? input.inventoryQuantity : item.inventoryQuantity,
         isPreOrder: input.isPreOrder ?? item.isPreOrder,
+        expectedFulfillmentDate: input.expectedFulfillmentDate !== undefined ? input.expectedFulfillmentDate : item.expectedFulfillmentDate,
         shippingAvailable: input.shippingAvailable ?? item.shippingAvailable,
         pickupAvailable: input.pickupAvailable ?? item.pickupAvailable,
         isActive: input.isActive ?? item.isActive,
@@ -506,6 +515,7 @@ export const merchRouter = router({
       if (input.trackInventory !== undefined) updates.trackInventory = input.trackInventory;
       if (input.inventoryQuantity !== undefined) updates.inventoryQuantity = input.inventoryQuantity;
       if (input.isPreOrder !== undefined) updates.isPreOrder = input.isPreOrder;
+      if (input.expectedFulfillmentDate !== undefined) updates.expectedFulfillmentDate = input.expectedFulfillmentDate || null;
       if (input.shippingAvailable !== undefined) updates.shippingAvailable = input.shippingAvailable;
       if (input.pickupAvailable !== undefined) updates.pickupAvailable = input.pickupAvailable;
       if (input.shippingAmountCents !== undefined) updates.shippingAmountCents = input.shippingAmountCents;
@@ -537,10 +547,16 @@ export const merchRouter = router({
         updates.pickupAvailable = false;
         updates.shippingAmountCents = 0;
         updates.fulfillmentTime = null;
+        updates.expectedFulfillmentDate = null;
+      }
+
+      if (!merged.isPreOrder) {
+        updates.expectedFulfillmentDate = null;
       }
 
       if (digitalDelivery) {
         updates.isPreOrder = false;
+        updates.expectedFulfillmentDate = null;
         updates.variants = [];
         updates.trackInventory = false;
         updates.inventoryQuantity = null;
