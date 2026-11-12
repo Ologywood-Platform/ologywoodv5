@@ -5436,3 +5436,13 @@ Validation: 26 focused tests passed across 4 files; TypeScript passed; productio
 - [x] Preserved the boundary that OlogyWood provides education only and does not endorse private offers, guarantee placements or administer rights registrations.
 
 Validation: 18 focused tests passed across 3 files; TypeScript passed; production build passed. No payment, account, rights-registration, database or external-provider actions were performed.
+
+## ARTIST ONBOARDING RELIABILITY — 2026-11-11
+
+- [x] Fixed Creator Bill of Rights acceptance interaction with a dedicated accessible checkbox and explicit label association.
+- [x] Kept the Creator Bill of Rights and Terms links in new tabs so they no longer replace the in-progress onboarding wizard.
+- [x] Added account-scoped local draft recovery for onboarding step, rights acknowledgement, profile identity, location, bio, talent type, genres, pricing, touring party size and social links.
+- [x] Draft recovery is cleared only after successful profile creation; selected image files remain intentionally local and can be reselected if the browser cannot retain them.
+- [x] Added regression coverage for draft persistence, acknowledgement controls and non-destructive rights/terms navigation.
+
+Validation: 63 tests passed across 3 files; TypeScript passed; production build passed. No user records or complimentary-access records were changed.

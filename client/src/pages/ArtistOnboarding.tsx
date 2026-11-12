@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from '@/lib/trpc';
@@ -190,6 +190,54 @@ export default function ArtistOnboarding() {
   const [soundcloud, setSoundcloud] = useState("");
   const [otherStreaming, setOtherStreaming] = useState("");
 
+  // Keep an incomplete profile recoverable when auth refreshes, a user opens the
+  // Bill of Rights in another tab, or a transient network error interrupts a step.
+  // Files are intentionally excluded; the user can reselect a photo after resume.
+  const onboardingDraftKey = user?.id ? `ologywood.artist-onboarding.v2.${user.id}` : null;
+  const draftRestoredRef = useRef(false);
+  useEffect(() => {
+    if (!onboardingDraftKey || draftRestoredRef.current) return;
+    try {
+      const raw = localStorage.getItem(onboardingDraftKey);
+      if (raw) {
+        const draft = JSON.parse(raw) as Record<string, unknown>;
+        if (typeof draft.currentStep === 'number') setCurrentStep(Math.min(totalSteps, Math.max(1, draft.currentStep)));
+        if (typeof draft.creatorRightsAcknowledged === 'boolean') setCreatorRightsAcknowledged(draft.creatorRightsAcknowledged);
+        if (typeof draft.talentType === 'string') setTalentType(draft.talentType as TalentType);
+        if (typeof draft.artistName === 'string') setArtistName(draft.artistName);
+        if (typeof draft.location === 'string') setLocation(draft.location);
+        if (typeof draft.city === 'string') setCity(draft.city);
+        if (typeof draft.state === 'string') setState(draft.state);
+        if (typeof draft.country === 'string') setCountry(draft.country);
+        if (typeof draft.bio === 'string') setBio(draft.bio);
+        if (Array.isArray(draft.genres)) setGenres(draft.genres.filter((value): value is string => typeof value === 'string'));
+        if (typeof draft.feeRangeMin === 'string') setFeeRangeMin(draft.feeRangeMin);
+        if (typeof draft.feeRangeMax === 'string') setFeeRangeMax(draft.feeRangeMax);
+        if (typeof draft.touringPartySize === 'string') setTouringPartySize(draft.touringPartySize);
+        for (const [value, setter] of [
+          ['websiteUrl', setWebsiteUrl], ['instagram', setInstagram], ['facebook', setFacebook],
+          ['youtube', setYoutube], ['spotify', setSpotify], ['appleMusic', setAppleMusic],
+          ['tidal', setTidal], ['soundcloud', setSoundcloud], ['otherStreaming', setOtherStreaming],
+        ] as const) {
+          if (typeof draft[value] === 'string') setter(draft[value]);
+        }
+      }
+    } catch {
+      localStorage.removeItem(onboardingDraftKey);
+    } finally {
+      draftRestoredRef.current = true;
+    }
+  }, [onboardingDraftKey]);
+
+  useEffect(() => {
+    if (!onboardingDraftKey || !draftRestoredRef.current) return;
+    localStorage.setItem(onboardingDraftKey, JSON.stringify({
+      currentStep, creatorRightsAcknowledged, talentType, artistName, location, city, state,
+      country, bio, genres, feeRangeMin, feeRangeMax, touringPartySize, websiteUrl, instagram,
+      facebook, youtube, spotify, appleMusic, tidal, soundcloud, otherStreaming,
+    }));
+  }, [onboardingDraftKey, currentStep, creatorRightsAcknowledged, talentType, artistName, location, city, state, country, bio, genres, feeRangeMin, feeRangeMax, touringPartySize, websiteUrl, instagram, facebook, youtube, spotify, appleMusic, tidal, soundcloud, otherStreaming]);
+
   const uploadPhoto = trpc.artist.uploadProfilePhoto.useMutation({
     onSuccess: (data) => {
       setProfilePhotoUrl(data.url);
@@ -229,6 +277,7 @@ export default function ArtistOnboarding() {
         }
       }
       toast.success("Profile created successfully!");
+      if (onboardingDraftKey) localStorage.removeItem(onboardingDraftKey);
       navigate("/dashboard");
     },
     onError: (error) => {
@@ -511,24 +560,26 @@ export default function ArtistOnboarding() {
                       </li>
                     </ul>
                     <div className="mt-3 pt-3 border-t border-primary/10">
-                      <label className="flex items-start gap-2 cursor-pointer">
+                      <div className="flex items-start gap-2">
                         <input
+                          id="creator-rights-acknowledgement"
                           type="checkbox"
                           checked={creatorRightsAcknowledged}
                           onChange={(e) => setCreatorRightsAcknowledged(e.target.checked)}
                           className="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                         />
-                        <span className="text-xs text-muted-foreground">
+                        <label htmlFor="creator-rights-acknowledgement" className="text-xs text-muted-foreground cursor-pointer">
                           I acknowledge and agree to OlogyWood's{' '}
-                          <Link href="/creator-rights" className="text-primary hover:underline">Creator Bill of Rights</Link>{' '}
+                          <a href="/creator-rights" target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()} className="text-primary hover:underline">Creator Bill of Rights</a>{' '}
                           and{' '}
-                          <Link href="/terms-of-service" className="text-primary hover:underline">Terms of Service</Link>.
-                        </span>
-                      </label>
+                          <a href="/terms-of-service" target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()} className="text-primary hover:underline">Terms of Service</a>.
+                        </label>
+                      </div>
+                      <p className="mt-2 text-[11px] text-muted-foreground">Open the documents in a new tab; your profile setup stays saved on this device.</p>
                     </div>
-                    <Link href="/creator-rights" className="text-xs text-primary hover:underline mt-2 inline-block">
+                    <a href="/creator-rights" target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline mt-2 inline-block">
                       Read the full Creator Bill of Rights →
-                    </Link>
+                    </a>
                   </CollapsibleContent>
                 </div>
               </Collapsible>
