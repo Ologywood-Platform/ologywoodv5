@@ -5464,3 +5464,9 @@ Validation: 65 tests passed across 3 files; TypeScript passed; production build 
 The Report a bug email draft now includes browser user agent, device/platform, viewport size, language, timezone and touch-point count. This context is generated locally and included only when the user chooses to open the email draft; OlogyWood does not send it automatically. The floating help panel now includes expandable answers for Bill of Rights acknowledgement, leaving or refreshing setup, and email verification.
 
 Validation: 67 tests passed across 3 files; TypeScript passed; production build passed.
+
+## EDU ADMIN SCHEMA REPAIR — 2026-11-11
+
+Audited the development EDU admin page before changing anything. The signed-in server logs showed `edu.adminList` and `edu.billingNotices.list` failing with `INTERNAL_SERVER_ERROR`; direct reproduction identified `ER_NO_SUCH_TABLE` for `edu_billing_notices`. The running app uses the OlogyWood RDS database, which had the existing `edu_verifications` and `edu_verification_events` tables but was missing the reviewed additive `edu_billing_notices` and `edu_billing_notice_resolutions` tables. Applied only those two additive table definitions and indexes to the app database; no student records, grants, subscriptions, payments, or review decisions were changed. Direct admin-list and notice-list queries now succeed with zero rows. The unauthenticated cloud browser still correctly shows `FORBIDDEN` until an admin signs in.
+
+Validation: 49 focused EDU admin/lifecycle/verification tests passed across 4 files. Existing source migrations and schema definitions remain aligned with the repaired tables.
