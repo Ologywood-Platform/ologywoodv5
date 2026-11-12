@@ -17,7 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Music, ArrowRight, ArrowLeft, Check, Loader2, X, Mic2, Trophy, Sparkles, Plus, Trash2, Shield, ChevronDown, Copyright, DollarSign, Palette, Users, ShieldCheck, Film, BookOpen, RotateCcw } from "lucide-react";
+import { Music, ArrowRight, ArrowLeft, Check, Loader2, X, Mic2, Trophy, Sparkles, Plus, Trash2, Shield, ChevronDown, Copyright, DollarSign, Palette, Users, ShieldCheck, Film, BookOpen, RotateCcw, HelpCircle, Bug, ExternalLink } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Link } from "wouter";
 import { toast } from "sonner";
@@ -46,6 +46,7 @@ export default function ArtistOnboarding() {
   const [creatorRightsAcknowledged, setCreatorRightsAcknowledged] = useState(false);
   const [draftStatus, setDraftStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [showResumePrompt, setShowResumePrompt] = useState(false);
+  const [showOnboardingHelp, setShowOnboardingHelp] = useState(false);
 
   // Block unverified users from creating a profile
   useEffect(() => {
@@ -254,6 +255,8 @@ export default function ArtistOnboarding() {
     if (onboardingDraftKey) localStorage.removeItem(onboardingDraftKey);
     window.location.reload();
   };
+
+  const bugReportHref = `mailto:support@ologywood.com?subject=${encodeURIComponent('Artist onboarding help')}&body=${encodeURIComponent(`I need help with artist onboarding. I am on step ${currentStep} of ${totalSteps}.${user?.email ? ` My account email is ${user.email}.` : ''}\n\nWhat happened:\n`)}`;
 
   const uploadPhoto = trpc.artist.uploadProfilePhoto.useMutation({
     onSuccess: (data) => {
@@ -1190,6 +1193,38 @@ export default function ArtistOnboarding() {
           </div>
         </CardContent>
       </Card>
+      <div className="fixed bottom-5 right-5 z-40 flex flex-col items-end gap-3">
+        {showOnboardingHelp && (
+          <div className="w-[min(20rem,calc(100vw-2rem))] rounded-xl border border-border bg-card p-4 text-card-foreground shadow-xl" role="dialog" aria-label="Onboarding help">
+            <div className="flex items-start gap-3">
+              <HelpCircle className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+              <div>
+                <h2 className="font-semibold">Need help setting up?</h2>
+                <p className="mt-1 text-sm text-muted-foreground">Your progress is auto-saved. You can get help without leaving this setup.</p>
+              </div>
+            </div>
+            <div className="mt-3 grid gap-2">
+              <a href={bugReportHref} className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:opacity-90">
+                <Bug className="h-4 w-4" /> Report a bug
+              </a>
+              <a href="/help?article=support-3" target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-2 rounded-md border border-border px-3 py-2 text-sm font-medium hover:bg-muted">
+                <ExternalLink className="h-4 w-4" /> Open Help Center
+              </a>
+            </div>
+            <p className="mt-3 text-[11px] text-muted-foreground">Please include what you clicked and any error message. Screenshots are helpful.</p>
+          </div>
+        )}
+        <Button
+          type="button"
+          size="icon"
+          className="h-12 w-12 rounded-full shadow-lg"
+          aria-label={showOnboardingHelp ? 'Close onboarding help' : 'Get onboarding help'}
+          aria-expanded={showOnboardingHelp}
+          onClick={() => setShowOnboardingHelp((open) => !open)}
+        >
+          {showOnboardingHelp ? <X className="h-5 w-5" /> : <HelpCircle className="h-5 w-5" />}
+        </Button>
+      </div>
       {/* Image Cropper Modal */}
       {showCropper && cropperImage && (
         <ImageCropper

@@ -5452,3 +5452,9 @@ Validation: 63 tests passed across 3 files; TypeScript passed; production build 
 Added a live “Auto-saving...” / “Saved securely” indicator to the onboarding header. When account-scoped draft progress is detected, users now see a “Welcome back — resume your setup” prompt with Continue setup and Start over actions. Start over clears only the local onboarding draft and reloads the blank wizard; successful profile creation still clears the draft automatically.
 
 Validation: 64 tests passed across 3 files; TypeScript passed; production build passed. No user records, roles, payments or complimentary-access records were changed.
+
+## ONBOARDING FLOATING SUPPORT — 2026-11-11
+
+Added a keyboard-accessible floating help button to every onboarding step. The expanded panel explains that progress is saved, provides a Report a bug mail link prefilled with the current onboarding step, and opens the Help Center support guide in a new tab so the onboarding draft remains available. No support message is sent automatically and no account records are changed.
+
+Validation: 65 tests passed across 3 files; TypeScript passed; production build passed.

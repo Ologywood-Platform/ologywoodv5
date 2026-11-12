@@ -34,4 +34,12 @@ describe('artist onboarding reliability', () => {
     expect(source).toContain('Start over');
     expect(source).toContain('window.location.reload()');
   });
+
+  it('keeps support reachable on every onboarding step', () => {
+    expect(source).toContain('aria-label={showOnboardingHelp ? \'Close onboarding help\' : \'Get onboarding help\'}');
+    expect(source).toContain('aria-expanded={showOnboardingHelp}');
+    expect(source).toContain('mailto:support@ologywood.com?subject=');
+    expect(source).toContain('href="/help?article=support-3" target="_blank"');
+    expect(source).toContain('Your progress is auto-saved. You can get help without leaving this setup.');
+  });
 });
