@@ -27,4 +27,9 @@ describe("mobile homepage experience", () => {
     expect(home).toContain("retryVenues()");
     expect(home).toContain("Release to refresh");
   });
+
+  it("keeps the mobile how-it-works heading words separated when the break is hidden", () => {
+    expect(home).toContain('From talent{" "}');
+    expect(home).toContain("to opportunity.");
+  });
 });

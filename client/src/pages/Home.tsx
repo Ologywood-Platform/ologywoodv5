@@ -659,7 +659,7 @@ export default function Home() {
           <div className="home-how-intro">
             <p className="home-eyebrow">MAKE YOUR NEXT MOVE</p>
             <h2 id="home-how-title">
-              From talent
+              From talent{" "}
               <br />
               to opportunity.
             </h2>
