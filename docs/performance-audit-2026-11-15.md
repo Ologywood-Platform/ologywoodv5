@@ -52,6 +52,15 @@ These local values are not a production guarantee because they remove the hosted
 - Preview restarted successfully with no language-service or TypeScript errors.
 - Full suite result: 4,431 passed, 26 skipped, and 1 unrelated pre-existing failure in `server/releaseSectionLayout.test.ts`; the failing assertion expects an older ProfileJourneyActions grid class and is not touched by this performance work.
 
-## Follow-up
+## Final live verification after publishing
 
-After publishing this checkpoint, re-run the same desktop/mobile measurement on `https://www.ologywood.com/`. The expected production improvement is primarily a much smaller HTML response and lower main-thread parsing; the hosted LCP should then be compared against the 4,780 ms desktop and 1,264 ms mobile baseline above.
+Both `https://www.ologywood.com/` and `https://ologywood-mp6flm6c.manus.space/` now serve the optimized shell. The live response is approximately 5.3 KB, contains no `manus-runtime` or `__MANUS_HOST_DEV__` preview payload, and has the new publication timestamp.
+
+| Profile | TTFB | FCP | LCP | LCP element | HTML encoded/body observation |
+|---|---:|---:|---:|---|---:|
+| Desktop repeat | 661 ms | 4,448 ms | 5,004 ms | Hero image (`ologywood-cinematic-hero-1280.webp`) | 1,659 encoded bytes in Chrome |
+| Mobile | 396 ms | 668 ms | 1,004 ms | Hero image (`ologywood-cinematic-hero-1280.webp`) | 5,336 bytes in Chrome |
+
+The desktop LCP is within normal run-to-run network variance of the earlier baseline, while TTFB and FCP improved in the repeat measurement. Mobile FCP improved from 1,264 ms to 668 ms and mobile LCP improved to 1,004 ms. The strongest deterministic improvement is the reduction of the server HTML shell from roughly 372 KB to roughly 5 KB and removal of the preview runtime from the production response.
+
+The performance tracker item is complete.

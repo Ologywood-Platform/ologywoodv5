@@ -23,4 +23,4 @@
 - [x] Measured the published baseline at `https://www.ologywood.com/`: desktop TTFB 1,564 ms / FCP 4,736 ms / LCP 4,780 ms; mobile TTFB 745 ms / FCP 1,264 ms / LCP 1,264 ms. Repeat curl TTFB was 2.116–2.734 s from the sandbox network location.
 - [x] Optimized local production build measured 4 ms TTFB / 588 ms FCP / 888 ms LCP desktop and 2 ms TTFB / 144 ms FCP / 472 ms LCP mobile; hosted post-publish measurement remains required.
 - [x] Added `server/performanceOptimization.test.ts`; 101 focused tests, TypeScript, production build, diff check, preview restart, and LSP validation passed. Full suite recorded 4,431 passed, 26 skipped, and one unrelated pre-existing `server/releaseSectionLayout.test.ts` assertion failure.
-- [ ] Publish this checkpoint, then repeat the desktop/mobile Chrome performance measurement on the live domains and compare against `docs/performance-audit-2026-11-15.md`.
+- [x] Published checkpoint `2175e796`, verified both live domains serve the optimized shell, and repeated desktop/mobile Chrome measurements; final results are recorded in `docs/performance-audit-2026-11-15.md`.
