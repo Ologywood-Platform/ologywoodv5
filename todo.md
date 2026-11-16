@@ -15,3 +15,12 @@
 - [x] Added early `noindex, nofollow` metadata for private/account routes, including the intentionally blocked media-kit route, so crawlers do not rely on client-side JavaScript to receive indexation rules.
 - [x] Added `/edu` to the public sitemap and corrected dynamic event sitemap URLs to use the numeric IDs consumed by `/events/:id`; legacy `/privacy` and `/terms` now resolve to canonical metadata for their official routes.
 - [x] Validation passed: 277 focused SEO/sitemap tests, TypeScript, production build, `git diff --check`, and preview smoke checks for public metadata, private noindex, and sitemap inclusion. Existing large JavaScript-chunk warnings remain and should be handled in the next performance pass.
+
+## PERFORMANCE BUNDLE AND LOADING AUDIT — 2026-11-15
+- [x] Limited the Manus preview/editor runtime to Vite serve mode so production HTML no longer embeds the preview payload.
+- [x] Deferred the homepage route with `React.lazy()` and confirmed route-specific dashboard/profile/PDF chunks remain off the homepage initial path.
+- [x] Production build comparison: HTML shell 371,981 → 5,169 bytes; main application chunk 644,700 → 575,499 bytes; homepage deferred to a 47,834-byte chunk.
+- [x] Measured the published baseline at `https://www.ologywood.com/`: desktop TTFB 1,564 ms / FCP 4,736 ms / LCP 4,780 ms; mobile TTFB 745 ms / FCP 1,264 ms / LCP 1,264 ms. Repeat curl TTFB was 2.116–2.734 s from the sandbox network location.
+- [x] Optimized local production build measured 4 ms TTFB / 588 ms FCP / 888 ms LCP desktop and 2 ms TTFB / 144 ms FCP / 472 ms LCP mobile; hosted post-publish measurement remains required.
+- [x] Added `server/performanceOptimization.test.ts`; 101 focused tests, TypeScript, production build, diff check, preview restart, and LSP validation passed. Full suite recorded 4,431 passed, 26 skipped, and one unrelated pre-existing `server/releaseSectionLayout.test.ts` assertion failure.
+- [ ] Publish this checkpoint, then repeat the desktop/mobile Chrome performance measurement on the live domains and compare against `docs/performance-audit-2026-11-15.md`.

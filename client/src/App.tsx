@@ -18,13 +18,9 @@ import { TermsConsentBanner } from "./components/TermsConsentBanner";
 import { SiteHeader } from "./components/SiteHeader";
 
 // ============================================
-// EAGERLY LOADED — Critical path pages
-// ============================================
-import Home from "./pages/Home";
-
-// ============================================
 // LAZY LOADED — Code-split for smaller initial bundle
 // ============================================
+const Home = lazy(() => import("./pages/Home"));
 const ArtistDashboardV3 = lazy(() => import('@/pages/ArtistDashboardV3').then(m => ({ default: m.ArtistDashboardV3 })));
 const Browse = lazy(() => import("./pages/Browse"));
 const ArtistProfile = lazy(() => import("./pages/ArtistProfile"));

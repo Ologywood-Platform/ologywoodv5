@@ -7,10 +7,17 @@ import { defineConfig } from "vite";
 import { vitePluginManusRuntime } from "vite-plugin-manus-runtime";
 
 
-const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime()];
+const basePlugins = [react(), tailwindcss(), jsxLocPlugin()];
+const manusPreviewRuntime = {
+  ...vitePluginManusRuntime(),
+  apply: "serve" as const,
+};
 
 export default defineConfig({
-  plugins,
+  // The Manus host runtime is only needed for the local/editor preview. It
+  // injects a large inline script (including previewer styles) into index.html;
+  // shipping that editor payload to public visitors delays TTFB and parsing.
+  plugins: [...basePlugins, manusPreviewRuntime],
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
