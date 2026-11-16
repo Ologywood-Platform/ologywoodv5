@@ -32,3 +32,8 @@
 - [x] Added an accessible OlogyWood-branded animated homepage skeleton for the lazy-loaded Home route, with `aria-busy`, accessible labeling, and regression coverage.
 - [x] Updated the venue feature regression for the intentional lazy VenueCalendar import.
 - [x] Validation passed: 100 focused tests, TypeScript, production build, `git diff --check`, and full suite with 367 test files passed, 4,434 tests passed, and 26 skipped.
+
+## POST-PUBLISH PERFORMANCE FOLLOW-UP — 2026-11-15
+- [x] Re-measured the published homepage after the follow-up release: desktop TTFB 1,075 ms / FCP 4,124 ms / LCP 4,748 ms; mobile TTFB 374 ms / FCP 608 ms / LCP 940 ms.
+- [x] Added `pnpm run check:bundle` with budgets for the application shell, homepage, Artist Dashboard, and Venue Dashboard. Current build passes at 577,664 / 47,834 / 233,180 / 142,075 bytes against 600,000 / 60,000 / 240,000 / 160,000 byte limits.
+- [x] Added regression coverage for the bundle-budget command and updated `docs/performance-audit-2026-11-15.md` with post-publish measurements.

@@ -75,3 +75,14 @@ The dashboard route chunks were re-measured after deferring analytics and calend
 The homepage lazy-load fallback now presents a dark OlogyWood-branded hero/search skeleton with a smooth pulse animation instead of a generic spinner. The fallback is accessible with `aria-busy`, an accessible label, and regression coverage. The dashboard panel split preserves existing tab behavior and shows bounded skeleton placeholders while deferred panels load.
 
 The responsive layout assertion was corrected to verify the current `grid-cols-1 sm:grid-cols-2 lg:grid-cols-5` contract, and the venue feature test now verifies the intentional lazy import. TypeScript, production build, focused tests, full suite, and `git diff --check` all pass.
+
+## Post-publish follow-up — 2026-11-15
+
+After the owner published the follow-up checkpoint, both live domains again served the optimized approximately 5.3 KB HTML shell without the preview runtime. A fresh Chrome measurement on `www.ologywood.com` recorded:
+
+| Profile | TTFB | FCP | LCP | HTML encoded bytes |
+|---|---:|---:|---:|---:|
+| Desktop | 1,075 ms | 4,124 ms | 4,748 ms | 1,660 |
+| Mobile | 374 ms | 608 ms | 940 ms | 5,336 |
+
+The production bundle guard is now available as `pnpm run check:bundle`. It checks the largest matching hashed asset for the application shell, homepage, artist dashboard, and venue dashboard against 600 KB, 60 KB, 240 KB, and 160 KB budgets respectively. The current build passes all four budgets: 577,664 bytes, 47,834 bytes, 233,180 bytes, and 142,075 bytes.

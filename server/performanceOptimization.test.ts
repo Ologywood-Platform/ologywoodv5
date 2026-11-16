@@ -4,6 +4,8 @@ import { resolve } from 'node:path';
 
 const appSource = readFileSync(resolve(process.cwd(), 'client/src/App.tsx'), 'utf8');
 const viteSource = readFileSync(resolve(process.cwd(), 'vite.config.ts'), 'utf8');
+const packageSource = readFileSync(resolve(process.cwd(), 'package.json'), 'utf8');
+const bundleBudgetSource = readFileSync(resolve(process.cwd(), 'scripts/checkBundleBudget.mjs'), 'utf8');
 const artistDashboardSource = readFileSync(resolve(process.cwd(), 'client/src/pages/ArtistDashboardV3.tsx'), 'utf8');
 const venueDashboardSource = readFileSync(resolve(process.cwd(), 'client/src/pages/VenueDashboard.tsx'), 'utf8');
 
@@ -32,5 +34,12 @@ describe('production performance safeguards', () => {
     expect(viteSource).toContain('apply: "serve" as const');
     expect(viteSource).toContain('plugins: [...basePlugins, manusPreviewRuntime]');
     expect(viteSource).toContain('injects a large inline script');
+  });
+
+  it('keeps production route chunks within automated size budgets', () => {
+    expect(packageSource).toContain('"check:bundle": "node scripts/checkBundleBudget.mjs"');
+    expect(bundleBudgetSource).toContain('maxBytes: 600_000');
+    expect(bundleBudgetSource).toContain('maxBytes: 240_000');
+    expect(bundleBudgetSource).toContain('maxBytes: 160_000');
   });
 });
