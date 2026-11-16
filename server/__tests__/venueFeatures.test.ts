@@ -11,7 +11,7 @@ describe('Venue Features - Calendar View', () => {
   it('VenueCalendar is imported in VenueDashboard', () => {
     const filePath = path.resolve(__dirname, '../../client/src/pages/VenueDashboard.tsx');
     const content = fs.readFileSync(filePath, 'utf-8');
-    expect(content).toContain("import VenueCalendar from '../components/VenueCalendar'");
+    expect(content).toContain("const VenueCalendar = lazy(() => import('../components/VenueCalendar'))");
   });
 
   it('VenueCalendar has calendar tab trigger', () => {

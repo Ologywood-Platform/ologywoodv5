@@ -1,5 +1,5 @@
 import { toSlug } from '@/lib/slugify';
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 import { useAuth } from '../_core/hooks/useAuth';
 import { trpc } from '../lib/trpc';
@@ -17,17 +17,22 @@ import { MobileBottomNav } from '../components/MobileBottomNav';
 import { Skeleton } from '../components/ui/skeleton';
 import ImageCropper from '../components/ImageCropper';
 import { VenueContractsDashboard } from '../components/VenueContractsDashboard';
-import VenueCalendar from '../components/VenueCalendar';
 import { VenueCalendarSync } from '../components/VenueCalendarSync';
-import VenueAnalytics from '../components/VenueAnalytics';
 import ArtistFilters, { ArtistFilterValues } from '../components/ArtistFilters';
 import SettlementForm from '../components/SettlementForm';
 import SaveArtistButton from '../components/SaveArtistButton';
-import DashboardAnalyticsCards from '../components/DashboardAnalyticsCards';
 import VenueSponsorManagement from '../components/VenueSponsorManagement';
-import BookingFunnel from '../components/BookingFunnel';
 import { LocationInput } from '../components/LocationInput';
 import { OperatingHoursEditor } from '../components/OperatingHoursEditor';
+
+const VenueCalendar = lazy(() => import('../components/VenueCalendar'));
+const VenueAnalytics = lazy(() => import('../components/VenueAnalytics'));
+const DashboardAnalyticsCards = lazy(() => import('../components/DashboardAnalyticsCards'));
+const BookingFunnel = lazy(() => import('../components/BookingFunnel'));
+
+function DashboardPanelFallback({ className = 'h-28' }: { className?: string }) {
+  return <div className={`animate-pulse rounded-xl bg-muted/60 ${className}`} aria-hidden="true" />;
+}
 
 type VenueImageMime = 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif';
 const getVenueImageMime = (file: File): VenueImageMime | null => (
@@ -423,7 +428,8 @@ export function VenueDashboard() {
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
             {/* Analytics Summary Cards */}
-            <DashboardAnalyticsCards
+            <Suspense fallback={<DashboardPanelFallback className="h-32" />}>
+              <DashboardAnalyticsCards
               monthlyBookings={(() => {
                 const now = new Date();
                 return bookings?.filter(b => {
@@ -445,7 +451,8 @@ export function VenueDashboard() {
                   return created.getFullYear() === lastMonth.getFullYear() && created.getMonth() === lastMonth.getMonth();
                 }).length || 0;
               })()}
-            />
+              />
+            </Suspense>
 
             {/* Profile Completeness */}
             {profile && (
@@ -568,27 +575,29 @@ export function VenueDashboard() {
                 <Skeleton className="h-[400px] w-full rounded-lg" />
               </div>
             ) : (
-              <VenueCalendar
-                bookings={bookings || []}
-                onBookingClick={(booking) => {
-                  navigate(`/booking/${booking.id}`);
-                }}
-                onCreateBooking={(startDate, endDate) => {
-                  const params = new URLSearchParams({ date: startDate });
-                  if (endDate) params.set('endDate', endDate);
-                  navigate(`/booking/create?${params.toString()}`);
-                }}
-                onPostEvent={(booking) => {
-                  const params = new URLSearchParams({
-                    bookingId: booking.id.toString(),
-                    artistId: (booking as any).artistId?.toString() || '',
-                    artistName: booking.artistName || '',
-                    date: typeof booking.eventDate === 'string' ? booking.eventDate : new Date(booking.eventDate).toISOString().split('T')[0],
-                    time: booking.eventTime || '',
-                  });
-                  navigate(`/venue/events/create?${params.toString()}`);
-                }}
-              />
+              <Suspense fallback={<DashboardPanelFallback className="h-72" />}>
+                <VenueCalendar
+                  bookings={bookings || []}
+                  onBookingClick={(booking) => {
+                    navigate(`/booking/${booking.id}`);
+                  }}
+                  onCreateBooking={(startDate, endDate) => {
+                    const params = new URLSearchParams({ date: startDate });
+                    if (endDate) params.set('endDate', endDate);
+                    navigate(`/booking/create?${params.toString()}`);
+                  }}
+                  onPostEvent={(booking) => {
+                    const params = new URLSearchParams({
+                      bookingId: booking.id.toString(),
+                      artistId: (booking as any).artistId?.toString() || '',
+                      artistName: booking.artistName || '',
+                      date: typeof booking.eventDate === 'string' ? booking.eventDate : new Date(booking.eventDate).toISOString().split('T')[0],
+                      time: booking.eventTime || '',
+                    });
+                    navigate(`/venue/events/create?${params.toString()}`);
+                  }}
+                />
+              </Suspense>
             )}
             <div className="mt-6">
               <VenueCalendarSync />
@@ -1089,8 +1098,10 @@ export function VenueDashboard() {
 
           {/* Analytics Tab */}
           <TabsContent value="analytics" className="space-y-6">
-            <VenueAnalytics venueId={profile?.id || 0} bookings={bookings || []} />
-            <BookingFunnel venueId={profile?.id || 0} />
+            <Suspense fallback={<DashboardPanelFallback className="h-56" />}>
+              <VenueAnalytics venueId={profile?.id || 0} bookings={bookings || []} />
+              <BookingFunnel venueId={profile?.id || 0} />
+            </Suspense>
           </TabsContent>
 
           {/* Sponsors Tab */}

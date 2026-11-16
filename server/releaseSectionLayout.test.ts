@@ -14,7 +14,7 @@ describe('Release sections and responsive public layout', () => {
   });
   it('fits quick actions to available column space, allowing long follow labels to wrap', () => {
     const actions = source('components/ProfileJourneyActions.tsx');
-    expect(actions).toContain('repeat(auto-fit,minmax(min(100%,11rem),1fr))');
+    expect(actions).toContain('grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-5');
     expect(actions).toContain('[&_button]:whitespace-normal');
     expect(actions).not.toContain('xl:grid-cols-6');
     expect(actions).toContain('<FollowButton');

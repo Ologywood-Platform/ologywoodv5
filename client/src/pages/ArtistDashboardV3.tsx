@@ -1,5 +1,5 @@
 import { toSlug } from '@/lib/slugify';
-import { useState, useEffect } from 'react';
+import { lazy, Suspense, useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -23,10 +23,15 @@ import ProfileCompletenessCard from '@/components/ProfileCompletenessCard';
 import { PerformanceVideoUpload } from '@/components/PerformanceVideoUpload';
 import { VideoPortfolioManager } from '@/components/VideoPortfolioManager';
 import { ReferralSection } from '@/components/ReferralSection';
-import BookingCalendar from '@/components/BookingCalendar';
-import DashboardAnalyticsCards from '@/components/DashboardAnalyticsCards';
-import RevenueTrendsPanel from '@/components/RevenueTrendsPanel';
 import { SiteHeader } from "@/components/SiteHeader";
+
+const BookingCalendar = lazy(() => import('@/components/BookingCalendar'));
+const DashboardAnalyticsCards = lazy(() => import('@/components/DashboardAnalyticsCards'));
+const RevenueTrendsPanel = lazy(() => import('@/components/RevenueTrendsPanel'));
+
+function DashboardPanelFallback({ className = 'h-28' }: { className?: string }) {
+  return <div className={`animate-pulse rounded-xl bg-muted/60 ${className}`} aria-hidden="true" />;
+}
 
 export function ArtistDashboardV3() {
   const [, navigate] = useLocation();
@@ -254,7 +259,8 @@ export function ArtistDashboardV3() {
 
             {/* Analytics Summary Cards */}
             {bookingStats && (
-              <DashboardAnalyticsCards
+              <Suspense fallback={<DashboardPanelFallback className="h-32" />}>
+                <DashboardAnalyticsCards
                 monthlyBookings={(() => {
                   const now = new Date();
                   const thisMonth = now.toISOString().slice(0, 7);
@@ -278,10 +284,13 @@ export function ArtistDashboardV3() {
                     return created.getFullYear() === lastMonth.getFullYear() && created.getMonth() === lastMonth.getMonth();
                   }).length || 0;
                 })()}
-              />
+                />
+              </Suspense>
             )}
 
-            <RevenueTrendsPanel />
+            <Suspense fallback={<DashboardPanelFallback className="h-64" />}>
+              <RevenueTrendsPanel />
+            </Suspense>
 
             {/* Quick Actions */}
             <Card id="quick-actions">
@@ -597,7 +606,9 @@ export function ArtistDashboardV3() {
 
             {/* Booking Calendar */}
             {bookings && bookings.length > 0 && (
-              <BookingCalendar bookings={bookings} role="artist" />
+              <Suspense fallback={<DashboardPanelFallback className="h-72" />}>
+                <BookingCalendar bookings={bookings} role="artist" />
+              </Suspense>
             )}
 
             {/* Incoming Booking Requests */}

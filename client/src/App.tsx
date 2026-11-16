@@ -133,6 +133,46 @@ const OlogyLiveExperience = lazy(() => import("./pages/OlogyLiveExperience"));
 const OlogyLiveMySessions = lazy(() => import("./pages/OlogyLiveMySessions"));
 const OlogyLiveEarnings = lazy(() => import("./pages/OlogyLiveEarnings"));
 
+function HomePageSkeleton() {
+  return (
+    <div
+      className="min-h-[calc(100vh-5rem)] bg-[#080b14] px-4 py-8 text-white sm:px-8"
+      aria-busy="true"
+      aria-label="Loading OlogyWood homepage"
+      data-testid="home-page-skeleton"
+    >
+      <div className="mx-auto max-w-7xl animate-pulse space-y-8">
+        <div className="grid min-h-[28rem] items-center gap-8 overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#11182a] via-[#111426] to-[#24114a] p-6 sm:p-12 lg:grid-cols-2">
+          <div className="space-y-5">
+            <div className="h-3 w-44 rounded-full bg-violet-300/30" />
+            <div className="h-12 max-w-xl rounded-xl bg-white/20 sm:h-16" />
+            <div className="h-12 max-w-lg rounded-xl bg-violet-300/25 sm:h-16" />
+            <div className="h-4 max-w-md rounded-full bg-white/10" />
+            <div className="h-4 max-w-sm rounded-full bg-white/10" />
+            <div className="flex gap-3 pt-3">
+              <div className="h-11 w-32 rounded-xl bg-violet-400/40" />
+              <div className="h-11 w-36 rounded-xl bg-white/10" />
+            </div>
+          </div>
+          <div className="hidden h-80 rounded-3xl bg-white/10 lg:block" />
+        </div>
+        <div className="h-28 rounded-2xl border border-white/10 bg-white/5" />
+        <div className="grid gap-4 sm:grid-cols-3">
+          {[1, 2, 3].map((item) => <div key={item} className="h-40 rounded-2xl border border-white/10 bg-white/5" />)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HomeRoute() {
+  return (
+    <Suspense fallback={<HomePageSkeleton />}>
+      <Home />
+    </Suspense>
+  );
+}
+
 // Loading fallback for lazy-loaded pages
 function PageLoader() {
   return (
@@ -180,8 +220,8 @@ function Router() {
               ============================================ */}
           
           {/* Authentication & Accounts */}
-          <Route path="/" component={Home} />
-          <Route path="/home" component={Home} />
+          <Route path="/" component={HomeRoute} />
+          <Route path="/home" component={HomeRoute} />
           <Route path="/get-started" component={RoleSelection} />
           <Route path="/onboarding/artist" component={ArtistOnboarding} />
           <Route path="/profile/edit" component={ArtistEditProfile} />

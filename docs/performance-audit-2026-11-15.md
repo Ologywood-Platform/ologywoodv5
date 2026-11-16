@@ -45,12 +45,12 @@ These local values are not a production guarantee because they remove the hosted
 
 ## Validation
 
-- 101 focused performance/app/SEO/sitemap tests passed.
+- 101 focused performance/app/SEO/sitemap tests passed before the follow-up dashboard split; the follow-up focused set passed 100/100.
 - TypeScript validation passed.
 - Production build passed.
 - `git diff --check` passed.
 - Preview restarted successfully with no language-service or TypeScript errors.
-- Full suite result: 4,431 passed, 26 skipped, and 1 unrelated pre-existing failure in `server/releaseSectionLayout.test.ts`; the failing assertion expects an older ProfileJourneyActions grid class and is not touched by this performance work.
+- Full suite result after the follow-up fixes: 4,434 passed, 26 skipped across 367 passing test files and 2 skipped files.
 
 ## Final live verification after publishing
 
@@ -63,4 +63,15 @@ Both `https://www.ologywood.com/` and `https://ologywood-mp6flm6c.manus.space/` 
 
 The desktop LCP is within normal run-to-run network variance of the earlier baseline, while TTFB and FCP improved in the repeat measurement. Mobile FCP improved from 1,264 ms to 668 ms and mobile LCP improved to 1,004 ms. The strongest deterministic improvement is the reduction of the server HTML shell from roughly 372 KB to roughly 5 KB and removal of the preview runtime from the production response.
 
-The performance tracker item is complete.
+## Follow-up dashboard optimization — 2026-11-15
+
+The dashboard route chunks were re-measured after deferring analytics and calendar panels behind `Suspense` boundaries:
+
+| Route chunk | Before | After | Reduction |
+|---|---:|---:|---:|
+| `ArtistDashboardV3` | 247,971 bytes | 233,180 bytes | 14,791 bytes / 6.0% |
+| `VenueDashboard` | 192,326 bytes | 142,075 bytes | 50,251 bytes / 26.1% |
+
+The homepage lazy-load fallback now presents a dark OlogyWood-branded hero/search skeleton with a smooth pulse animation instead of a generic spinner. The fallback is accessible with `aria-busy`, an accessible label, and regression coverage. The dashboard panel split preserves existing tab behavior and shows bounded skeleton placeholders while deferred panels load.
+
+The responsive layout assertion was corrected to verify the current `grid-cols-1 sm:grid-cols-2 lg:grid-cols-5` contract, and the venue feature test now verifies the intentional lazy import. TypeScript, production build, focused tests, full suite, and `git diff --check` all pass.

@@ -24,3 +24,11 @@
 - [x] Optimized local production build measured 4 ms TTFB / 588 ms FCP / 888 ms LCP desktop and 2 ms TTFB / 144 ms FCP / 472 ms LCP mobile; hosted post-publish measurement remains required.
 - [x] Added `server/performanceOptimization.test.ts`; 101 focused tests, TypeScript, production build, diff check, preview restart, and LSP validation passed. Full suite recorded 4,431 passed, 26 skipped, and one unrelated pre-existing `server/releaseSectionLayout.test.ts` assertion failure.
 - [x] Published checkpoint `2175e796`, verified both live domains serve the optimized shell, and repeated desktop/mobile Chrome measurements; final results are recorded in `docs/performance-audit-2026-11-15.md`.
+
+## FOLLOW-UP DASHBOARD CHUNK AND HOMEPAGE LOADING PASS — 2026-11-15
+- [x] Fixed the stale `releaseSectionLayout.test.ts` assertion to verify the current responsive ProfileJourneyActions grid contract.
+- [x] Deferred artist dashboard analytics, revenue, and booking-calendar panels behind lazy imports and Suspense placeholders; reduced the ArtistDashboardV3 route chunk from 247,971 to 233,180 bytes.
+- [x] Deferred venue dashboard analytics, booking funnel, and calendar panels behind lazy imports and Suspense placeholders; reduced the VenueDashboard route chunk from 192,326 to 142,075 bytes.
+- [x] Added an accessible OlogyWood-branded animated homepage skeleton for the lazy-loaded Home route, with `aria-busy`, accessible labeling, and regression coverage.
+- [x] Updated the venue feature regression for the intentional lazy VenueCalendar import.
+- [x] Validation passed: 100 focused tests, TypeScript, production build, `git diff --check`, and full suite with 367 test files passed, 4,434 tests passed, and 26 skipped.
