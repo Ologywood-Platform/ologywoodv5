@@ -10,9 +10,11 @@ import viteConfig from "../../vite.config";
 import { getDb } from "../db";
 import { artistProfiles, venueProfiles, events, blogPosts } from "../../drizzle/schema";
 import { eq } from "drizzle-orm";
-import { isEduLandingPath } from '../../shared/eduShare';
+import { EDU_SHARE_DESCRIPTION, EDU_SHARE_IMAGE, EDU_SHARE_IMAGE_ALT, EDU_SHARE_TITLE, EDU_SHARE_URL, isEduLandingPath } from '../../shared/eduShare';
 import { injectEduShareMeta } from '../services/eduShareMetadata';
 import {
+  generateOrganizationJsonLd,
+  generateWebSiteJsonLd,
   generateArtistJsonLd,
   generateVenueJsonLd,
   generateEventJsonLd,
@@ -64,6 +66,62 @@ interface OgData {
   jsonLd?: object | object[];
 }
 
+const STATIC_SEO: Record<string, Omit<OgData, 'url'> & { path: string }> = {
+  '/': {
+    path: '/', title: 'Your Talent. Your Platform. Your Next Opportunity.',
+    description: 'Get discovered, book opportunities, grow your audience, and earn from what you create. OlogyWood powers bookings, tickets, fan clubs, merch, and content releases.',
+    image: DEFAULT_OG_IMAGE, type: 'website',
+  },
+  '/home': {
+    path: '/', title: 'Your Talent. Your Platform. Your Next Opportunity.',
+    description: 'Get discovered, book opportunities, grow your audience, and earn from what you create. OlogyWood powers bookings, tickets, fan clubs, merch, and content releases.',
+    image: DEFAULT_OG_IMAGE, type: 'website',
+  },
+  '/discover': { path: '/discover', title: 'Discover Talent and Opportunities | Ologywood', description: 'Discover artists, venues, events, and creative opportunities on Ologywood.', image: DEFAULT_OG_IMAGE },
+  '/experiences': { path: '/experiences', title: 'Creative Experiences | Ologywood', description: 'Explore live and digital experiences from independent creators on Ologywood.', image: DEFAULT_OG_IMAGE },
+  '/shop': { path: '/shop', title: 'Creator Shop | Ologywood', description: 'Shop music, merch, books, and digital releases directly from independent creators.', image: DEFAULT_OG_IMAGE },
+  '/community': { path: '/community', title: 'Creator Community | Ologywood', description: 'Connect with independent creators, fans, and opportunities across the Ologywood community.', image: DEFAULT_OG_IMAGE },
+  '/browse': { path: '/browse', title: 'Browse Artists — Find & Book Talent | Ologywood', description: 'Discover and book talented performing artists for your events. Search by genre, location, and availability.', image: DEFAULT_OG_IMAGE },
+  '/venues': { path: '/venues', title: 'Browse Venues | Ologywood', description: 'Discover venues looking for talented performers and explore booking opportunities.', image: DEFAULT_OG_IMAGE },
+  '/events': { path: '/events', title: 'Discover Events | Ologywood', description: 'Explore upcoming live events, concerts, and performances. Find events near you and buy tickets directly from creators.', image: DEFAULT_OG_IMAGE },
+  '/ology-live': { path: '/ology-live', title: 'Ology Live Experiences | Ologywood', description: 'Discover live digital experiences, sessions, and performances from independent creators.', image: DEFAULT_OG_IMAGE },
+  '/pricing': { path: '/pricing', title: 'Pricing — Simple, Transparent Plans | Ologywood', description: 'Choose the right Ologywood plan for bookings, direct-to-fan sales, audience growth, and creator tools.', image: DEFAULT_OG_IMAGE },
+  '/how-it-works': { path: '/how-it-works', title: 'How Ologywood Works | Artist Booking and Creator Commerce', description: 'Learn how Ologywood helps creators build profiles, manage bookings, sell directly to fans, and grow their audience.', image: DEFAULT_OG_IMAGE },
+  '/faq': { path: '/faq', title: 'FAQ | Ologywood', description: 'Answers about artist bookings, payments, riders, contracts, events, tickets, merch, and creator tools on Ologywood.', image: DEFAULT_OG_IMAGE },
+  '/help': { path: '/help', title: 'Help Center | Ologywood', description: 'Get help with your Ologywood account, bookings, riders, contracts, payments, events, and creator tools.', image: DEFAULT_OG_IMAGE },
+  '/contact': { path: '/contact', title: 'Contact Ologywood | Creator and Venue Support', description: 'Contact the Ologywood team about artist bookings, venue partnerships, creator commerce, and platform support.', image: DEFAULT_OG_IMAGE },
+  '/about': { path: '/about', title: 'About Ologywood | Built for Independent Creators', description: 'Learn how Ologywood helps independent talent get discovered, book opportunities, reach fans, and earn from what they create.', image: DEFAULT_OG_IMAGE },
+  '/sell-music': { path: '/sell-music', title: 'Sell Your Music Directly to Fans | Ologywood', description: 'Release and sell singles directly from your Ologywood profile with direct-to-fan tools and a simple platform fee.', image: DEFAULT_OG_IMAGE },
+  '/sponsor-opportunities': { path: '/sponsor-opportunities', title: 'Sponsor Opportunities | Ologywood', description: 'Connect brands and sponsors with independent creators, artists, events, and entertainment opportunities.', image: DEFAULT_OG_IMAGE },
+  '/blog': { path: '/blog', title: 'Ologywood Blog | Creator Economy and Entertainment Insights', description: 'Read Ologywood announcements, creator guides, industry insights, and direct-to-fan growth ideas.', image: DEFAULT_OG_IMAGE },
+  '/edu': { path: '/edu', title: EDU_SHARE_TITLE, description: EDU_SHARE_DESCRIPTION, image: EDU_SHARE_IMAGE },
+  '/privacy-policy': { path: '/privacy-policy', title: 'Privacy Policy | Ologywood', description: 'Read the Ologywood privacy policy.', image: DEFAULT_OG_IMAGE },
+  '/privacy': { path: '/privacy-policy', title: 'Privacy Policy | Ologywood', description: 'Read the Ologywood privacy policy.', image: DEFAULT_OG_IMAGE },
+  '/terms-of-service': { path: '/terms-of-service', title: 'Terms of Service | Ologywood', description: 'Read the Ologywood terms of service.', image: DEFAULT_OG_IMAGE },
+  '/terms': { path: '/terms-of-service', title: 'Terms of Service | Ologywood', description: 'Read the Ologywood terms of service.', image: DEFAULT_OG_IMAGE },
+  '/cookies': { path: '/cookies', title: 'Cookie Policy | Ologywood', description: 'Read the Ologywood cookie policy.', image: DEFAULT_OG_IMAGE },
+  '/accessibility': { path: '/accessibility', title: 'Accessibility | Ologywood', description: 'Learn about accessibility at Ologywood.', image: DEFAULT_OG_IMAGE },
+  '/dmca': { path: '/dmca', title: 'DMCA Policy | Ologywood', description: 'Read the Ologywood DMCA policy.', image: DEFAULT_OG_IMAGE },
+  '/disclaimer': { path: '/disclaimer', title: 'Disclaimer | Ologywood', description: 'Read the Ologywood disclaimer.', image: DEFAULT_OG_IMAGE },
+  '/creator-rights': { path: '/creator-rights', title: 'Creator Rights | Ologywood', description: 'Learn how Ologywood supports creator rights and ownership.', image: DEFAULT_OG_IMAGE },
+  '/community-guidelines': { path: '/community-guidelines', title: 'Community Guidelines | Ologywood', description: 'Read the Ologywood community guidelines.', image: DEFAULT_OG_IMAGE },
+};
+
+const NOINDEX_PREFIXES = ['/booking/', '/booking-confirmation/', '/messages/', '/artists/'];
+const NOINDEX_PATHS = new Set(['/get-started', '/onboarding/artist', '/onboarding/venue', '/profile/edit', '/dashboard', '/venue-dashboard', '/verify-email', '/revert-email', '/reset-password', '/earnings', '/earnings-dashboard', '/venue-invoices', '/admin', '/admin/payouts', '/artist-tax-reporting', '/booking/create', '/bookings', '/contracts', '/events/create', '/releases', '/rider-builder', '/rider-templates', '/saved-riders', '/favorites', '/riders', '/messages', '/following', '/availability', '/unsubscribe', '/workspace', '/my-ology', '/settings', '/promote', '/media-kit', '/sponsor-dashboard', '/sponsor-analytics', '/my-tickets', '/my-purchases', '/my-music', '/fan-club', '/purchase-success', '/tickets/confirmation', '/tickets/accept', '/onboarding']);
+function shouldNoIndex(pathname: string): boolean {
+  return NOINDEX_PATHS.has(pathname) || NOINDEX_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+}
+
+function staticOgData(pathname: string, baseUrl: string): OgData | null {
+  const entry = STATIC_SEO[pathname === '/edu/' ? '/edu' : pathname];
+  if (!entry) return null;
+  const url = entry.path === '/' ? `${baseUrl}/` : `${baseUrl}${entry.path}`;
+  const breadcrumb = entry.path === '/' ? undefined : generateBreadcrumbJsonLd([{ name: 'Home', url: '/' }, { name: entry.title.split('|')[0].split('—')[0].trim(), url: entry.path }], baseUrl);
+  const jsonLd = entry.path === '/' ? [generateOrganizationJsonLd(baseUrl), generateWebSiteJsonLd(baseUrl)] : breadcrumb ? [breadcrumb] : undefined;
+  return { title: entry.title, description: entry.description, image: entry.image, type: entry.type, url, jsonLd };
+}
+
 /**
  * Replace OG meta tags in the index.html template with dynamic values
  */
@@ -82,6 +140,7 @@ function injectOgTags(html: string, og: OgData): string {
     /<meta\s+name="description"\s+content="[^"]*"\s*\/?>/,
     `<meta name="description" content="${escapeHtml(description)}">`
   );
+  html = html.replace(/<meta\s+name="robots"\s+content="[^"]*"\s*\/?\s*>/i, '<meta name="robots" content="index, follow">');
   
   // Replace OG tags
   html = html.replace(/<meta\s+property="og:type"\s+content="[^"]*"\s*\/?>/, `<meta property="og:type" content="${type}">`);
@@ -89,7 +148,9 @@ function injectOgTags(html: string, og: OgData): string {
   html = html.replace(/<meta\s+property="og:title"\s+content="[^"]*"\s*\/?>/, `<meta property="og:title" content="${escapeHtml(title)}">`);
   html = html.replace(/<meta\s+property="og:description"\s+content="[^"]*"\s*\/?>/, `<meta property="og:description" content="${escapeHtml(description)}">`);
   html = html.replace(/<meta\s+property="og:image"\s+content="[^"]*"\s*\/?>/, `<meta property="og:image" content="${escapeHtml(image)}">`);
+  html = html.replace(/<meta\s+property="og:image:secure_url"\s+content="[^"]*"\s*\/?>/, `<meta property="og:image:secure_url" content="${escapeHtml(image)}">`);
   html = html.replace(/<meta\s+property="og:image:type"\s+content="[^"]*"\s*\/?>/, `<meta property="og:image:type" content="${imageType}">`);
+  html = html.replace(/<link\s+rel="canonical"\s+href="[^"]*"\s*\/?>/i, `<link rel="canonical" href="${escapeHtml(url)}">`);
   
   // Replace Twitter tags
   html = html.replace(/<meta\s+name="twitter:title"\s+content="[^"]*"\s*\/?>/, `<meta name="twitter:title" content="${escapeHtml(title)}">`);
@@ -112,6 +173,9 @@ function injectOgTags(html: string, og: OgData): string {
  */
 async function getOgDataForPath(pathname: string, baseUrl: string): Promise<OgData | null> {
   try {
+    const staticData = staticOgData(pathname, baseUrl);
+    if (staticData) return staticData;
+
     // Match /artist/:id
     const artistMatch = pathname.match(/^\/artist\/(\d+)$/);
     if (artistMatch) {
@@ -404,8 +468,14 @@ export async function setupVite(app: Express, server: Server) {
 
       // always reload the index.html file from disk incase it changes
       let template = await fs.promises.readFile(clientTemplate, "utf-8");
-      if (isEduLandingPath(new URL(url, 'http://localhost').pathname)) {
+      const pathname = new URL(url, 'http://localhost').pathname;
+      if (isEduLandingPath(pathname)) {
         template = injectEduShareMeta(template);
+      } else {
+        const baseUrl = (process.env.BASE_URL || `https://${req.get('host')}`).replace(/\/$/, '');
+        const ogData = await getOgDataForPath(pathname, baseUrl);
+        if (ogData) template = injectOgTags(template, ogData);
+        else if (shouldNoIndex(pathname)) template = template.replace(/<meta\s+name="robots"\s+content="[^"]*"\s*\/?\s*>/i, '<meta name="robots" content="noindex, nofollow">');
       }
       template = template.replace(
         `src="/src/main.tsx"`,
@@ -493,37 +563,30 @@ export function serveStatic(app: Express) {
     
     const indexPath = path.resolve(distPath, "index.html");
     
-    // For social media bots, inject dynamic OG tags into the HTML
+    // Inject route metadata into the initial HTML for every public request,
+    // not only social crawlers. This prevents SEO tools and search bots from
+    // seeing the generic homepage shell before React hydrates.
     const userAgent = req.headers['user-agent'] || '';
-    if (isSocialBot(userAgent)) {
-      try {
-        let baseUrl = process.env.BASE_URL || `https://${req.get('host')}`;
-        baseUrl = baseUrl.replace(/\/$/, '');
-        
-        const ogData = await getOgDataForPath(pathname, baseUrl);
-        if (ogData) {
-          // FORCE: Ensure og:image uses the proxy URL, never raw CloudFront
-          if (ogData.image && ogData.image.includes('cloudfront.net')) {
-            const artistMatch2 = pathname.match(/^\/artist\/(\d+)$/);
-            const venueMatch2 = pathname.match(/^\/venue\/(\d+)$/);
-            if (artistMatch2) {
-              ogData.image = `${baseUrl}/api/og-image/artist/${artistMatch2[1]}`;
-            } else if (venueMatch2) {
-              ogData.image = `${baseUrl}/api/og-image/venue/${venueMatch2[1]}`;
-            }
-          }
-          let html = await fs.promises.readFile(indexPath, 'utf-8');
-          html = injectOgTags(html, ogData);
-          console.log(`[OG Tags Prod v3] Served OG tags for bot: path=${pathname}, title=${ogData.title}, image=${ogData.image}`);
-          return res.status(200).set({
-            'Content-Type': 'text/html',
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Vary': 'User-Agent',
-          }).send(html);
+    try {
+      let baseUrl = (process.env.BASE_URL || `https://${req.get('host')}`).replace(/\/$/, '');
+      const ogData = await getOgDataForPath(pathname, baseUrl);
+      let html = await fs.promises.readFile(indexPath, 'utf-8');
+      if (ogData) {
+        if (ogData.image && ogData.image.includes('cloudfront.net')) {
+          const artistMatch2 = pathname.match(/^\/artist\/(\d+)$/);
+          const venueMatch2 = pathname.match(/^\/venue\/(\d+)$/);
+          if (artistMatch2) ogData.image = `${baseUrl}/api/og-image/artist/${artistMatch2[1]}`;
+          else if (venueMatch2) ogData.image = `${baseUrl}/api/og-image/venue/${venueMatch2[1]}`;
         }
-      } catch (error) {
-        console.error('[OG Tags] Error injecting OG tags in production:', error);
+        html = injectOgTags(html, ogData);
+      } else if (shouldNoIndex(pathname)) {
+        html = html.replace(/<meta\s+name="robots"\s+content="[^"]*"\s*\/?\s*>/i, '<meta name="robots" content="noindex, nofollow">');
       }
+      const headers: Record<string, string> = { 'Content-Type': 'text/html', 'Cache-Control': ogData && isSocialBot(userAgent) ? 'no-cache, no-store, must-revalidate' : SPA_SHELL_CACHE_CONTROL };
+      if (ogData && isSocialBot(userAgent)) headers.Vary = 'User-Agent';
+      return res.status(200).set(headers).send(html);
+    } catch (error) {
+      console.error('[SEO] Error injecting route metadata:', error);
     }
     
     // Default: serve the public shell with a short edge cache. User-specific

@@ -48,7 +48,7 @@ describe('Sitemap and Robots.txt Routes', () => {
       const response = await request(app).get('/sitemap.xml');
       const publicPages = [
         '/discover', '/experiences', '/shop', '/community', '/browse', '/venues', '/events',
-        '/ology-live', '/pricing', '/how-it-works', '/sell-music', '/sponsor-opportunities',
+        '/ology-live', '/pricing', '/how-it-works', '/sell-music', '/sponsor-opportunities', '/edu',
         '/blog', '/about', '/contact', '/faq', '/help', '/terms-of-service', '/privacy-policy',
         '/cookies', '/accessibility', '/dmca', '/disclaimer', '/creator-rights', '/community-guidelines',
       ];
@@ -65,7 +65,7 @@ describe('Sitemap and Robots.txt Routes', () => {
     it('builds the same clean canonical paths used by public detail pages', () => {
       expect(artistSitemapPath('Dawud Anyabwile')).toBe('/artist/dawud-anyabwile');
       expect(venueSitemapPath('The Velvet Room')).toBe('/venue/the-velvet-room');
-      expect(eventSitemapPath('Arts & Culture Night!')).toBe('/events/arts-culture-night');
+      expect(eventSitemapPath(42)).toBe('/events/42');
       expect(merchSitemapPath('Signed Art Book', 42)).toBe('/merch/signed-art-book-42');
     });
 

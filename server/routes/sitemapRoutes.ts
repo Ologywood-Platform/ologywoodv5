@@ -36,6 +36,7 @@ export const PUBLIC_STATIC_PAGES: SitemapPage[] = [
   { url: '/how-it-works', changefreq: 'monthly', priority: 0.7 },
   { url: '/sell-music', changefreq: 'monthly', priority: 0.8 },
   { url: '/sponsor-opportunities', changefreq: 'daily', priority: 0.7 },
+  { url: '/edu', changefreq: 'monthly', priority: 0.8 },
   { url: '/blog', changefreq: 'daily', priority: 0.8 },
   { url: '/about', changefreq: 'monthly', priority: 0.6 },
   { url: '/contact', changefreq: 'monthly', priority: 0.6 },
@@ -67,8 +68,9 @@ export function venueSitemapPath(name: string): string {
   return `/venue/${toSitemapSlug(name)}`;
 }
 
-export function eventSitemapPath(title: string): string {
-  return `/events/${toSitemapSlug(title)}`;
+export function eventSitemapPath(id: number): string {
+  if (!Number.isSafeInteger(id) || id <= 0) throw new Error('Invalid event ID');
+  return `/events/${id}`;
 }
 
 export function merchSitemapPath(title: string, id: number): string {
@@ -188,8 +190,9 @@ router.get('/sitemap.xml', async (req: Request, res: Response) => {
       }
 
       try {
-        const publicEvents = await database
+          const publicEvents = await database
           .select({
+            id: events.id,
             eventTitle: events.eventTitle,
             updatedAt: events.updatedAt,
           })
@@ -200,9 +203,9 @@ router.get('/sitemap.xml', async (req: Request, res: Response) => {
 
         dynamicPages.push(
           ...publicEvents
-            .filter((event) => Boolean(toSitemapSlug(event.eventTitle)))
+            .filter((event) => Number.isSafeInteger(event.id) && event.id > 0)
             .map((event) => ({
-              url: eventSitemapPath(event.eventTitle),
+            url: eventSitemapPath(event.id),
               changefreq: 'weekly' as const,
               priority: 0.7,
               lastmod: toLastModified(event.updatedAt),
