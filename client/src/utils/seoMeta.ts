@@ -256,7 +256,7 @@ export const pageMetaTags = {
 
   sellMusic: {
     title: 'Sell Your Music - Ologywood White Label Releases',
-    description: 'Sell singles directly from your Ologywood artist profile. Keep 99% of every sale with just a 1% platform fee. Upload, price, and sell your music to fans worldwide.',
+    description: 'Sell singles from your Ologywood artist profile. Keep 99% of every sale with a 1% platform fee and reach fans worldwide.',
     keywords: 'sell music online, white label release, independent artist, music distribution, sell singles',
     ogImage: DEFAULT_OG_IMAGE,
     ogUrl: `${BASE_URL}/sell-music`,

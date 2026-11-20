@@ -310,7 +310,7 @@ export default function Home() {
             src={heroImage}
             srcSet={heroImageSrcSet}
             alt="Singer performing on stage beside an athlete and filmmaker representing OlogyWood creators"
-            className="home-hero-image"
+            className="home-hero-image home-image-fade-in"
             width="1280"
             height="549"
             sizes="100vw"
@@ -445,6 +445,7 @@ export default function Home() {
                 <img
                   src={category.image}
                   alt={`${category.title}: ${category.description}`}
+                  className="home-category-image home-image-fade-in"
                   loading="lazy"
                   decoding="async"
                   width="800"

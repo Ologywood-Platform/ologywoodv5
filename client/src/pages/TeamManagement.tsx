@@ -196,7 +196,7 @@ export function TeamManagement() {
                   <div key={member.id} className="flex flex-col gap-3 p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-3 min-w-0">
                       {member.userAvatar ? (
-                        <img src={member.userAvatar} alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
+                        <img src={member.userAvatar} alt={`${member.userName || 'Team member'} profile photo`} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
                       ) : (
                         <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                           <span className="text-sm font-semibold text-primary">

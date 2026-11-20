@@ -251,7 +251,7 @@ export default function SponsorDashboard() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       {sponsor.companyLogoUrl && (
-                        <img src={sponsor.companyLogoUrl} alt="" className="w-12 h-12 rounded-lg object-contain border" />
+                        <img src={sponsor.companyLogoUrl} alt={`${sponsor.companyName} logo`} className="w-12 h-12 rounded-lg object-contain border" />
                       )}
                       <div>
                         <p className="font-semibold text-gray-900">{sponsor.companyName}</p>

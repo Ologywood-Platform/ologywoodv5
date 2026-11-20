@@ -173,9 +173,9 @@ export function ArtistDashboardV3() {
               <span className="hidden sm:inline">Back</span>
             </Button>
             {((user as any)?.customAvatarUrl || (user as any)?.avatarUrl) ? (
-              <img src={(user as any).customAvatarUrl || (user as any).avatarUrl} alt="" className="h-10 w-10 rounded-full object-cover shrink-0" referrerPolicy="no-referrer" />
+              <img src={(user as any).customAvatarUrl || (user as any).avatarUrl} alt={`${user?.name || 'Artist'} profile photo`} className="h-10 w-10 rounded-full object-cover shrink-0" referrerPolicy="no-referrer" />
             ) : artistProfile?.profilePhotoUrl ? (
-              <img src={artistProfile.profilePhotoUrl} alt="" className="h-10 w-10 rounded-full object-cover shrink-0" />
+              <img src={artistProfile.profilePhotoUrl} alt={`${artistProfile.artistName || 'Artist'} profile photo`} className="h-10 w-10 rounded-full object-cover shrink-0" />
             ) : null}
             <div>
               <h1 className="text-2xl font-bold text-slate-900 dark:text-gray-100">My Dashboard</h1>

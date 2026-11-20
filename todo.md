@@ -4,3 +4,10 @@
 - [x] Added descriptive alt text to the hero and three talent-category images; the homepage now has no empty image alt attributes.
 - [x] Added `server/homepageSeoAccessibility.test.ts` and support documentation in `docs/homepage-seo-accessibility-2026-11-20.md`.
 - [x] Validation passed: focused SEO tests, TypeScript, production build, exact character-count audit, empty-alt audit, and `git diff --check`.
+
+## SEO AUDIT AND HOMEPAGE IMAGE PERFORMANCE — 2026-11-20
+- [x] Shortened the `sellMusic` metadata description and verified static descriptions remain within the strict 50–160 character range.
+- [x] Replaced remaining empty image alt attributes across audited artist, blog, browse, fan-club, sponsor, team, and venue pages.
+- [x] Preserved hero `fetchPriority="high"`; kept category images lazy and async-decoded.
+- [x] Added a subtle 220ms homepage image fade-in with `prefers-reduced-motion` support.
+- [x] Extended regression coverage and support documentation; validation passed before publication.

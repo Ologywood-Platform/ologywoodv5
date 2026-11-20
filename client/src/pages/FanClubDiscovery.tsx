@@ -39,7 +39,7 @@ export default function FanClubDiscovery() {
               return (
                 <Card key={club.talentUserId} className="overflow-hidden transition-shadow hover:shadow-lg">
                   <CardHeader className="flex-row items-center gap-3 space-y-0">
-                    {club.profilePhotoUrl ? <img src={club.profilePhotoUrl} alt="" className="h-12 w-12 rounded-full object-cover" /> : <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 text-purple-700"><Crown className="h-6 w-6" /></div>}
+                    {club.profilePhotoUrl ? <img src={club.profilePhotoUrl} alt={`${club.artistName} profile photo`} className="h-12 w-12 rounded-full object-cover" /> : <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 text-purple-700"><Crown className="h-6 w-6" /></div>}
                     <div className="min-w-0"><CardTitle className="truncate text-lg">{club.artistName}</CardTitle><p className="text-sm text-muted-foreground">{club.tiers.length} membership tier{club.tiers.length === 1 ? '' : 's'}</p></div>
                   </CardHeader>
                   <CardContent>

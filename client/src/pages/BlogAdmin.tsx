@@ -868,7 +868,7 @@ export default function BlogAdmin() {
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-3">
                         {post.coverImageUrl ? (
-                          <img src={post.coverImageUrl} alt="" className="w-12 h-8 object-cover rounded" />
+                          <img src={post.coverImageUrl} alt={`${post.title} cover`} className="w-12 h-8 object-cover rounded" />
                         ) : (
                           <div className="w-12 h-8 bg-gray-100 rounded flex items-center justify-center">
                             <FileText className="w-4 h-4 text-gray-400" />
@@ -993,7 +993,7 @@ export default function BlogAdmin() {
             {posts.map((post: any) => (
               <div key={post.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
                 {post.coverImageUrl ? (
-                  <img src={post.coverImageUrl} alt="" className="w-full h-40 object-cover" />
+                  <img src={post.coverImageUrl} alt={`${post.title} cover`} className="w-full h-40 object-cover" />
                 ) : (
                   <div className="w-full h-40 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
                     <FileText className="w-10 h-10 text-gray-300" />
