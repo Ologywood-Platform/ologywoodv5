@@ -136,7 +136,7 @@ function updateCanonicalTag(url: string) {
 export const pageMetaTags = {
   home: {
     title: 'Your Talent. Your Platform. Your Next Opportunity.',
-    description: 'Get discovered, book opportunities, grow your audience, and earn from what you create. Creators own their audience. Creators choose where their content lives. OlogyWood powers bookings, tickets, fan clubs, merch, and content releases.',
+    description: 'Discover and book independent talent, sell tickets and merch, grow your audience, and turn your creative work into new opportunities with OlogyWood.',
     keywords: 'artist booking, event planning, performers, venues, entertainment booking',
     ogImage: DEFAULT_OG_IMAGE,
     ogUrl: BASE_URL,
