@@ -498,10 +498,14 @@ function ReleaseForm({
   return (
     <Card className="mb-6">
       <CardHeader>
-        <CardTitle>{isEditing ? "Edit Music Release" : "Upload a Song"}</CardTitle>
-        <CardDescription>
-          {isEditing ? "Update your release details" : "Upload your single and set your price"}
-        </CardDescription>
+          <CardTitle>{isEditing ? "Edit Music Release" : "Upload a Song"}</CardTitle>
+          <CardDescription>
+            {isEditing
+              ? release?.status === "archived"
+                ? "Update your release or replace the mix, then save and verify playback before republishing. Your sales and buyer access stay connected."
+                : "Update your release details"
+              : "Upload your single and set your price"}
+          </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -586,6 +590,11 @@ function ReleaseForm({
               )}
             </div>
             {fieldErrors.audio && <p className="text-xs text-red-500">{fieldErrors.audio}</p>}
+            {isEditing && (
+              <p className="text-xs text-muted-foreground rounded-md bg-muted/50 px-3 py-2">
+                Replacing the audio keeps this release page, sales history, and buyer access intact. Save your new mix, listen to it, and republish when it is ready.
+              </p>
+            )}
           </div>
 
           {/* Cover Art Upload */}

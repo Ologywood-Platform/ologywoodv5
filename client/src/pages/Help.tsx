@@ -315,6 +315,12 @@ const faqItems: FAQItem[] = [
     question: 'How do I disclose AI use in a song or release?',
     answer: 'When creating or editing a Music Release or Content Release, turn on “Disclose AI use on this release.” Choose whether the work is AI-assisted or primarily AI-generated, then select the components involved, such as writing, composition, voice, sound, production, artwork, or video. You may also name tools and add a creator explanation. When enabled, a public tag shows your creator-provided details. Leaving the switch off means no disclosure was provided; OlogyWood does not claim the work is AI-free or independently certify ownership or rights.',
   },
+  {
+    id: 'music-7',
+    category: 'Music & Releases',
+    question: 'How do I replace an improved mix on an existing single?',
+    answer: 'Keep the same release so its page, sales history, revenue, and buyer access remain connected. If the release is published, choose Unpublish first. Then choose Edit, select Replace Audio, upload the improved mix, save it, and listen to confirm the new file. When everything sounds right, choose Publish or Re-publish. Archived releases now show Edit / Replace Audio directly before Re-publish. Do not delete the old release or create a new one unless the audio is a separate version, such as a remix or radio edit.',
+  },
 
 
   // Content Releases
