@@ -16,3 +16,8 @@
 - [x] Replaced competing temporary Manus CDN favicon links with one stable first-party `/favicon-192.png` favicon.
 - [x] Standardized the Apple touch icon on `/apple-touch-icon.png`.
 - [x] Added regression coverage and support guidance for requesting a homepage recrawl after publication.
+
+## MUSIC RELEASE MIX REPLACEMENT — 2026-11-21
+- [x] Fixed archived releases so artists can choose **Edit / Replace Audio** before republishing an improved mix.
+- [x] Preserved the release ID, purchase history, sales totals, and revenue records during replacement.
+- [x] Added regression coverage and documented the verify-before-republish flow.

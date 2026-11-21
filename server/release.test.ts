@@ -129,7 +129,7 @@ describe("White Label Release — Release Status Flow", () => {
     const validTransitions: Record<string, string[]> = {
       draft: ["published", "archived"],
       published: ["draft", "archived", "taken_down"],
-      archived: [],
+      archived: ["draft", "published"],
       taken_down: [],
     };
 
@@ -141,8 +141,9 @@ describe("White Label Release — Release Status Flow", () => {
     expect(validTransitions.published).toContain("draft");
     expect(validTransitions.published).toContain("archived");
 
-    // Archived and taken_down are terminal states
-    expect(validTransitions.archived).toHaveLength(0);
+    // Archived releases can be edited as drafts or republished after review.
+    expect(validTransitions.archived).toContain("draft");
+    expect(validTransitions.archived).toContain("published");
     expect(validTransitions.taken_down).toHaveLength(0);
   });
 

@@ -15,3 +15,7 @@ Validation included exact character-count checks, an empty-alt audit across the 
 Google Search Console was showing a generic globe because the homepage advertised two competing favicon URLs hosted on temporary Manus session-file locations. The project already contained stable first-party branded icons, but they were not the primary favicon links in the HTML head.
 
 The head now declares one stable same-domain 192×192 PNG favicon at `/favicon-192.png` and a same-domain 180×180 Apple touch icon at `/apple-touch-icon.png`. The temporary external favicon links and legacy storage touch-icon reference were removed. After publication, request indexing for the homepage in Google Search Console; Google notes that favicon recrawling and processing can take several days to several weeks.
+
+## Music release mix replacement
+
+Archived music releases now expose an explicit **Edit / Replace Audio** action before republishing. The release update procedure accepts archived releases for this controlled edit, preserving the existing release identity, sales history, and purchase records. Artists can upload the improved mix, save it, verify playback, and then republish.

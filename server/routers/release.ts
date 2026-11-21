@@ -265,10 +265,10 @@ export const releaseRouter = router({
         throw new TRPCError({ code: "NOT_FOUND", message: "Release not found" });
       }
 
-      if (release.status !== "draft") {
+      if (release.status !== "draft" && release.status !== "archived") {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Only draft releases can be edited. Unpublish first to make changes.",
+          message: "Only draft or archived releases can be edited. Unpublish first to make changes.",
         });
       }
 

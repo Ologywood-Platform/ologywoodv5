@@ -932,6 +932,14 @@ function ReleaseListItem({
                 <Button
                   size="sm"
                   variant="outline"
+                  onClick={onEdit}
+                  disabled={isActing}
+                >
+                  <Edit className="h-3 w-3 mr-1" /> Edit / Replace Audio
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
                   onClick={() => { setIsActing(true); publishMutation.mutate({ id: release.id }); }}
                   disabled={isActing}
                 >
