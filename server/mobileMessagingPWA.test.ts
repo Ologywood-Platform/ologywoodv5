@@ -283,6 +283,11 @@ describe('Progressive Web App (PWA)', () => {
     it('should have apple-touch-icon', () => {
       expect(indexContent).toContain('apple-touch-icon');
     });
+    it('should use one stable first-party favicon', () => {
+      expect(indexContent).toContain('<link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png" />');
+      expect(indexContent).not.toContain('files.manuscdn.com');
+      expect(indexContent).not.toContain('ologywood-icon-1024-v2_43d6c363.png');
+    });
 
     it('should register service worker', () => {
       expect(indexContent).toContain("serviceWorker.register");

@@ -11,3 +11,8 @@
 - [x] Preserved hero `fetchPriority="high"`; kept category images lazy and async-decoded.
 - [x] Added a subtle 220ms homepage image fade-in with `prefers-reduced-motion` support.
 - [x] Extended regression coverage and support documentation; validation passed before publication.
+
+## FAVICON / GOOGLE SEARCH CONSOLE BRANDING — 2026-11-21
+- [x] Replaced competing temporary Manus CDN favicon links with one stable first-party `/favicon-192.png` favicon.
+- [x] Standardized the Apple touch icon on `/apple-touch-icon.png`.
+- [x] Added regression coverage and support guidance for requesting a homepage recrawl after publication.
