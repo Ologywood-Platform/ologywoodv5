@@ -70,3 +70,15 @@ After explicit owner approval, the controlled remediation ran with `ALLOW_PRIVAT
 ## Recommendation
 
 Treat OlogyWood as a **launch candidate for demos and controlled release**, with Google OAuth token exchange and session persistence confirmed in the owner’s normal browser. The backup-dependent signature re-encryption is complete and verified, and the live signed-in workspace is working. The catalog schedule is active daily at 09:00 Eastern but remains in `ask_user` mode; `manus-config schedule update --help` exposes no unattended-mode switch, so it was intentionally left unchanged and no fallback automation was created. A mobile smoke capture at 390×844 rendered the homepage, workspace, bookings, pricing, shop, and events routes; the riders capture tool reported a capture failure, while direct route inspection returned the Riders & Contracts content and the responsive shell, so this is recorded as a tooling limitation rather than a confirmed application defect. The migration-ledger reconciliation remains a controlled release/DBA task rather than an automatic repair.
+
+
+## Published mobile Rider verification — 2026-11-23
+
+The corrected Rider Builder was published, and the owner confirmed that the mobile editor now looks correct in production. The Hospitality checklist no longer renders duplicated navigation headers inside checkbox rows, and the checklist content fits within the mobile card without the previously observed horizontal clipping. The code-level regression test, TypeScript check, and diff check passed before publication. No additional production data, migration, payment, schedule, or provider changes were made.
+
+The remaining controlled-release items are unchanged: DBA-owned migration-ledger reconciliation, independent production capacity/load evidence, and confirmation or documented limitations for any provider-side monitoring configuration. The Stripe catalog schedule remains active in `ask_user` mode because the available schedule controls expose no unattended-mode switch; it was intentionally not changed.
+
+
+## Post-publication validation — 2026-11-23
+
+After the published mobile Rider confirmation, the complete automated suite passed: 373 test files passed, 2 were skipped, with 4,455 tests passed and 26 skipped. TypeScript noEmit, the production Vite/server build, bundle-budget checks, `pnpm drizzle-kit check`, and `git diff --check` also passed. The build still emits advisory size warnings for the known application shell and PDF vendor chunk; the enforced bundle budgets remain within limits. No production data, migrations, payments, schedules, or provider configuration changed during this validation.
