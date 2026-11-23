@@ -256,8 +256,8 @@ describe('Open Graph Meta Tags - index.html static fallbacks', () => {
     expect(indexSrc).toContain('name="twitter:image"');
   });
 
-  it('should use the correct OG image CDN URL', () => {
-    expect(indexSrc).toContain('files.manuscdn.com');
+  it('should use the current permanent OlogyWood OG image asset', () => {
+    expect(indexSrc).toContain('ologywood-platform-og-2026-10-10_b5a657bf.png');
   });
 
   it('should reference www.ologywood.com in og:url', () => {
