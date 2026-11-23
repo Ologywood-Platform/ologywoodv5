@@ -1,16 +1,21 @@
 
 
-## Stripe test-mode catalog reconciliation — completed
+## Live Stripe reconciliation and staging payment/refund — completed
 
-Following owner authorization, the authenticated Stripe **test account** was reconciled read-only first. It contained the existing Starter, Professional, and Enterprise products, with no active or trialing subscriptions. The only missing canonical catalog item was the Enterprise monthly price.
+The authenticated Stripe **live account** was inspected read-only before mutation. It contained no active or trialing subscriptions. The live catalog was then normalized to the platform’s six canonical paid prices:
 
-Created one new Stripe test-mode price on the existing Enterprise product:
+- Starter: $9/month and $90/year on one active Starter Plan product.
+- Professional: $29/month and $290/year on one active Professional Plan product.
+- Enterprise: $79/month and $790/year on one active Enterprise Plan product.
 
-- Product: Enterprise Plan (`prod_UiOlDfIkc8kp4J`)
-- Amount: $79.00 USD/month
-- Lookup key: `artist_enterprise_monthly`
-- Result: active
+The live changes preserved existing canonical prices, moved the Starter monthly lookup key onto the existing Starter Plan product, renamed Professional Tier to Professional Plan, created the missing Enterprise product and its two prices, and archived the duplicate Starter Tier and unused Free Tier products. Existing default prices on archived products could not be individually archived because Stripe protects a product’s default price; the products themselves are inactive and no active or trialing subscriptions were present. No live payment, refund, subscription, or payment mode was changed.
 
-No products were renamed, archived, or deleted. No existing prices, subscriptions, live-mode settings, or payment mode were changed. Final read-only reconciliation confirms all six canonical active lookup keys are present with the expected amounts: Starter $9/$90, Professional $29/$290, and Enterprise $79/$790. Active and trialing subscription counts remain zero in the inspected test account.
+A staging/test-mode payment verification was completed using Stripe’s official test card path: a $2.00 PaymentIntent succeeded in test mode, a full $2.00 refund succeeded immediately, and the charge was verified as `paid=true`, `refunded=true`, `amount_refunded=200`, and `livemode=false`. The browser Checkout Session URL could not be completed because the browser connector altered Stripe’s required long client fragment; this did not create a charge. The successful PaymentIntent/refund validated test-mode authorization, capture, and refund settlement.
 
-The live Stripe account was not modified because the available authenticated credential for this controlled operation was test mode; production credentials were not changed or exposed. Before public launch, the same six-key reconciliation should be performed against the live account by an authorized operator using the live credential, without creating test transactions.
+## Stripe catalog health check — implemented
+
+Added `server/services/stripeCatalogHealthService.ts`, deterministic regression coverage, and a cron-protected `/api/scheduled/stripe-catalog-health` endpoint. The check verifies all six canonical lookup keys, amounts, currencies, billing intervals, and active products in either live or test mode. It logs failures and sends a deduplicated optional SendGrid alert when `STRIPE_CATALOG_ALERT_EMAIL` is configured. Direct live and test health checks both passed with all six lookup keys present.
+
+Automatic recurring schedule registration was attempted but this collaboration session is not permitted to modify schedules. The endpoint and alerting implementation are ready; an authorized non-collaboration operator must register it with the project Heartbeat/scheduler (recommended daily at 09:00 UTC) before treating recurring monitoring as active.
+
+Validation passed: 115 focused tests, TypeScript, production build, and `git diff --check`.

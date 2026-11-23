@@ -38,6 +38,7 @@ import { premiereRemindersHandler } from '../routes/scheduledPremiereReminders';
 import { creditExpirationHandler } from '../handlers/creditExpiration';
 import { autoCompleteBookingsHandler } from '../handlers/autoCompleteBookings';
 import { sessionRemindersHandler } from '../handlers/sessionReminders';
+import { stripeCatalogHealthHandler } from '../handlers/stripeCatalogHealth';
 import { assertProductionNodeRuntime, runtimeHealthHandler } from '../services/runtimeSecurityService';
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -204,6 +205,7 @@ async function startServer() {
   app.post('/api/scheduled/auto-complete-bookings', autoCompleteBookingsHandler);
   app.post('/api/scheduled/session-reminders', sessionRemindersHandler);
   app.post('/api/scheduled/premiere-reminders', premiereRemindersHandler);
+  app.post('/api/scheduled/stripe-catalog-health', stripeCatalogHealthHandler);
 
   // OG meta tags for social media crawlers - MUST be before Vite/static serving
   // This intercepts bot requests to /artist/:id, /venue/:id etc. and serves OG HTML
