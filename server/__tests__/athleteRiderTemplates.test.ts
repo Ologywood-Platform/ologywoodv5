@@ -97,6 +97,14 @@ describe('Athlete Rider Templates Feature', () => {
       expect(riderBuilder).toContain("isFilmmaker");
       expect(riderBuilder).toContain("talentType === 'filmmaker'");
     });
+
+    it('keeps mobile checklist rows self-contained without duplicating the site header', () => {
+      expect(riderBuilder).toContain('className="flex min-w-0 items-start gap-3 py-1"');
+      expect(riderBuilder).toContain('className="min-w-0 flex-1"');
+      expect(riderBuilder).toContain('className="block max-w-full cursor-pointer text-sm font-medium break-words"');
+      const checkboxRenderer = riderBuilder.split('if (field.type === "checkbox")')[1]?.split('if (field.type === "select")')[0] || '';
+      expect(checkboxRenderer).not.toContain('<SiteHeader />');
+    });
   });
 
   describe('Rider Router', () => {

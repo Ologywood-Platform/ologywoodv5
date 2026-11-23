@@ -515,18 +515,17 @@ export default function RiderBuilder() {
 
     if (field.type === "checkbox") {
       return (
-        <div key={field.id} className="flex items-start gap-3 py-1">
-      <SiteHeader />
+        <div key={field.id} className="flex min-w-0 items-start gap-3 py-1">
           <Checkbox
             id={field.id}
             checked={!!value}
             onCheckedChange={(checked) => handleFieldChange(field.id, !!checked)}
           />
-          <div>
-            <Label htmlFor={field.id} className="text-sm font-medium cursor-pointer">
+          <div className="min-w-0 flex-1">
+            <Label htmlFor={field.id} className="block max-w-full cursor-pointer text-sm font-medium break-words">
               {field.label}
             </Label>
-            {field.description && <p className="text-xs text-muted-foreground">{field.description}</p>}
+            {field.description && <p className="max-w-full text-xs text-muted-foreground break-words">{field.description}</p>}
           </div>
         </div>
       );
@@ -880,8 +879,8 @@ export default function RiderBuilder() {
                   <HelperNote>Equipment and facility requirements. Be specific about what the organizer needs to provide.</HelperNote>
                 )}
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <CardContent className="min-w-0">
+                <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
                   {section.fields.map((field) => renderField(field))}
                 </div>
               </CardContent>
