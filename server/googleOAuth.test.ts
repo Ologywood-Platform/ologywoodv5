@@ -32,4 +32,24 @@ describe('Google OAuth Configuration', () => {
     expect(url.toString()).toContain(clientId);
     expect(url.toString()).toContain('openid');
   });
+
+  it('should accept the configured client credentials at Google token exchange', async () => {
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+    const response = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        code: 'ologywood-credential-validation-only',
+        client_id: clientId!,
+        client_secret: clientSecret!,
+        redirect_uri: 'https://www.ologywood.com/api/auth/google/callback',
+        grant_type: 'authorization_code',
+      }),
+    });
+
+    const body = await response.json() as { error?: string };
+    expect(response.status).toBe(400);
+    expect(body.error).toBe('invalid_grant');
+  }, 15_000);
 });
