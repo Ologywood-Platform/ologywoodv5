@@ -49,13 +49,13 @@ The configured `RIDER_DOCUMENT_ENCRYPTION_KEY` is present and has the expected 6
 2. During a controlled window, ran `ALLOW_PRIVATE_DATA_REENCRYPTION=1 pnpm exec tsx scripts/reencrypt-sensitive-data.ts --apply`.
 3. The post-run read-only inventory found 0 legacy ordinary-signature rows and 0 legacy venue-contract-signature rows; focused encryption tests passed.
 
-### OAuth success path — fresh attempt failed; existing session evidence only
+### OAuth success path — live session verified; fresh provider retry remains intermittent
 
-Google and Spotify client configuration is present. The sandbox browser reached an authenticated production workspace and settings page, and the settings page showed a Google profile avatar and “Using your Google profile picture.” However, the fresh Google OAuth attempt logged provider denial/no authorization code and a token-exchange timeout. A final success claim requires retrying from the owner’s existing logged-in browser or after confirming the provider consent/redirect configuration; no provider settings were changed here.
+Google and Spotify client configuration is present. The signed-in My Browser session successfully loaded the live OlogyWood Creator Workspace, confirming that an existing authenticated production session is valid. A prior fresh Google OAuth attempt logged provider denial/no authorization code and a token-exchange timeout, so the fresh consent/callback path remains intermittent. No provider settings were changed here.
 
 ### Migration ledger — controlled reconciliation required
 
-Production has 23 ledger rows versus 129 local journal entries and 136 SQL files, including custom/out-of-order identities such as `0046_certain_mockingbird`. Representative schema objects from recent local migrations already exist in production. Do **not** insert missing metadata rows automatically. Reconciliation should be handled by the DBA/release owner using migration-file hashes, schema inspection, deployment history, and an explicit mapping of custom production entries.
+The read-only production query found 130 unique rows in `__drizzle_migrations`, compared with 129 local journal entries and 136 local SQL files. Comparing migration names and hashes found 39 local SQL files absent from production metadata and 33 production metadata entries that do not match local SQL filenames, including custom/hash-only and out-of-order identities. Representative schema objects from recent local migrations already exist in production. Do **not** insert missing metadata rows or run `pnpm db:push` automatically. Reconciliation should be handled by the DBA/release owner using migration-file hashes, schema inspection, deployment history, and an explicit mapping of custom production entries.
 
 ### Backups, monitoring, and capacity
 
@@ -69,4 +69,4 @@ After explicit owner approval, the controlled remediation ran with `ALLOW_PRIVAT
 
 ## Recommendation
 
-Treat OlogyWood as a **launch candidate for demos and controlled release**, with owner-confirmed OAuth and purchase success. The backup-dependent signature re-encryption is now complete and verified. Remaining operational items are to confirm whether daily catalog monitoring should remain in `ask_user` mode or be moved to an approved unattended execution mode, and to resolve or document the intermittent OAuth provider denial/timeout seen in the sandbox. The live Stripe catalog and test payment/refund gate are complete; the migration-ledger reconciliation remains a controlled release/DBA task rather than an automatic repair.
+Treat OlogyWood as a **launch candidate for demos and controlled release**, with owner-confirmed OAuth and purchase success. The backup-dependent signature re-encryption is complete and verified, and the live signed-in workspace is working. The catalog schedule is active daily at 09:00 Eastern but remains in `ask_user` mode; the available schedule controls do not expose an unattended-mode switch, and no fallback automation was created because that would require a separate approved design. The migration-ledger reconciliation remains a controlled release/DBA task rather than an automatic repair. A fresh OAuth provider denial/timeout remains an intermittent diagnostic finding, not a failure of the existing authenticated session.
