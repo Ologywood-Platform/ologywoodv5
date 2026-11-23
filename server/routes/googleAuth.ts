@@ -3,7 +3,7 @@ import { getDb } from '../db';
 import { users } from '../../drizzle/schema';
 import { eq } from 'drizzle-orm';
 import { sdk } from '../_core/sdk';
-import { getSessionCookieOptions } from '../_core/cookies';
+import { getOAuthSessionCookieOptions } from '../_core/cookies';
 import { COOKIE_NAME, ONE_YEAR_MS } from '@shared/const';
 import { FreeTrialService } from '../services/freeTrialService';
 import { getUserSubscription } from '../services/pricingTierService';
@@ -229,7 +229,7 @@ router.get('/google/callback', async (req: Request, res: Response) => {
     // We use a 200 HTML response instead of a 302 redirect because the CDN/proxy
     // between the browser and Cloud Run can strip Set-Cookie headers from redirect responses.
     // The HTML page receives the cookie on a normal 200 response, then redirects client-side.
-    const cookieOptions = getSessionCookieOptions(req);
+    const cookieOptions = getOAuthSessionCookieOptions(req);
     res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
 
     console.log('[Google OAuth] Login successful; setting cookie and redirecting');

@@ -52,3 +52,19 @@ export function getSessionCookieOptions(
     secure: isSecure,
   };
 }
+
+/**
+ * OAuth callbacks return from a different site (Google/Spotify). On HTTPS,
+ * SameSite=None is required for the browser to retain the session cookie
+ * across that authorization redirect. Ordinary first-party sessions remain
+ * SameSite=Lax through getSessionCookieOptions above.
+ */
+export function getOAuthSessionCookieOptions(
+  req: Request
+): Pick<CookieOptions, "domain" | "httpOnly" | "path" | "sameSite" | "secure"> {
+  const options = getSessionCookieOptions(req);
+  return {
+    ...options,
+    sameSite: options.secure ? "none" : "lax",
+  };
+}
