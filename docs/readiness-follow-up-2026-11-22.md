@@ -41,14 +41,13 @@ Regression coverage verifies canonical tier names, amounts, lookup keys, absence
 
 ## Blocked or incomplete gates
 
-### Signature re-encryption — blocked pending backup confirmation
+### Signature re-encryption — completed
 
-The configured `RIDER_DOCUMENT_ENCRYPTION_KEY` is present and has the expected 64-hex-character format; the code supports it as the documented fallback for `PRIVATE_DATA_ENCRYPTION_KEY`. However, the sandbox has no AWS CLI or independently verified RDS snapshot/backup evidence. Because re-encryption changes five production rows, apply mode was intentionally **not** run. The required controlled procedure remains:
+The configured `RIDER_DOCUMENT_ENCRYPTION_KEY` is present and has the expected 64-hex-character format; the code supports it as the documented fallback for `PRIVATE_DATA_ENCRYPTION_KEY`. AWS RDS inspection confirmed an active encrypted automated-backup stream for the production MySQL instance, with 35-day retention and a current restorable time. After explicit approval, the controlled procedure was run and verified:
 
-1. DBA/operator verifies a current restorable database backup or snapshot.
-2. Operator records the backup identifier and confirms the encryption key is retained securely.
-3. During a controlled window, run `ALLOW_PRIVATE_DATA_REENCRYPTION=1 pnpm exec tsx scripts/reencrypt-sensitive-data.ts --apply`.
-4. Re-run the read-only inventory and focused encryption tests.
+1. The operator verified the encrypted RDS automated backup and recorded its backup reference.
+2. During a controlled window, ran `ALLOW_PRIVATE_DATA_REENCRYPTION=1 pnpm exec tsx scripts/reencrypt-sensitive-data.ts --apply`.
+3. The post-run read-only inventory found 0 legacy ordinary-signature rows and 0 legacy venue-contract-signature rows; focused encryption tests passed.
 
 ### OAuth success path — fresh attempt failed; existing session evidence only
 
@@ -62,6 +61,12 @@ Production has 23 ledger rows versus 129 local journal entries and 136 SQL files
 
 The repository documents RDS automated backups, S3 durability, Manus checkpoints, and GitHub synchronization, but the AWS backup claims were not independently verified in this environment. The project does not use Sentry per the owner’s direction; no Sentry signup or integration is recommended. Production-load and provider-capacity evidence should be recorded separately from bounded smoke tests and automated unit/integration tests.
 
+## Signature re-encryption — completed after AWS backup verification
+
+Read-only AWS RDS inspection confirmed that the production MySQL instance `ologywood` is active, has encrypted automated backups, retains backups for 35 days, and had a latest restorable time of November 22, 2026 at 21:36 Eastern. The automated-backup ARN was captured in the operator record without exposing credentials or changing AWS settings.
+
+After explicit owner approval, the controlled remediation ran with `ALLOW_PRIVATE_DATA_REENCRYPTION=1`. Exactly 1 ordinary signature row and 4 venue-contract signature rows were re-encrypted in place. A post-run dry run verified `signatureLegacyRows=0` and `venueContractSignatureLegacyRows=0`; no Google Calendar rows were present or changed. Focused encryption and Stripe monitoring tests passed 14/14, and `git diff --check` passed. No records were deleted.
+
 ## Recommendation
 
-Treat OlogyWood as a **launch candidate for demos and controlled release**, with owner-confirmed OAuth and purchase success. Before broad public launch, complete: (1) verified backup followed by signature re-encryption, (2) confirm the daily catalog schedule runs in the desired unattended mode, and (3) resolve or document the intermittent OAuth provider denial/timeout seen in the sandbox. The live Stripe catalog and test payment/refund gate are complete; the migration-ledger reconciliation remains a controlled release/DBA task rather than an automatic repair.
+Treat OlogyWood as a **launch candidate for demos and controlled release**, with owner-confirmed OAuth and purchase success. The backup-dependent signature re-encryption is now complete and verified. Remaining operational items are to confirm whether daily catalog monitoring should remain in `ask_user` mode or be moved to an approved unattended execution mode, and to resolve or document the intermittent OAuth provider denial/timeout seen in the sandbox. The live Stripe catalog and test payment/refund gate are complete; the migration-ledger reconciliation remains a controlled release/DBA task rather than an automatic repair.
