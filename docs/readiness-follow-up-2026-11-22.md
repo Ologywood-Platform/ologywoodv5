@@ -82,3 +82,10 @@ The remaining controlled-release items are unchanged: DBA-owned migration-ledger
 ## Post-publication validation — 2026-11-23
 
 After the published mobile Rider confirmation, the complete automated suite passed: 373 test files passed, 2 were skipped, with 4,455 tests passed and 26 skipped. TypeScript noEmit, the production Vite/server build, bundle-budget checks, `pnpm drizzle-kit check`, and `git diff --check` also passed. The build still emits advisory size warnings for the known application shell and PDF vendor chunk; the enforced bundle budgets remain within limits. No production data, migrations, payments, schedules, or provider configuration changed during this validation.
+
+
+## Bounded capacity and bundle decision — 2026-11-23
+
+A read-only health-only capacity probe is documented in `docs/capacity-and-bundle-audit-2026-11-23.md`. The local server returned 60/60 successes with a 198.52 ms p95. A smaller 20-request/5-worker burst returned 20/20 on both deployed hostnames; the custom domain was materially slower than the Manus hostname in this sample, and a larger custom-domain burst produced 403 responses consistent with edge/WAF burst protection. This is a follow-up for normal regional monitoring, not a confirmed application defect.
+
+The JavaScript chunk audit found route lazy loading and dynamic PDF imports already in place. Enforced budgets pass, including a 577,664-byte application shell against a 600,000-byte limit. The approximately 983 KB PDF vendor chunk is on-demand. No broad manual-chunk rewrite was approved because it would carry regression risk without evidence of a launch-blocking initial-load problem. Future optimization should target measured application-shell/dashboard dependencies after real-user Web Vitals or route traces are available.
