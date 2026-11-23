@@ -6,6 +6,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
+import { RateLimiter as SharedRateLimiter } from '../utils/rateLimiter';
 
 // ============= SUBSCRIPTION TIER DEFINITIONS =============
 
@@ -91,10 +92,27 @@ export const RATE_LIMIT_CONFIGS = {
   },
 };
 
-// ============= IN-MEMORY STORAGE =============
+// ============= LOCAL/TIERED STORAGE =============
 
+// The active HTTP middleware uses SharedRateLimiter below. These maps remain
+// for the older status/reset helper APIs and tiered helper APIs in this module.
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
 const requestCounts = new Map<string, { count: number; timestamp: number }>();
+const httpLimiters = new Map<string, SharedRateLimiter>();
+
+function getHttpLimiter(config: RateLimitConfig): SharedRateLimiter {
+  const namespace = `http-${config.maxRequests}-${config.windowMs}`;
+  let limiter = httpLimiters.get(namespace);
+  if (!limiter) {
+    limiter = new SharedRateLimiter({
+      maxRequests: config.maxRequests,
+      windowMs: config.windowMs,
+      namespace,
+    });
+    httpLimiters.set(namespace, limiter);
+  }
+  return limiter;
+}
 
 // ============= BASIC RATE LIMITING FUNCTIONS =============
 
@@ -120,7 +138,12 @@ function getClientKey(req: Request): string {
  * Create a basic rate limiting middleware
  */
 export function createRateLimiter(config: RateLimitConfig) {
-  return (req: Request, res: Response, next: NextFunction) => {
+  // Use the shared Redis-capable limiter when REDIS_URL/REDIS_HOST is
+  // configured; it intentionally falls back to a local sliding window when
+  // no shared store is available.
+  const limiter = getHttpLimiter(config);
+
+  return async (req: Request, res: Response, next: NextFunction) => {
     // Skip rate limiting if configured
     if (config.skip && config.skip(req)) {
       return next();
@@ -131,32 +154,20 @@ export function createRateLimiter(config: RateLimitConfig) {
       ? config.keyGenerator(req)
       : getClientKey(req);
 
-    // Get current rate limit data
-    const now = Date.now();
-    let data = rateLimitStore.get(key);
-
-    // Reset if window has expired
-    if (!data || now > data.resetTime) {
-      data = {
-        count: 0,
-        resetTime: now + config.windowMs,
-      };
-      rateLimitStore.set(key, data);
-    }
-
-    // Increment request count
-    data.count++;
+    const result = await limiter.checkAsync(key);
 
     // Set rate limit headers
-    const remaining = Math.max(0, config.maxRequests - data.count);
-    const resetTime = Math.ceil((data.resetTime - now) / 1000);
+    const remaining = result.remaining;
+    // Redis uses a sliding window, so a full-window value is a safe reset
+    // hint for allowed requests and blocked requests receive the exact retry.
+    const resetTime = Math.ceil((result.retryAfterMs || config.windowMs) / 1000);
 
     res.set('X-RateLimit-Limit', config.maxRequests.toString());
     res.set('X-RateLimit-Remaining', remaining.toString());
     res.set('X-RateLimit-Reset', resetTime.toString());
 
     // Check if limit exceeded
-    if (data.count > config.maxRequests) {
+    if (!result.allowed) {
       res.status(429).json({
         error: 'RATE_LIMIT_EXCEEDED',
         message: config.message || 'Too many requests. Please try again later.',
