@@ -10,6 +10,7 @@ import { getDb } from '../db';
 import { stripeConnectAccounts, artistProfiles } from '../../drizzle/schema';
 import { eq } from 'drizzle-orm';
 import Stripe from 'stripe';
+import { paymentIntentWithoutRedirects } from '../services/stripePaymentIntentConfig';
 
 const stripe = new Stripe(getDefaultStripeApiKey(), {
   apiVersion: '2025-12-15.clover',
@@ -87,9 +88,7 @@ export const tipRouter = router({
         paymentIntent = await stripe.paymentIntents.create({
           amount: input.amount,
           currency: 'usd',
-          automatic_payment_methods: {
-            enabled: true,
-          },
+          ...paymentIntentWithoutRedirects,
           transfer_data: {
             destination: account.stripeAccountId,
           },

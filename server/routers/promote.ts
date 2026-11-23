@@ -12,6 +12,7 @@ import * as db from "../db";
 import { promotionRequests } from "../../drizzle/schema";
 import { eq, desc } from "drizzle-orm";
 import Stripe from "stripe";
+import { paymentIntentWithoutRedirects } from '../services/stripePaymentIntentConfig';
 
 const stripe = new Stripe(getDefaultStripeApiKey(), {
   apiVersion: "2025-12-15.clover",
@@ -279,6 +280,7 @@ Generate compelling, ready-to-use ad copy.`;
         paymentIntent = await stripe.paymentIntents.create({
           amount: input.budget,
           currency: "usd",
+          ...paymentIntentWithoutRedirects,
           metadata: {
             type: "promotion_request",
             artistUserId: ctx.user.id.toString(),

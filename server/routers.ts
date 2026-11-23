@@ -19,6 +19,7 @@ import * as emailService from "./services/emailService";
 import { getSubscriptionStatus, cancelSubscription, reactivateSubscription, stripe } from "./stripe";
 import { updateSubscriptionStatus } from "./db";
 import { trustedCheckoutOrigin } from './services/trustedOrigin';
+import { paymentIntentWithoutRedirects } from './services/stripePaymentIntentConfig';
 import * as imageOptimization from "./imageOptimization";
 import { handlePhotoUpload } from "./handlers/imageUploadHandler";
 // ===== MVP ROUTERS ONLY =====
@@ -2146,6 +2147,7 @@ export const appRouter = router({
         const paymentIntent = await stripe.paymentIntents.create({
           amount: Math.round(input.depositAmount * 100), // Convert to cents
           currency: 'usd',
+          ...paymentIntentWithoutRedirects,
           metadata: {
             bookingId: String(input.bookingId),
             userId: String(ctx.user.id),
