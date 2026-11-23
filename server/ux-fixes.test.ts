@@ -26,6 +26,20 @@ describe('UX Fix 1: Clear X icon on search inputs', () => {
     expect(dropdownContent).toContain('onClear');
   });
 
+  it('Homepage search results have a readable default contrast state', () => {
+    const dropdownPath = join(clientSrc, 'components', 'ArtistSearchDropdown.tsx');
+    const dropdownContent = readFileSync(dropdownPath, 'utf-8');
+    const homeCss = readFileSync(join(clientSrc, 'pages', 'Home.css'), 'utf-8');
+
+    expect(dropdownContent).toContain('home-search-dropdown');
+    expect(dropdownContent).toContain('home-search-result');
+    expect(dropdownContent).toContain('home-search-result-name');
+    expect(homeCss).toContain('.home-search-result {');
+    expect(homeCss).toContain('background: #ffffff;');
+    expect(homeCss).toContain('.home-search-result-name');
+    expect(homeCss).toContain('color: #172033;');
+  });
+
   it('Browse page uses ClearableInput for search', () => {
     const filePath = join(clientSrc, 'pages', 'Browse.tsx');
     const content = readFileSync(filePath, 'utf-8');

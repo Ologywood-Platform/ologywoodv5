@@ -237,12 +237,23 @@
 .home-redesign .home-search-input::placeholder {
   color: #abb1c2;
 }
-.home-redesign .home-search-field [role="listbox"] {
-  background: #fff;
+.home-redesign .home-search-field .home-search-dropdown {
+  background: #ffffff;
   color: #121827;
 }
-.home-redesign .home-search-field [role="listbox"] button:hover {
+.home-redesign .home-search-field .home-search-result {
+  background: #ffffff;
+  color: #121827;
+}
+.home-redesign .home-search-field .home-search-result:hover,
+.home-redesign .home-search-field .home-search-result[aria-selected="true"] {
   background: #f3edff;
+}
+.home-redesign .home-search-field .home-search-result-name {
+  color: #172033;
+}
+.home-redesign .home-search-field .home-search-result-meta {
+  color: #596579;
 }
 .home-redesign .home-select-wrap {
   display: flex;

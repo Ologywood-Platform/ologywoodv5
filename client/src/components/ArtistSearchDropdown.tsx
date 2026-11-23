@@ -132,7 +132,7 @@ export function ArtistSearchDropdown({
 
       {showDropdown && (
         <div
-          className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 overflow-hidden"
+          className="home-search-dropdown absolute top-full left-0 right-0 mt-1 border border-slate-200 rounded-lg shadow-lg z-50 overflow-hidden"
           role="listbox"
         >
           {hasResults ? (
@@ -143,7 +143,7 @@ export function ArtistSearchDropdown({
                   type="button"
                   role="option"
                   aria-selected={highlightedIndex === index}
-                  className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${
+                  className={`home-search-result w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${
                     highlightedIndex === index
                       ? 'bg-primary/5'
                       : 'hover:bg-slate-50'
@@ -169,10 +169,10 @@ export function ArtistSearchDropdown({
 
                   {/* Artist info */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-900 truncate">
+                    <p className="home-search-result-name text-sm font-medium truncate">
                       {artist.artistName}
                     </p>
-                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <div className="home-search-result-meta flex items-center gap-2 text-xs">
                       {Array.isArray(artist.genre) && artist.genre.length > 0 && (
                         <span className="truncate">{artist.genre.slice(0, 2).join(', ')}</span>
                       )}
