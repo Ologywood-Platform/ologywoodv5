@@ -7,20 +7,32 @@ describe("artist profile journey actions", () => {
   const profile = readFileSync(resolve(process.cwd(), "client/src/pages/ArtistProfile.tsx"), "utf8");
 
   it("connects each action to a real profile destination or booking handler", () => {
-    expect(component).toContain("onClick={onBook}");
+    expect(component).toContain("onBook();");
+    expect(component).toContain("onClick={() => toggleAction('book')}");
+    expect(component).toContain("onClick={() => toggleAction('attend')}");
+    expect(component).toContain("onClick={() => toggleAction('buy')}");
+    expect(component).toContain("onClick={() => toggleAction('watch')}");
+    expect(component).toContain("onClick={() => toggleAction('join')}");
+    expect(component).toContain('aria-expanded={expandedAction ===');
     expect(component).toContain("scrollToSection('profile-events'");
-    expect(component).toContain("scrollToSection(document.getElementById('profile-shop')");
+    expect(component).toContain("document.getElementById('profile-shop')");
     expect(component).toContain("scrollToSection('profile-content'");
     expect(component).toContain("scrollToSection('profile-fan-club'");
     expect(profile).toContain('id="profile-events"');
   });
 
   it("provides helpful tooltips and feedback when a destination is unavailable", () => {
-    expect(component).toContain("TooltipContent>Send a booking request");
-    expect(component).toContain("TooltipContent>See upcoming events and ticket links");
-    expect(component).toContain("TooltipContent>Browse music, merch, books, and paid content");
-    expect(component).toContain("TooltipContent>Preview music and watch hosted content");
-    expect(component).toContain("TooltipContent>Join this creator’s Fan Club");
+    expect(component).toContain("Learn how booking works with {artistName}");
+    expect(component).toContain("Learn how to find events and tickets");
+    expect(component).toContain("Learn what you can buy from this profile");
+    expect(component).toContain("Learn where to preview music and content");
+    expect(component).toContain("Learn how to follow and stay connected");
+    expect(component).toContain('profile-action-guidance');
+    expect(component).toContain('Request a performance, appearance, or collaboration');
+    expect(component).toContain('See upcoming events featuring this talent');
+    expect(component).toContain('Browse music, merch, books, and other releases');
+    expect(component).toContain('Preview music, videos, performances, and other content');
+    expect(component).toContain('Follow this talent and stay updated');
     expect(component).toContain("toast.info(emptyMessage)");
   });
 
