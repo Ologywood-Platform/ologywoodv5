@@ -12,7 +12,7 @@ The application code and automated validation remain in a strong launch-candidat
 - **Sensitive-data inventory:** A fresh dry run found 0 Google Calendar rows, 1 legacy plaintext ordinary-signature row, and 4 legacy plaintext venue-contract-signature rows. No payload values were printed and no rows were changed.
 - **SendGrid:** Exactly one authorized test message was sent to `garychisolm30@gmail.com`. SendGrid accepted it with HTTP 202 and provider message ID `xAB83ZKkSxyHwQ7BdCQT7Q`; the user confirmed that it arrived in the inbox. No additional test email was sent.
 - **Stripe credential:** The dedicated `STRIPE_TEST_SECRET_KEY` is present, has the `sk_test_` prefix, and passed a read-only `/v1/account` request. No payment or refund was created in this follow-up.
-- **Google OAuth evidence:** The production workspace and settings pages loaded in an authenticated session, and the account settings displayed a Google profile avatar with “Using your Google profile picture.” This is positive session/integration evidence, although the provider callback itself was not captured in the browser trace.
+- **Google OAuth evidence:** The production workspace and settings pages loaded in an existing authenticated session, and the account settings displayed a Google profile avatar with “Using your Google profile picture.” A fresh OAuth attempt during this follow-up was not successful: the provider denied or did not return an authorization code and the token exchange timed out. The existing session evidence is retained, but the success-path callback is not certified.
 
 ## Blocked or incomplete gates
 
@@ -29,9 +29,9 @@ The configured `RIDER_DOCUMENT_ENCRYPTION_KEY` is present and has the expected 6
 
 Test mode was verified, but an application-backed Checkout purchase was not executed because the authorized amount was `$0.50` and the Holiday release enforces a `$2.00` minimum. The guest flow was verified far enough to confirm that the public single page shows the guest email field, “No account required” guidance, the Name Your Price control, and the minimum-price validation. The owner account correctly hides purchase controls on its own release; signing out of the isolated browser exposed the guest control. No payment or refund was created. To finish this gate, either authorize a purchase at or above the displayed `$2.00` minimum or create/use a dedicated test item whose minimum is `$0.50`, then verify application records and issue the immediate full refund. Live mode must remain untouched.
 
-### OAuth success path — positive Google session evidence; callback trace still recommended
+### OAuth success path — fresh attempt failed; existing session evidence only
 
-Google and Spotify client configuration is present. The sandbox browser reached an authenticated production workspace and settings page, and the settings page showed a Google profile avatar and “Using your Google profile picture.” This supports a successful Google-authenticated session and integration state, but the callback redirect itself was not captured. A final trace-level confirmation can use the owner’s existing logged-in browser if needed; no provider settings were changed.
+Google and Spotify client configuration is present. The sandbox browser reached an authenticated production workspace and settings page, and the settings page showed a Google profile avatar and “Using your Google profile picture.” However, the fresh Google OAuth attempt logged provider denial/no authorization code and a token-exchange timeout. A final success claim requires retrying from the owner’s existing logged-in browser or after confirming the provider consent/redirect configuration; no provider settings were changed here.
 
 ### Migration ledger — controlled reconciliation required
 
@@ -43,4 +43,4 @@ The repository documents RDS automated backups, S3 durability, Manus checkpoints
 
 ## Recommendation
 
-Treat OlogyWood as a **launch candidate for demos and controlled release**, not as having every final operational gate independently proven. Before broad public launch, complete: (1) verified backup followed by signature re-encryption, (2) fix and re-test the missing application Checkout control, then complete the Stripe test purchase/refund, and (3) optionally capture one provider callback trace using the owner’s authenticated browser. Separately retain the migration-ledger reconciliation as a controlled release/DBA task rather than an automatic repair.
+Treat OlogyWood as a **launch candidate for demos and controlled release**, not as having every final operational gate independently proven. Before broad public launch, complete: (1) verified backup followed by signature re-encryption, (2) authorize a test purchase at or above the product’s `$2.00` minimum and complete the Stripe refund verification, and (3) retry one Google or Spotify OAuth flow until the callback and resulting integration state are observed. Separately retain the migration-ledger reconciliation as a controlled release/DBA task rather than an automatic repair.
