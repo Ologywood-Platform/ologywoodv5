@@ -1,11 +1,16 @@
 
 
-## Stripe tier-name audit and safe correction
+## Stripe test-mode catalog reconciliation — completed
 
-The owner-provided Stripe Product Catalog screenshot confirms a catalog naming mismatch: the visible active products are **Starter Plan**, **Starter Tier**, **Professional Tier**, and **Free Tier**; the visible catalog does not show Enterprise. This inspection was read-only. No Stripe product, price, subscription, payment mode, or live setting was changed.
+Following owner authorization, the authenticated Stripe **test account** was reconciled read-only first. It contained the existing Starter, Professional, and Enterprise products, with no active or trialing subscriptions. The only missing canonical catalog item was the Enterprise monthly price.
 
-The platform-side mismatch was corrected without relying on account-specific Stripe IDs. `server/config/stripePricing.ts` now derives names, amounts, and monthly/yearly lookup keys from `shared/products.ts` for the canonical platform tiers: Free, Starter, Professional, and Enterprise. `server/routers/pricing.ts` now returns `stripePriceLookupKey` rather than exposing a stale `stripePriceId`. Email copy no longer says “Welcome to Premium,” and the beta trial service now emits `professional` rather than legacy `premium` terminology while preserving the existing three-month behavior.
+Created one new Stripe test-mode price on the existing Enterprise product:
 
-Regression coverage now verifies the canonical amounts, lookup keys, absence of hard-coded Stripe product/price IDs, pricing-router field naming, and current subscription email terminology. Validation passed: 97 focused tests, TypeScript, production build, and `git diff --check`.
+- Product: Enterprise Plan (`prod_UiOlDfIkc8kp4J`)
+- Amount: $79.00 USD/month
+- Lookup key: `artist_enterprise_monthly`
+- Result: active
 
-The Stripe catalog itself still requires an owner-approved, controlled decision if the visible legacy labels should be renamed or if Enterprise should be created/activated in that Stripe account. That decision is intentionally deferred; the application correction does not mutate Stripe and does not certify the catalog as ready for production until the account/mode-specific catalog is reconciled by the owner.
+No products were renamed, archived, or deleted. No existing prices, subscriptions, live-mode settings, or payment mode were changed. Final read-only reconciliation confirms all six canonical active lookup keys are present with the expected amounts: Starter $9/$90, Professional $29/$290, and Enterprise $79/$790. Active and trialing subscription counts remain zero in the inspected test account.
+
+The live Stripe account was not modified because the available authenticated credential for this controlled operation was test mode; production credentials were not changed or exposed. Before public launch, the same six-key reconciliation should be performed against the live account by an authorized operator using the live credential, without creating test transactions.
