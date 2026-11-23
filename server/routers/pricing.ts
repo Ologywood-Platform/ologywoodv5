@@ -9,7 +9,7 @@ import {
   getAllTiers,
   PRICING_TIERS,
 } from "../services/pricingTierService";
-import { getStripePriceId, STRIPE_PRICING } from "../config/stripePricing";
+import { getStripePriceLookupKey, STRIPE_PRICING } from "../config/stripePricing";
 
 const PRICING_FEATURES = [
   "basicProfile", "messaging", "bookingCalendar", "paymentProcessing", "emailSupport",
@@ -67,7 +67,7 @@ export const pricingRouter = router({
       price: tier.price,
       bookingsPerMonth: tier.bookingsPerMonth,
       features: tier.features,
-      stripePriceId: getStripePriceId(key as keyof typeof STRIPE_PRICING),
+      stripePriceLookupKey: getStripePriceLookupKey(key as keyof typeof STRIPE_PRICING),
     }));
   }),
 
@@ -110,7 +110,7 @@ export const pricingRouter = router({
         name: tier.name,
         price: tier.price,
         bookingsPerMonth: tier.bookingsPerMonth,
-        stripePriceId: getStripePriceId(key as keyof typeof STRIPE_PRICING),
+        stripePriceLookupKey: getStripePriceLookupKey(key as keyof typeof STRIPE_PRICING),
         features: features.reduce(
           (acc, feature) => {
             acc[feature] = tier.features[feature as keyof typeof tier.features] || false;

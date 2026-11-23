@@ -1,100 +1,71 @@
+import {
+  SUBSCRIPTION_PRODUCTS,
+  type BillingInterval,
+  type SubscriptionProductKey,
+} from "../../shared/products";
+
 /**
- * Stripe Pricing Configuration
- * Maps pricing tiers to Stripe product and price IDs
- * 
- * Yearly plans offer "2 months free" (pay for 10 months, get 12)
- * - Starter: $9/mo → $90/yr (save $18)
- * - Professional: $29/mo → $290/yr (save $58)
+ * Canonical subscription pricing metadata.
+ *
+ * Stripe price IDs are account- and mode-specific, so they must not be
+ * hard-coded here. Checkout resolves the active price by lookup key through
+ * shared/products.ts. This module exposes lookup keys instead of stale IDs
+ * from an older Stripe account.
  */
-
-export type BillingInterval = 'month' | 'year';
-
 export interface PricingTier {
   name: string;
-  productId: string;
-  monthly: {
-    priceId: string;
-    amount: number; // in cents
-  };
+  productKey: SubscriptionProductKey | null;
+  monthly: { lookupKey: string | null; amount: number };
   yearly: {
-    priceId: string;
-    amount: number; // in cents (annual total)
-    monthlyEquivalent: number; // in cents (for display: amount / 12)
-    savings: number; // in cents (monthly * 12 - yearly)
+    lookupKey: string;
+    amount: number;
+    monthlyEquivalent: number;
+    savings: number;
   } | null;
   currency: string;
+}
+
+function toPricingTier(
+  product: (typeof SUBSCRIPTION_PRODUCTS)[SubscriptionProductKey],
+): PricingTier {
+  return {
+    name: product.name.replace(/ Plan$/, ""),
+    productKey: product.key,
+    monthly: { lookupKey: product.lookupKey, amount: product.priceMonthly },
+    yearly: {
+      lookupKey: product.yearlyLookupKey,
+      amount: product.priceYearly,
+      monthlyEquivalent: Math.round(product.priceYearly / 12),
+      savings: product.priceMonthly * 12 - product.priceYearly,
+    },
+    currency: product.currency,
+  };
 }
 
 export const STRIPE_PRICING: Record<string, PricingTier> = {
   free: {
     name: "Free",
-    productId: "prod_Tyo8p400WELYbS",
-    monthly: {
-      priceId: "price_1T0qVrAjAqXCmw11H7YF3dtr",
-      amount: 0,
-    },
+    productKey: null,
+    monthly: { lookupKey: null, amount: 0 },
     yearly: null,
     currency: "usd",
   },
-  starter: {
-    name: "Starter",
-    productId: "prod_Tyo9bhELY4pjtg",
-    monthly: {
-      priceId: "price_1T0qWrAjAqXCmw11aVyutKra",
-      amount: 900, // $9.00
-    },
-    yearly: {
-      priceId: "price_starter_yearly", // Will be created on first checkout
-      amount: 9000, // $90.00 (10 months)
-      monthlyEquivalent: 750, // $7.50/mo effective
-      savings: 1800, // $18.00 saved
-    },
-    currency: "usd",
-  },
-  professional: {
-    name: "Professional",
-    productId: "prod_Tyo9hR9AZd0tzL",
-    monthly: {
-      priceId: "price_1T0qXaAjAqXCmw11UfYRoBnf",
-      amount: 2900, // $29.00
-    },
-    yearly: {
-      priceId: "price_professional_yearly", // Will be created on first checkout
-      amount: 29000, // $290.00 (10 months)
-      monthlyEquivalent: 2417, // $24.17/mo effective
-      savings: 5800, // $58.00 saved
-    },
-    currency: "usd",
-  },
-  enterprise: {
-    name: "Enterprise",
-    productId: "prod_enterprise", // Will be auto-created on first checkout
-    monthly: {
-      priceId: "price_enterprise_monthly", // Will be created on first checkout
-      amount: 7900, // $79.00
-    },
-    yearly: {
-      priceId: "price_enterprise_yearly", // Will be created on first checkout
-      amount: 79000, // $790.00 (10 months)
-      monthlyEquivalent: 6583, // $65.83/mo effective
-      savings: 15800, // $158.00 saved
-    },
-    currency: "usd",
-  },
+  starter: toPricingTier(SUBSCRIPTION_PRODUCTS.ARTIST_STARTER),
+  professional: toPricingTier(SUBSCRIPTION_PRODUCTS.ARTIST_PROFESSIONAL),
+  enterprise: toPricingTier(SUBSCRIPTION_PRODUCTS.ARTIST_ENTERPRISE),
 };
 
 export type StripePricingTier = keyof typeof STRIPE_PRICING;
 
-export function getStripePriceId(tier: StripePricingTier, interval: BillingInterval = 'month'): string {
+/** Return the canonical Stripe lookup key for a tier and billing interval. */
+export function getStripePriceLookupKey(
+  tier: StripePricingTier,
+  interval: BillingInterval = "month",
+): string | null {
   const pricing = STRIPE_PRICING[tier];
-  if (interval === 'year' && pricing.yearly) {
-    return pricing.yearly.priceId;
-  }
-  return pricing.monthly.priceId;
-}
-
-export function getStripeProductId(tier: StripePricingTier): string {
-  return STRIPE_PRICING[tier].productId;
+  return interval === "year"
+    ? pricing.yearly?.lookupKey ?? null
+    : pricing.monthly.lookupKey;
 }
 
 export function getStripePricingInfo(tier: StripePricingTier) {
@@ -103,7 +74,6 @@ export function getStripePricingInfo(tier: StripePricingTier) {
 
 export function getYearlySavingsPercent(tier: StripePricingTier): number {
   const pricing = STRIPE_PRICING[tier];
-  if (!pricing.yearly) return 0;
-  const monthlyAnnual = pricing.monthly.amount * 12;
-  return Math.round(((monthlyAnnual - pricing.yearly.amount) / monthlyAnnual) * 100);
+  if (!pricing.yearly || pricing.monthly.amount === 0) return 0;
+  return Math.round((pricing.yearly.savings / (pricing.monthly.amount * 12)) * 100);
 }

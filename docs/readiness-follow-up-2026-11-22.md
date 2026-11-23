@@ -1,47 +1,11 @@
-# OlogyWood production-readiness follow-up — 2026-11-22
 
-## Executive status
 
-The application code and automated validation remain in a strong launch-candidate state, but this follow-up does **not** certify every provider-backed production gate. No live-money transaction, production migration-ledger mutation, Sentry integration, or destructive data operation was performed.
+## Stripe tier-name audit and safe correction
 
-## Completed and verified
+The owner-provided Stripe Product Catalog screenshot confirms a catalog naming mismatch: the visible active products are **Starter Plan**, **Starter Tier**, **Professional Tier**, and **Free Tier**; the visible catalog does not show Enterprise. This inspection was read-only. No Stripe product, price, subscription, payment mode, or live setting was changed.
 
-- **Redis-backed HTTP rate limiting:** The active Express middleware now uses the existing Redis-capable sliding-window limiter when `REDIS_URL` or `REDIS_HOST` is configured, with the existing in-process fallback when Redis is unavailable. Focused tests passed 40/40.
-- **Automated validation:** The prior checkpoint passed the full test suite, TypeScript, production build, bundle budgets, Drizzle check, and `git diff --check`. The latest verified checkpoint is `b6613322`.
-- **Heartbeat:** Five scheduled jobs are enabled and their current executions are succeeding: session reminders, premiere reminders, auto-complete bookings, credit expiration, and contract-expiry reminders. Historical failures remain in the logs, including older HTTP 500 session-reminder failures and HTTP 403 missing-cron-header failures for credit and contract reminders. They should remain on the operations watch list.
-- **Sensitive-data inventory:** A fresh dry run found 0 Google Calendar rows, 1 legacy plaintext ordinary-signature row, and 4 legacy plaintext venue-contract-signature rows. No payload values were printed and no rows were changed.
-- **SendGrid:** Exactly one authorized test message was sent to `garychisolm30@gmail.com`. SendGrid accepted it with HTTP 202 and provider message ID `xAB83ZKkSxyHwQ7BdCQT7Q`; the user confirmed that it arrived in the inbox. No additional test email was sent.
-- **Stripe credential:** The dedicated `STRIPE_TEST_SECRET_KEY` is present, has the `sk_test_` prefix, and passed a read-only `/v1/account` request. No test payment or refund was created in this follow-up.
-- **Google OAuth evidence:** The production workspace and settings pages loaded in an existing authenticated session, and the account settings displayed a Google profile avatar with “Using your Google profile picture.” A fresh OAuth attempt during this follow-up was not successful: the provider denied or did not return an authorization code and the token exchange timed out. The existing session evidence is retained, but the success-path callback is not certified.
-- **Owner-confirmed provider workflows:** The owner reports that Google OAuth has been used successfully and that a purchase completed successfully. These are accepted as real-world functional evidence; the sandbox’s fresh OAuth attempt and the production endpoint’s live-mode Checkout behavior remain separately documented as non-certifying diagnostic results.
+The platform-side mismatch was corrected without relying on account-specific Stripe IDs. `server/config/stripePricing.ts` now derives names, amounts, and monthly/yearly lookup keys from `shared/products.ts` for the canonical platform tiers: Free, Starter, Professional, and Enterprise. `server/routers/pricing.ts` now returns `stripePriceLookupKey` rather than exposing a stale `stripePriceId`. Email copy no longer says “Welcome to Premium,” and the beta trial service now emits `professional` rather than legacy `premium` terminology while preserving the existing three-month behavior.
 
-## Blocked or incomplete gates
+Regression coverage now verifies the canonical amounts, lookup keys, absence of hard-coded Stripe product/price IDs, pricing-router field naming, and current subscription email terminology. Validation passed: 97 focused tests, TypeScript, production build, and `git diff --check`.
 
-### Signature re-encryption — blocked pending backup confirmation
-
-The configured `RIDER_DOCUMENT_ENCRYPTION_KEY` is present and has the expected 64-hex-character format; the code supports it as the documented fallback for `PRIVATE_DATA_ENCRYPTION_KEY`. However, the sandbox has no AWS CLI or independently verified RDS snapshot/backup evidence. Because re-encryption changes five production rows, apply mode was intentionally **not** run. The required controlled procedure remains:
-
-1. DBA/operator verifies a current restorable database backup or snapshot.
-2. Operator records the backup identifier and confirms the encryption key is retained securely.
-3. During a controlled window, run `ALLOW_PRIVATE_DATA_REENCRYPTION=1 pnpm exec tsx scripts/reencrypt-sensitive-data.ts --apply`.
-4. Re-run the read-only inventory and focused encryption tests.
-
-### Stripe purchase/refund — blocked by approved amount below product minimum
-
-Test mode was verified, but an application-backed test Checkout purchase was not executed because the approved amount was first `$0.50` (below the Holiday release’s `$2.00` minimum), and the production endpoint is configured with the default live Stripe credential. After approval changed to exactly `$2.00`, the endpoint returned a `cs_live_…` session. It was immediately expired; a read-only follow-up confirmed `status=expired`, `payment_status=unpaid`, `livemode=true`, and no PaymentIntent. No live charge occurred. The guest flow itself was verified far enough to confirm the guest email field, “No account required” guidance, Name Your Price control, and minimum-price validation. To finish this gate safely, run the exact `$2.00` test only in a staging/dev deployment configured with `STRIPE_TEST_SECRET_KEY`, then verify application records and issue the immediate full test refund. Do not switch the public production route to test mode.
-
-### OAuth success path — fresh attempt failed; existing session evidence only
-
-Google and Spotify client configuration is present. The sandbox browser reached an authenticated production workspace and settings page, and the settings page showed a Google profile avatar and “Using your Google profile picture.” However, the fresh Google OAuth attempt logged provider denial/no authorization code and a token-exchange timeout. A final success claim requires retrying from the owner’s existing logged-in browser or after confirming the provider consent/redirect configuration; no provider settings were changed here.
-
-### Migration ledger — controlled reconciliation required
-
-Production has 23 ledger rows versus 129 local journal entries and 136 SQL files, including custom/out-of-order identities such as `0046_certain_mockingbird`. Representative schema objects from recent local migrations already exist in production. Do **not** insert missing metadata rows automatically. Reconciliation should be handled by the DBA/release owner using migration-file hashes, schema inspection, deployment history, and an explicit mapping of custom production entries.
-
-### Backups, monitoring, and capacity
-
-The repository documents RDS automated backups, S3 durability, Manus checkpoints, and GitHub synchronization, but the AWS backup claims were not independently verified in this environment. The project does not use Sentry per the owner’s direction; no Sentry signup or integration is recommended. Production-load and provider-capacity evidence should be recorded separately from bounded smoke tests and automated unit/integration tests.
-
-## Recommendation
-
-Treat OlogyWood as a **launch candidate for demos and controlled release**, with owner-confirmed OAuth and purchase success. Before broad public launch, complete: (1) verified backup followed by signature re-encryption, (2) if automated provider evidence is required, run the `$2.00` purchase/refund only in staging configured with `STRIPE_TEST_SECRET_KEY`, and (3) resolve or document the intermittent OAuth provider denial/timeout seen in the sandbox. Separately retain the migration-ledger reconciliation as a controlled release/DBA task rather than an automatic repair.
+The Stripe catalog itself still requires an owner-approved, controlled decision if the visible legacy labels should be renamed or if Enterprise should be created/activated in that Stripe account. That decision is intentionally deferred; the application correction does not mutate Stripe and does not certify the catalog as ready for production until the account/mode-specific catalog is reconciled by the owner.

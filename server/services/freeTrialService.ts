@@ -14,7 +14,7 @@ export class FreeTrialService {
    */
   static async assignFreeTrialIfEligible(userId: number): Promise<{
     isTrialUser: boolean;
-    tier: "free" | "basic" | "premium";
+    tier: "free" | "professional";
     trialEndDate?: Date;
   }> {
     try {
@@ -28,7 +28,7 @@ export class FreeTrialService {
         // In production, you'd want to persist this to database
         return {
           isTrialUser: true,
-          tier: "premium", // Give premium tier during trial
+          tier: "professional", // Give the current Professional tier during trial
           trialEndDate,
         };
       }
@@ -53,7 +53,7 @@ export class FreeTrialService {
   static async getUserTrialStatus(userId: number): Promise<{
     isActive: boolean;
     daysRemaining?: number;
-    tier: "free" | "basic" | "premium";
+    tier: "free" | "professional";
   }> {
     try {
       const db = await getDb();
@@ -90,7 +90,7 @@ export class FreeTrialService {
           return {
             isActive: true,
             daysRemaining: Math.max(0, daysRemaining),
-            tier: "premium",
+            tier: "professional",
           };
         }
       }
@@ -108,7 +108,7 @@ export class FreeTrialService {
   /**
    * Get user's current subscription tier
    */
-  static async getUserTier(userId: number): Promise<"free" | "basic" | "premium"> {
+  static async getUserTier(userId: number): Promise<"free" | "professional"> {
     const trialStatus = await this.getUserTrialStatus(userId);
     if (trialStatus.isActive) {
       return trialStatus.tier;

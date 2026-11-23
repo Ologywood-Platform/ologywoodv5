@@ -93,7 +93,7 @@ export function getSubscriptionUpgradedEmailTemplate(params: {
   const { recipientName, oldPlan, newPlan, newPrice, currency, effectiveDate, baseUrl = process.env.BASE_URL || 'https://ologywood.com' } = params;
 
   return {
-    subject: 'Subscription Upgraded - Welcome to Premium! 🎉',
+    subject: 'Subscription upgraded — welcome to your new plan',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #10b981;">Subscription Upgraded!</h2>
@@ -107,7 +107,7 @@ export function getSubscriptionUpgradedEmailTemplate(params: {
           <p><strong>Effective Date:</strong> ${effectiveDate}</p>
         </div>
         
-        <p>You now have access to premium features including:</p>
+        <p>You now have access to the features included with your new plan:</p>
         <ul style="line-height: 1.8;">
           <li>Priority booking requests</li>
           <li>Advanced analytics and insights</li>
@@ -117,7 +117,7 @@ export function getSubscriptionUpgradedEmailTemplate(params: {
         </ul>
         
         <a href="${baseUrl}/dashboard" style="display: inline-block; background: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
-          Explore Premium Features
+          Explore Your New Features
         </a>
         
         <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
