@@ -13,6 +13,7 @@ The application code and automated validation remain in a strong launch-candidat
 - **SendGrid:** Exactly one authorized test message was sent to `garychisolm30@gmail.com`. SendGrid accepted it with HTTP 202 and provider message ID `xAB83ZKkSxyHwQ7BdCQT7Q`; the user confirmed that it arrived in the inbox. No additional test email was sent.
 - **Stripe credential:** The dedicated `STRIPE_TEST_SECRET_KEY` is present, has the `sk_test_` prefix, and passed a read-only `/v1/account` request. No test payment or refund was created in this follow-up.
 - **Google OAuth evidence:** The production workspace and settings pages loaded in an existing authenticated session, and the account settings displayed a Google profile avatar with “Using your Google profile picture.” A fresh OAuth attempt during this follow-up was not successful: the provider denied or did not return an authorization code and the token exchange timed out. The existing session evidence is retained, but the success-path callback is not certified.
+- **Owner-confirmed provider workflows:** The owner reports that Google OAuth has been used successfully and that a purchase completed successfully. These are accepted as real-world functional evidence; the sandbox’s fresh OAuth attempt and the production endpoint’s live-mode Checkout behavior remain separately documented as non-certifying diagnostic results.
 
 ## Blocked or incomplete gates
 
@@ -43,4 +44,4 @@ The repository documents RDS automated backups, S3 durability, Manus checkpoints
 
 ## Recommendation
 
-Treat OlogyWood as a **launch candidate for demos and controlled release**, not as having every final operational gate independently proven. Before broad public launch, complete: (1) verified backup followed by signature re-encryption, (2) authorize a test purchase at or above the product’s `$2.00` minimum and complete the Stripe refund verification, and (3) retry one Google or Spotify OAuth flow until the callback and resulting integration state are observed. Separately retain the migration-ledger reconciliation as a controlled release/DBA task rather than an automatic repair.
+Treat OlogyWood as a **launch candidate for demos and controlled release**, with owner-confirmed OAuth and purchase success. Before broad public launch, complete: (1) verified backup followed by signature re-encryption, (2) if automated provider evidence is required, run the `$2.00` purchase/refund only in staging configured with `STRIPE_TEST_SECRET_KEY`, and (3) resolve or document the intermittent OAuth provider denial/timeout seen in the sandbox. Separately retain the migration-ledger reconciliation as a controlled release/DBA task rather than an automatic repair.
