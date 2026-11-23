@@ -53,5 +53,8 @@ describe('OAuth state security', () => {
     expect(calendar).toContain('reason=provider_denied');
     expect(google).not.toContain('oauth_error=${error}');
     expect(spotify).not.toContain('oauth_error=${error}');
+    expect(google).toContain('function getPublicOrigin(req: Request)');
+    expect(google).toContain('x-forwarded-host');
+    expect(google).toContain("process.env.BASE_URL.replace(/\\/$/, '')");
   });
 });

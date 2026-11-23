@@ -26,19 +26,25 @@ function getGoogleClientSecret(): string {
   return process.env.GOOGLE_CLIENT_SECRET || '';
 }
 
-function getRedirectUri(req: Request): string {
-  // In production, always use BASE_URL to avoid Cloud Run internal hostname mismatch
-  if (process.env.BASE_URL) {
-    return `${process.env.BASE_URL}/api/auth/google/callback`;
-  }
+function getPublicOrigin(req: Request): string {
+  // Prefer the configured public origin, but keep the callback self-consistent
+  // for deployments where BASE_URL is not injected and the proxy forwards host.
+  if (process.env.BASE_URL) return process.env.BASE_URL.replace(/\/$/, '');
   const proto = req.headers['x-forwarded-proto'] || req.protocol || 'https';
-  const host = req.headers['x-forwarded-host'] || req.headers.host || '';
-  return `${proto}://${host}/api/auth/google/callback`;
+  const protoValue = Array.isArray(proto) ? proto[0] : String(proto).split(',')[0].trim();
+  const forwardedHost = req.headers['x-forwarded-host'];
+  const hostValue = Array.isArray(forwardedHost)
+    ? forwardedHost[0]
+    : String(forwardedHost || req.headers.host || '').split(',')[0].trim();
+  return hostValue ? `${protoValue}://${hostValue}` : '';
+}
+
+function getRedirectUri(req: Request): string {
+  return `${getPublicOrigin(req)}/api/auth/google/callback`;
 }
 
 function getOrigin(req: Request): string {
-  // Production uses the configured public origin; local/dev callbacks use relative redirects.
-  return process.env.BASE_URL || '';
+  return getPublicOrigin(req);
 }
 
 /**
