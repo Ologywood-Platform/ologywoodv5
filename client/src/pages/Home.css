@@ -681,6 +681,45 @@
   background: #241c37;
   color: #d0b1ff;
 }
+.home-redesign .home-founder {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+  padding: 30px;
+  margin-top: 12px;
+  background:
+    linear-gradient(135deg, #18132a, #111724 65%),
+    #111724;
+  border: 1px solid #3a2e59;
+  border-radius: 14px;
+}
+.home-redesign .home-founder-mark {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  color: #d3b5ff;
+  background: #2d2047;
+  border: 1px solid #6849a0;
+  border-radius: 14px;
+}
+.home-redesign .home-founder-copy {
+  max-width: 760px;
+}
+.home-redesign .home-founder-copy h2 {
+  max-width: 700px;
+  font-size: clamp(24px, 3vw, 36px);
+  line-height: 1.12;
+  margin-bottom: 14px;
+}
+.home-redesign .home-founder-copy > p:not(.home-eyebrow) {
+  max-width: 680px;
+  color: #c3cada;
+  font-size: 14px;
+  line-height: 1.8;
+  margin-bottom: 18px;
+}
 .home-redesign .home-principles {
   padding-block: 45px;
   text-align: center;
@@ -891,7 +930,11 @@
   .home-redesign .home-tools-grid,
   .home-redesign .home-trust-grid,
   .home-redesign .home-how {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: 1fr;
+  }
+  .home-redesign .home-founder {
+    grid-template-columns: 1fr;
+    padding: 24px;
   }
   .home-redesign .home-tools {
     padding-block: 36px 25px;

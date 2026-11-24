@@ -745,6 +745,28 @@ export default function Home() {
           <SuggestedFollows />
         </section>
         <section
+          className="home-container home-founder"
+          aria-labelledby="home-founder-title"
+        >
+          <div className="home-founder-mark" aria-hidden="true">
+            <Sparkles className="h-6 w-6" />
+          </div>
+          <div className="home-founder-copy">
+            <p className="home-eyebrow">BUILT FROM EXPERIENCE</p>
+            <h2 id="home-founder-title">Built on the stage, behind the scenes, and in the studio.</h2>
+            <p>
+              OlogyWood was created by Gary Chisolm, an artist, songwriter,
+              producer, audio engineer, and entertainment professional who has
+              experienced the industry from multiple sides. He built OlogyWood
+              to help independent talent get discovered, build connections, and
+              create more ownership around their careers.
+            </p>
+            <Link href="/about" className="home-text-link">
+              Read the founder's story <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </section>
+        <section
           className="home-container home-principles"
           aria-labelledby="home-principles-title"
         >

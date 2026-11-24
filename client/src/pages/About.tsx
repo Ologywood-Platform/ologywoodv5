@@ -43,6 +43,32 @@ export default function About() {
         </div>
       </section>
 
+      {/* Founder Story */}
+      <section className="border-y border-purple-100 bg-gradient-to-br from-purple-50 via-white to-indigo-50 py-20">
+        <div className="mx-auto grid max-w-5xl gap-10 px-4 md:grid-cols-[0.8fr_1.4fr] md:items-start">
+          <div>
+            <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-purple-700">The founder's story</p>
+            <h2 className="text-3xl font-bold leading-tight text-gray-900 md:text-4xl">Built from experience.</h2>
+            <p className="mt-5 text-lg leading-8 text-gray-600">From singing in Jacksonville to building behind the scenes, OlogyWood grew from a lifetime in entertainment.</p>
+          </div>
+          <div className="space-y-5 text-base leading-8 text-gray-700">
+            <p>My journey to building OlogyWood began long before I thought about creating a platform. I started as a singer in Jacksonville, Florida, where music introduced me to performers, musicians, producers, and the people working behind the scenes to bring creative projects to life.</p>
+            <p>I later became part of the group Mamado and She, where I played keyboards, sang background vocals, and shared lead vocals on “R.U.N. 2 Me.” Those early experiences gave me my first real understanding of the music business—not only as a performer, but as someone learning how many people and skills are required to create opportunities.</p>
+            <p>After moving to Atlanta, I continued writing and producing. I worked with Tommy Henderson and had the opportunity to produce interludes for 4th Avenue. Through those connections, I was introduced to other professionals in the entertainment industry and spent time developing songs and creative projects at UpFront Entertainment, including writing sessions with Akon.</p>
+            <p>As my career evolved, I moved deeper into audio engineering, live production, corporate events, and entertainment technology. I learned how to support artists and productions from behind the scenes, solve technical problems, and help turn ideas into experiences that audiences could connect with.</p>
+            <p>Those experiences shaped the idea for OlogyWood. I saw how difficult it can be for independent artists and creators to manage their profiles, promote their work, find opportunities, connect with fans, sell products, and organize the business side of their careers. Too often, these functions are scattered across different platforms, each with its own limitations.</p>
+            <p>OlogyWood is designed to bring together artist profiles, booking, music, events, ticketing, fan support, merchandise, and creator opportunities in one place. The goal is to give artists and creators better tools to present their work, build professional connections, and create more ownership around their careers.</p>
+            <p>For a long time, building a platform like this would have required a large development team and resources that were out of reach. As technology made software development more accessible, I realized I could begin turning the vision in my head into something real.</p>
+            <p className="text-xl font-semibold leading-8 text-purple-900">So I started.</p>
+            <p>OlogyWood is the result of my experiences as an artist, songwriter, producer, engineer, and builder. It is also a reflection of what I believe the entertainment industry can become: more accessible, more connected, and more empowering for people who may not have access to traditional pathways.</p>
+            <p>I have been fortunate to have people recognize the vision and encourage me along the way, including John Christmas, my legal advisor, who has supported what I am building and introduced me to people who are now part of the OlogyWood community.</p>
+            <p>This is not just a technology project to me. It is a platform built from years of experience, curiosity, problem-solving, and a belief that talented people deserve better ways to be discovered, booked, supported, and paid.</p>
+            <p>It has been a long journey, but I feel like I am just getting started.</p>
+            <p className="font-semibold text-gray-900">— Gary Chisolm, Founder</p>
+          </div>
+        </div>
+      </section>
+
       {/* The Five Principles */}
       <section className="bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 py-20">
         <div className="max-w-5xl mx-auto px-4">
