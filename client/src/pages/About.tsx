@@ -47,7 +47,32 @@ export default function About() {
       <section className="border-y border-purple-100 bg-gradient-to-br from-purple-50 via-white to-indigo-50 py-20">
         <div className="mx-auto grid max-w-5xl gap-10 px-4 md:grid-cols-[0.8fr_1.4fr] md:items-start">
           <div>
-            <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-purple-700">The founder's story</p>
+            <figure className="relative mx-auto max-w-sm md:mx-0">
+              <div className="overflow-hidden rounded-2xl bg-gray-900 shadow-2xl ring-1 ring-purple-200">
+                <img
+                  src="/manus-storage/492020597_9629250343808138_7224572203166570567_n_958a6533.jpg"
+                  alt="Gary Chisolm, founder of OlogyWood"
+                  className="aspect-[7/8] w-full object-cover grayscale"
+                  loading="lazy"
+                  decoding="async"
+                  width="840"
+                  height="960"
+                />
+              </div>
+              <div className="absolute -bottom-6 -right-4 w-28 overflow-hidden rounded-xl border-4 border-white bg-black shadow-xl sm:w-36">
+                <img
+                  src="/manus-storage/486320892_9430608620338979_462807889778603020_n_819d60bd.jpg"
+                  alt="Illustrated portrait of Gary Chisolm"
+                  className="aspect-square w-full object-cover"
+                  loading="lazy"
+                  decoding="async"
+                  width="600"
+                  height="600"
+                />
+              </div>
+              <figcaption className="mt-9 text-sm font-medium text-gray-600">Gary Chisolm · Founder, OlogyWood</figcaption>
+            </figure>
+            <p className="mt-10 mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-purple-700">The founder's story</p>
             <h2 className="text-3xl font-bold leading-tight text-gray-900 md:text-4xl">Built from experience.</h2>
             <p className="mt-5 text-lg leading-8 text-gray-600">From singing in Jacksonville to building behind the scenes, OlogyWood grew from a lifetime in entertainment.</p>
           </div>
