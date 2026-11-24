@@ -198,6 +198,15 @@ export const pageMetaTags = {
     ogUrl: `${BASE_URL}/contact`,
   },
 
+  about: {
+    title: 'Our Story - Gary Chisolm, Founder of Ologywood',
+    description: 'Meet Gary Chisolm, the artist, songwriter, producer, and audio engineer who founded Ologywood to help independent talent build opportunities.',
+    keywords: 'Gary Chisolm, Ologywood founder, artist entrepreneur, entertainment platform, independent talent',
+    ogImage: DEFAULT_OG_IMAGE,
+    ogImageAlt: 'Gary Chisolm, founder of Ologywood',
+    ogUrl: `${BASE_URL}/about`,
+  },
+
   venues: {
     title: 'Browse Venues - Ologywood',
     description: 'Discover venues looking for talented performers. Browse venue profiles, upcoming events, and booking opportunities.',

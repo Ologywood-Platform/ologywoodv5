@@ -1,8 +1,15 @@
 import { Link } from "wouter";
+import { useEffect } from "react";
 import { ArrowLeft, Compass, Users, Heart, Key, Landmark, Sparkles, Globe, Cpu, BookOpen, Crown, Lightbulb, Handshake, Linkedin } from "lucide-react";
 import { SiteHeader } from "@/components/SiteHeader";
+import { JsonLd, buildBreadcrumbJsonLd } from "@/components/JsonLd";
+import { pageMetaTags, setMetaTags } from "@/utils/seoMeta";
 
 export default function About() {
+  useEffect(() => {
+    setMetaTags(pageMetaTags.about);
+  }, []);
+
   const handleBack = () => {
     if (window.history.length > 1) {
       window.history.back();
@@ -13,6 +20,32 @@ export default function About() {
 
   return (
     <div className="min-h-screen bg-white">
+      <JsonLd
+        data={[
+          {
+            "@context": "https://schema.org",
+            "@type": "Person",
+            name: "Gary Chisolm",
+            jobTitle: "Founder",
+            url: "https://www.ologywood.com/about",
+            image: "https://www.ologywood.com/manus-storage/492020597_9629250343808138_7224572203166570567_n_958a6533.jpg",
+            sameAs: [
+              "https://www.linkedin.com/in/gary-chisolm-ab835241/",
+              "https://x.com/ChizoWorldwide",
+            ],
+            worksFor: {
+              "@type": "Organization",
+              name: "OlogyWood",
+              url: "https://www.ologywood.com",
+            },
+          },
+          buildBreadcrumbJsonLd([
+            { name: "Home", url: "/" },
+            { name: "Our Story", url: "/about" },
+          ]),
+        ]}
+        id="about"
+      />
       <SiteHeader />
       {/* Back Button */}
       <div className="max-w-5xl mx-auto px-4 pt-6">
