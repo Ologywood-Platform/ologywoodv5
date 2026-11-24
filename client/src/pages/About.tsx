@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { ArrowLeft, Compass, Users, Heart, Key, Landmark, Sparkles, Globe, Cpu, BookOpen, Crown, Lightbulb, Handshake } from "lucide-react";
+import { ArrowLeft, Compass, Users, Heart, Key, Landmark, Sparkles, Globe, Cpu, BookOpen, Crown, Lightbulb, Handshake, Linkedin } from "lucide-react";
 import { SiteHeader } from "@/components/SiteHeader";
 
 export default function About() {
@@ -71,6 +71,28 @@ export default function About() {
                 />
               </div>
               <figcaption className="mt-9 text-sm font-medium text-gray-600">Gary Chisolm · Founder, OlogyWood</figcaption>
+              <div className="mt-4 flex flex-wrap gap-3" aria-label="Gary Chisolm social profiles">
+                <a
+                  href="https://www.linkedin.com/in/gary-chisolm-ab835241/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-purple-200 bg-white px-3 py-2 text-sm font-semibold text-purple-800 transition-colors hover:border-purple-400 hover:bg-purple-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                  aria-label="Connect with Gary Chisolm on LinkedIn (opens in a new tab)"
+                >
+                  <Linkedin className="h-4 w-4" aria-hidden="true" />
+                  LinkedIn
+                </a>
+                <a
+                  href="https://x.com/ChizoWorldwide"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-purple-200 bg-white px-3 py-2 text-sm font-semibold text-purple-800 transition-colors hover:border-purple-400 hover:bg-purple-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                  aria-label="Follow Gary Chisolm on X (opens in a new tab)"
+                >
+                  <span className="text-sm font-bold" aria-hidden="true">𝕏</span>
+                  X
+                </a>
+              </div>
             </figure>
             <p className="mt-10 mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-purple-700">The founder's story</p>
             <h2 className="text-3xl font-bold leading-tight text-gray-900 md:text-4xl">Built from experience.</h2>
